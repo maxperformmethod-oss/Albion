@@ -1,32 +1,20 @@
 ---
-// Dočasná držiaca stránka Fázy 1.
-// Fáza 3 ju prepíše na BaseLayout, Fáza 4 doplní sekcie. Pozri PLAN.md §2.
-import '../styles/global.css';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/sections/Hero.astro';
+import WhatWeAccept from '../components/sections/WhatWeAccept.astro';
+import Valuation from '../components/sections/Valuation.astro';
+import HowItWorks from '../components/sections/HowItWorks.astro';
+import WhyAlbion from '../components/sections/WhyAlbion.astro';
+import Location from '../components/sections/Location.astro';
+import Contact from '../components/sections/Contact.astro';
 ---
 
-<!doctype html>
-<html lang="sk">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="robots" content="noindex" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <title>Albion — Záložňa Lučenec</title>
-  </head>
-  <body class="min-h-dvh bg-ink-900 text-bone">
-    <main class="mx-auto flex min-h-dvh max-w-2xl flex-col justify-center px-6">
-      <p class="font-sans text-xs tracking-[0.2em] text-bone-muted uppercase">
-        Záložňa · Lučenec
-      </p>
-      <h1 class="font-serif mt-4 text-5xl leading-tight">Albion</h1>
-      <p class="text-bone-muted mt-6 max-w-prose">
-        Stránka sa pripravuje. Technický základ (Fáza 1) je hotový, obsah pribúda
-        vo Fáze 4. Diakritika na kontrolu: ľťďĺŕčšžýáíéôäúňó.
-      </p>
-      <hr class="border-hairline-dark my-10" />
-      <p class="text-bone-muted text-sm">
-        Toto je dočasná stránka, ktorá sa nasadzovať nemá.
-      </p>
-    </main>
-  </body>
-</html>
+<BaseLayout stickyCallBar>
+  <Hero />
+  <WhatWeAccept />
+  <Valuation />
+  <HowItWorks />
+  <WhyAlbion />
+  <Location />
+  <Contact />
+</BaseLayout>

@@ -1,0 +1,29 @@
+---
+import Section from '../ui/Section.astro';
+import { content } from '../../data/content.ts';
+
+const { id, h2, lead, items, outro } = content.whatWeAccept;
+---
+
+<Section tone="paper" id={id} labelledby="what-we-accept-title">
+  <h2 id="what-we-accept-title" class="font-serif text-h2 max-w-[20ch]" data-reveal>
+    {h2}
+  </h2>
+
+  <p class="text-lead text-ink-muted measure mt-6" data-reveal>{lead}</p>
+
+  <ul class="mt-14 grid grid-cols-1 gap-x-10 sm:grid-cols-2 lg:grid-cols-4">
+    {
+      items.map((item) => (
+        <li
+          class="border-hairline-light font-serif text-h3 border-t py-5"
+          data-reveal
+        >
+          {item}
+        </li>
+      ))
+    }
+  </ul>
+
+  <p class="text-ink-muted measure mt-12" data-reveal>{outro}</p>
+</Section>

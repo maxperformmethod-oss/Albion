@@ -1,0 +1,42 @@
+---
+import Section from '../ui/Section.astro';
+import { business, isConfirmed } from '../../data/business.ts';
+import { content } from '../../data/content.ts';
+
+const { id, h2, steps } = content.howItWorks;
+
+// Poznámka o dokladoch sa vykreslí len keď je potvrdená (BRIEF §7/5).
+const requiredDocuments = isConfirmed(business.requiredDocuments)
+  ? business.requiredDocuments
+  : null;
+---
+
+<Section tone="paper" id={id} labelledby="how-it-works-title">
+  <h2 id="how-it-works-title" class="font-serif text-h2" data-reveal>{h2}</h2>
+
+  <ol class="mt-14 grid grid-cols-1 gap-x-12 gap-y-10 md:grid-cols-3">
+    {
+      steps.map((step, index) => (
+        <li class="border-hairline-light border-t pt-6" data-reveal>
+          <span
+            class="font-serif text-gold-ink block text-2xl"
+            aria-hidden="true"
+            data-numeric
+          >
+            {String(index + 1).padStart(2, '0')}
+          </span>
+          <h3 class="font-serif text-h3 mt-3">{step.title}</h3>
+          <p class="text-ink-muted mt-3">{step.text}</p>
+        </li>
+      ))
+    }
+  </ol>
+
+  {
+    requiredDocuments && (
+      <p class="text-ink-muted measure text-small mt-12" data-reveal>
+        {requiredDocuments}
+      </p>
+    )
+  }
+</Section>

@@ -1,0 +1,60 @@
+---
+import Button from '../ui/Button.astro';
+import Eyebrow from '../ui/Eyebrow.astro';
+import { content } from '../../data/content.ts';
+import { primaryCta, hasPhone } from '../../lib/cta.ts';
+
+/**
+ * Hero nepoužíva Section.astro — má vlastný vertikálny rytmus (prekrýva ho
+ * fixná hlavička) a sentinel pre sticky call bar.
+ *
+ * Ak telefón chýba, primárne CTA je už „Chcem oceniť vec“, takže sekundárne
+ * tlačidlo by bolo jeho duplikát. Vtedy sa nevykreslí.
+ */
+const showSecondary = hasPhone;
+---
+
+<section aria-labelledby="hero-title" class="bg-ink-900 relative">
+  <div
+    class="container-page flex min-h-[min(100svh,44rem)] flex-col justify-center pt-32 pb-20"
+  >
+    <Eyebrow data-reveal>{content.hero.eyebrow}</Eyebrow>
+
+    <h1
+      id="hero-title"
+      class="font-serif text-display mt-6 max-w-[18ch]"
+      data-reveal
+    >
+      {content.hero.h1}
+    </h1>
+
+    <p class="text-lead text-bone-muted measure mt-7" data-reveal>
+      {content.hero.lead}
+    </p>
+
+    <div class="mt-10 flex flex-wrap items-center gap-3" data-reveal>
+      <Button
+        href={primaryCta.href}
+        icon={primaryCta.icon}
+        label={primaryCta.label}
+      >
+        {primaryCta.text}
+      </Button>
+
+      {
+        showSecondary && (
+          <Button variant="ghost" href="#kontakt">
+            {content.hero.ctaSecondary}
+          </Button>
+        )
+      }
+    </div>
+
+    <p class="text-bone-muted mt-9 text-[0.8125rem]" data-reveal>
+      {content.hero.micro}
+    </p>
+  </div>
+
+  {/* Sentinel pre sticky call bar — nesmie zmiznúť, je to riadiaci prvok. */}
+  <div id="hero-sentinel" aria-hidden="true" class="h-px w-full"></div>
+</section>

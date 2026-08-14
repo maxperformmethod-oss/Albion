@@ -148,8 +148,19 @@ export const content = {
     closedNow: 'Momentálne zatvorené',
   },
 
+  stickyBar: {
+    maps: 'Mapa',
+  },
+
   footer: {
     quickLinksHeading: 'Rýchle odkazy',
+    /**
+     * Adresa do NAP bloku, kým `business.street` nie je potvrdená. Znenie sa
+     * zhoduje so schváleným hero eyebrow (BRIEF §7). Keď príde potvrdená
+     * adresa, NAP sa skladá z business.ts a toto pole zaniká.
+     * Viď docs/OTAZKY.md #1.
+     */
+    addressFallback: 'Kapitána Nálepku 41, Lučenec',
     /** {year} sa nahradí aktuálnym rokom. */
     copyright: '© {year} Albion',
     /** {ico} a {legalName} sa doplnia len ak sú potvrdené. */

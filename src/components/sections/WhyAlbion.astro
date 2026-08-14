@@ -1,0 +1,33 @@
+---
+import Section from '../ui/Section.astro';
+import { business } from '../../data/business.ts';
+import { content } from '../../data/content.ts';
+
+const { id, h2, items, foundedSentence } = content.whyAlbion;
+
+/**
+ * Rok sa doplní iba pri potvrdenom `foundedYearConfirmed`. Kým je `false`,
+ * bod „Dlhoročná miestna firma“ stojí bez neho — žiadna diera v layoute.
+ */
+const foundedPrefix = business.foundedYearConfirmed
+  ? `${foundedSentence.replace('{year}', String(business.foundedYear))} `
+  : '';
+
+const withPrefix = (title: string, text: string) =>
+  title === 'Dlhoročná miestna firma' ? `${foundedPrefix}${text}` : text;
+---
+
+<Section tone="ink-soft" id={id} labelledby="why-albion-title">
+  <h2 id="why-albion-title" class="font-serif text-h2" data-reveal>{h2}</h2>
+
+  <ul class="mt-14 grid grid-cols-1 gap-x-12 gap-y-10 md:grid-cols-2">
+    {
+      items.map((item) => (
+        <li class="border-hairline-dark border-t pt-6" data-reveal>
+          <h3 class="font-serif text-h3">{item.title}</h3>
+          <p class="text-bone-muted mt-3">{withPrefix(item.title, item.text)}</p>
+        </li>
+      ))
+    }
+  </ul>
+</Section>

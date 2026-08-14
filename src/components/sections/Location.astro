@@ -1,0 +1,29 @@
+---
+import Section from '../ui/Section.astro';
+import Button from '../ui/Button.astro';
+import { content } from '../../data/content.ts';
+import { mapsUrl } from '../../lib/cta.ts';
+
+const { id, h2, text, cta } = content.location;
+
+// Žiadny <iframe> mapy a žiadny statický screenshot (BRIEF §13) — len
+// typografický blok a odkaz do Máp. Ak URL nie je potvrdená, odkaz zanikne.
+---
+
+<Section tone="ink" id={id} labelledby="location-title">
+  <div class="measure">
+    <h2 id="location-title" class="font-serif text-h2" data-reveal>{h2}</h2>
+
+    <p class="text-lead text-bone-muted mt-6" data-reveal>{text}</p>
+
+    {
+      mapsUrl && (
+        <div class="mt-8" data-reveal>
+          <Button variant="link" href={mapsUrl} icon="map-pin">
+            {cta}
+          </Button>
+        </div>
+      )
+    }
+  </div>
+</Section>
