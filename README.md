@@ -94,10 +94,12 @@ s kotvou na `#kontakt`, aby web nikdy neostal bez primárnej akcie.
 
 ---
 
-## Známe otvorené body
+## Dokumentácia
 
-- **Farebné tokeny v `global.css`** — časť hodnôt (`ink-900`, `ink-800`, `paper`,
-  `bone`, `hairline-*`) je spätne dopočítaná z kontrastných pomerov v zadaní,
-  nie prepísaná zo zdroja. Sedia na uvedené pomery, ale pred Fázou 2 ich treba
-  prepísať presnými hodnotami z kap. 5 briefu. V súbore sú označené `⚠ REKONŠTRUOVANÉ`.
-- **`src/data/content.ts`** — čaká na schválené SK texty (kap. 7.1 briefu).
+| Súbor | Čo je v ňom |
+|---|---|
+| [docs/BRIEF.md](docs/BRIEF.md) | zdroj pravdy — dizajn, texty, pravidlá. Neprepisovať. |
+| [docs/FIRMA_UDAJE.md](docs/FIRMA_UDAJE.md) | nájdené, **neoverené** údaje o firme. Nič odtiaľ nejde do `business.ts`. |
+| [docs/NEXT.md](docs/NEXT.md) | aktuálne pokyny |
+| [docs/OTAZKY.md](docs/OTAZKY.md) | otvorené otázky |
+| `docs/REPORT_faza<N>.md` | čo sa v danej fáze urobilo a čo je overené |

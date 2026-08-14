@@ -56,6 +56,12 @@ export interface Business {
 
   openingHours: Confirmable<OpeningInterval[]>;
 
+  /**
+   * Doklady, ktoré si zákazník má priniesť. Poznámka pod krokmi v sekcii
+   * „Ako to funguje“ sa vykreslí len ak je toto potvrdené.
+   */
+  requiredDocuments: Confirmable<string>;
+
   foundedYear: number;
   /**
    * Rok 2001 zatiaľ nie je potvrdený. Kým je `false`, veta s rokom sa nikde
@@ -93,6 +99,7 @@ export const business: Business = {
   mapsUrl: TO_CONFIRM,
 
   openingHours: TO_CONFIRM,
+  requiredDocuments: TO_CONFIRM,
 
   foundedYear: 2001,
   foundedYearConfirmed: false,
@@ -106,6 +113,8 @@ export const business: Business = {
  * či je príslušný údaj potvrdený — nie podľa flagu.
  */
 export const FEATURES = {
+  /** Sekcia „Vybraný tovar“ — neimplementovaná, BRIEF.md §6. */
+  showcaseEnabled: false,
   /** Sticky call bar na mobile (< 768 px). */
   stickyCallBar: true,
   /** Jemné odhalenie sekcií pri scrollovaní. Bez JS je obsah vždy viditeľný. */
