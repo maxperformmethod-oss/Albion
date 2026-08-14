@@ -295,56 +295,73 @@ je v pláne aj manuálny axe beh.
 | JSON-LD bez vymyslených hodnôt | ✅ |
 | Rich Results Test | ⏳ potrebuje verejnú URL |
 
+
 ---
 
 ## Produkcia
 
-> Doplnené 14. 8. 2026 pri fáze 9 (`docs/PROMPT_FINAL2.md` §3).
+> Doplnené 14. 8. 2026 vo fáze 10. Nahrádza pôvodný oddiel, ktorý bol písaný
+> ešte bez prístupu k produkčnej adrese.
 
-### Čo sa nedalo urobiť a prečo
+Produkcia: **https://albion-bf4w.vercel.app**
 
-**Produkčnú URL nemám a z tohto stroja sa k nej neviem dostať.** Vercel účet
-napojený na tento nástroj (`maximmalovec8-6717's projects`) **nemá ani jeden
-projekt**, v repe nie je `.vercel/`, `git remote` ukazuje len na GitHub a nikde
-v repe nie je zapísaná žiadna `*.vercel.app` adresa. Nedá sa teda ani nastaviť
-`PUBLIC_SITE_URL`, ani premerať LCP na produkcii, ani overiť canonical a sitemap
-na živej doméne.
+### Doména
 
-Nepodsúvam odhad — merať sa dá len to, k čomu je prístup.
+`PUBLIC_SITE_URL` sa nedala nastaviť vo Vercel dashboarde — účet napojený na
+tento nástroj (`maximmalovec8-6717's projects`) projekt nevidí, deploy beží pod
+iným účtom (`rps-2022`). Riešené v kóde, čo je aj tak trvácnejšie:
 
-### Čo je pripravené, aby to bolo na jeden krok
+Produkčná adresa je predvolená hodnota v `astro.config.mjs` aj v
+`src/data/business.ts`. **`VERCEL_URL` sa už nepoužíva** — nesie adresu
+konkrétneho nasadenia, takže canonical, `og:url` aj sitemap ukazovali pri
+každom deploji inam:
 
-1. `vercel.json` je v koreni repa (framework `astro`, `npm ci`, `dist`) — rieši
-   pád „No Next.js version detected" z `docs/FIX_VERCEL.md` a už sa to nerozíde
-   s dashboardom. `package-lock.json` je commitnutý, takže `npm ci` prejde.
-2. `engines.node` je priklincované na `22.x`, nie na otvorený rozsah.
-3. Rozlíšenie domény (`src/data/business.ts`, `astro.config.mjs`) je
-   `PUBLIC_SITE_URL` → `VERCEL_URL` → localhost. Aj bez zásahu teda po nasadení
-   canonical, `og:url` a sitemap ukážu na `*.vercel.app`; po nastavení
-   `PUBLIC_SITE_URL` na skutočnú doménu sa v kóde nemení nič.
-4. `isLocalSiteUrl` naďalej drží localhost mimo JSON-LD a OG.
+```
+<link rel="canonical" href="https://albion-bf4w-8sohs37r3-rps-2022.vercel.app/">
+```
 
-### Čo treba spraviť, keď bude URL
+Toto Google vyhodnotí ako duplicitu. Canonical musí ukazovať na produkciu aj
+z preview nasadenia. `PUBLIC_SITE_URL` má naďalej prednosť, takže vlastná
+doména sa neskôr nastaví bez zásahu do kódu.
 
-1. Vercel → Settings → Environment Variables → `PUBLIC_SITE_URL` pre Production
-   **aj** Preview, potom **redeploy** (env sa aplikuje až pri novom builde).
-2. Overiť na živej stránke: `<link rel="canonical">`, `og:url`,
-   `/sitemap-index.xml`.
-3. Premerať LCP na produkcii (Slow 4G + 4× CPU) a číslo dopísať sem.
+Overené vo výstupe: canonical aj `og:url` = `https://albion-bf4w.vercel.app/`,
+`sitemap-0.xml` obsahuje homepage a obe právne stránky (404 správne nie).
+JSON-LD už obsahuje `url` aj `image` — dovtedy ich `isLocalSiteUrl` vyhadzoval.
 
-### Lokálne meranie na produkčnom builde — pre porovnanie
+### LCP na produkcii
 
-Bez throttlingu, `astro preview`, Chrome headless cez CDP, studená cache:
+Chrome cez CDP, studená cache, **Slow 4G + 4× CPU** — rovnaké nastavenie ako
+Lighthouse mobile, teda porovnateľné s pôvodnými 2,32 s z laboratória.
 
-| Metrika | Desktop 1440×900 | Mobil 390×844 |
+| Prostredie | Viewport | LCP |
 |---|---|---|
-| LCP | 176–472 ms | 176–368 ms |
-| Requesty | 10 | 9 |
-| Váha stránky po prejdení celej stránky | 282 kB | 261 kB |
-| Third-party | 0 | 0 |
-| Cookies | 0 | 0 |
+| Produkcia (Vercel, HTTP/2 + Brotli + CDN) | 390 × 844 | **1,86 – 2,18 s** |
+| Produkcia | 1440 × 900 | **1,99 s** |
+| Lokálne laboratórium (fáza 6) | 412 × 915 | 2,32 s |
+| Produkcia, bez throttlingu | 390 × 844 | 0,52 s |
 
-Nie je to náhrada za produkčné meranie — chýba latencia, throttling aj CDN.
-Hovorí len toľko, že na strane stránky nepribudla žiadna nová brzda: proti
-fáze 6 pribudli tri dekoratívne textúry (spolu 28 kB AVIF, všetky `lazy`) a
-inline SVG schéma mapy, a počet requestov ostal jednociferný.
+**Cieľ < 1,8 s tesne nevyšiel.** Tvoja analýza z `PROMPT_FINAL2.md` §3 sedela —
+produkcia oproti laboratóriu ubrala ~0,4 s a nebolo to o veľkosti obrazu.
+
+Waterfall na mobile (throttled, ms od navigácie):
+
+```
+hero-m-480.avif                        304 →  580
+source-serif-4-latin.woff2             310 →  951
+source-serif-4-latin-ext.woff2         312 →  916
+inter-latin.woff2            (47 kB)   599 → 2372
+inter-latin-ext.woff2        (83 kB)   719 → 2546
+```
+
+Hero obraz **štartuje v prvej dávke** a je hotový za 580 ms — preload funguje
+a obraz nie je podozrivý (8 kB). Poradie preloadov je tiež v poriadku.
+
+Zdržuje **Inter**: dva súbory, 130 kB, nie sú preloadované a linku držia
+obsadenú do ~2,5 s. Kým dobehnú, text v Inter (lead, micro) sa prekresľuje cez
+`font-display: swap` a LCP sa posúva s ním.
+
+**Ďalší krok — neurobené v tejto dávke, je to samostatná zmena:** zúžiť Inter.
+Používame z neho rezy 400–600, nie celý rozsah 100–900, a `latin-ext` súbor
+(83 kB) nesie celú stredoeurópsku sadu kvôli hŕstke znakov. Podsetovanie na
+skutočne použité znaky a rezy je tu jediná vec s reálnym dopadom. Rozhodne
+o tom viac než čokoľvek na strane obrazu.

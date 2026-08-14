@@ -1,0 +1,13 @@
+---
+import LegalLayout from '../layouts/LegalLayout.astro';
+import { content } from '../data/content.ts';
+
+/**
+ * Indexovateľná zámerne — je to bežná povinná stránka, nie technická.
+ *
+ * NÁVRH PRIPRAVENÝ NEPRÁVNIKOM. Pred spustením webu má text prejsť niekto,
+ * kto sa tomu venuje. Pozri `docs/OTAZKY.md`.
+ */
+---
+
+<LegalLayout page={content.legal.privacy} effective />

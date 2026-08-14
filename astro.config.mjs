@@ -3,12 +3,9 @@ import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 
-// Doména ešte nie je známa: PUBLIC_SITE_URL → VERCEL_URL → localhost.
-// Rovnaké poradie ako `resolveSiteUrl` v src/data/business.ts.
-const site =
-  process.env.PUBLIC_SITE_URL ??
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined) ??
-  'http://localhost:4321';
+// PUBLIC_SITE_URL → produkčný alias. Rovnako ako `resolveSiteUrl`
+// v src/data/business.ts — dôvod, prečo tu nie je VERCEL_URL, je tam.
+const site = process.env.PUBLIC_SITE_URL ?? 'https://albion-bf4w.vercel.app';
 
 export default defineConfig({
   site,

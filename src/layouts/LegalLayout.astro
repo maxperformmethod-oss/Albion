@@ -1,0 +1,122 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { business, isConfirmed, addressWithPostalCode } from '../data/business.ts';
+import { content } from '../data/content.ts';
+import { phoneDisplayLong } from '../lib/cta.ts';
+
+/**
+ * Spoločná sadzba právnych stránok.
+ *
+ * Aj právna stránka je súčasť dojmu — má rovnakú hlavičku, pätičku aj sticky
+ * lištu ako homepage a text v tej istej mierke (`measure`, teda max 68ch).
+ *
+ * Údaje o firme sa dopĺňajú zo `business.ts` cez zástupné znaky. Ak údaj
+ * potvrdený nie je (dnes napr. e-mail), celý riadok sa nevykreslí — na právnej
+ * stránke nesmie ostať prázdne miesto ani `TO_CONFIRM`.
+ */
+export interface LegalSection {
+  h2: string;
+  paragraphs: readonly string[];
+  link?: { href: string; text: string };
+  /**
+   * Miesto, ktoré si najviac pýta právnu kontrolu. Na stránke sa nijako
+   * neprejaví — návštevníkovi do právneho textu taká poznámka nepatrí.
+   * Zoznam je v `docs/OTAZKY.md`.
+   */
+  review?: boolean;
+}
+
+interface Props {
+  page: {
+    title: string;
+    description: string;
+    lead: string;
+    sections: readonly LegalSection[];
+  };
+  /** Dátum účinnosti — dáva zmysel len pri zásadách ochrany údajov. */
+  effective?: boolean;
+}
+
+const { page, effective = false } = Astro.props;
+
+const values: Record<string, string | null> = {
+  '{legalName}': isConfirmed(business.legalName) ? business.legalName : null,
+  '{address}': addressWithPostalCode,
+  '{ico}': isConfirmed(business.icoDisplay) ? business.icoDisplay : null,
+  '{phone}': phoneDisplayLong,
+  '{email}': isConfirmed(business.email) ? business.email : null,
+};
+
+/** Vráti `null`, keď je celý odsek len nepotvrdený údaj. */
+const fill = (text: string): string | null => {
+  let out = text;
+  for (const [token, value] of Object.entries(values)) {
+    if (!out.includes(token)) continue;
+    if (value === null) return null;
+    out = out.replaceAll(token, value);
+  }
+  return out;
+};
+
+const sections = page.sections.map((section) => ({
+  ...section,
+  lines: section.paragraphs.map(fill).filter((line): line is string => line !== null),
+}));
+
+const effectiveDate = new Date(content.legal.effectiveFrom).toLocaleDateString(
+  'sk-SK',
+  { day: 'numeric', month: 'long', year: 'numeric' }
+);
+---
+
+<BaseLayout title={`${page.title} — ${business.shortName}`} description={page.description} stickyCallBar>
+  <article class="bg-ink-900">
+    <div class="container-page pt-32 pb-section">
+      <div class="measure">
+        <h1 class="font-serif text-h2">{page.title}</h1>
+        <p class="text-lead text-bone-muted mt-6">{page.lead}</p>
+      </div>
+
+      {/*
+        Sticky call bar sa riadi týmto sentinelom — objaví sa, až keď prejde
+        nad horný okraj. Na homepage ho vykresľuje hero, tu musí byť tiež,
+        inak by lišta na podstránke nikdy nevyšla.
+      */}
+      <div id="hero-sentinel" aria-hidden="true" class="h-px w-full"></div>
+
+      <div class="measure mt-14 flex flex-col gap-10">
+        {
+          sections.map((section) => (
+            <section>
+              <h2 class="font-serif text-h3">{section.h2}</h2>
+
+              {section.lines.map((line) => (
+                <p class="text-bone-muted mt-3">{line}</p>
+              ))}
+
+              {section.link && (
+                <p class="mt-3">
+                  <a
+                    href={section.link.href}
+                    rel="noopener"
+                    class="text-gold hover:text-gold-hover transition-fast underline decoration-1 underline-offset-4"
+                  >
+                    {section.link.text}
+                  </a>
+                </p>
+              )}
+            </section>
+          ))
+        }
+
+        {
+          effective && (
+            <p class="text-bone-muted border-hairline-dark text-small border-t pt-6">
+              {content.legal.effectiveLabel.replace('{date}', effectiveDate)}
+            </p>
+          )
+        }
+      </div>
+    </div>
+  </article>
+</BaseLayout>

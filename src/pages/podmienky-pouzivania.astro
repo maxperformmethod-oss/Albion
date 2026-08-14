@@ -1,0 +1,11 @@
+---
+import LegalLayout from '../layouts/LegalLayout.astro';
+import { content } from '../data/content.ts';
+
+/**
+ * NÁVRH PRIPRAVENÝ NEPRÁVNIKOM. Pred spustením webu má text prejsť niekto,
+ * kto sa tomu venuje. Pozri `docs/OTAZKY.md`.
+ */
+---
+
+<LegalLayout page={content.legal.terms} />

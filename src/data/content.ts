@@ -204,6 +204,107 @@ export const content = {
     legal: 'Prevádzkovateľ: {legalName} · IČO: {ico}',
   },
 
+  /**
+   * Právne stránky.
+   *
+   * Obe sú **návrh pripravený neprávnikom** — pred spustením ich má prejsť
+   * niekto, kto sa tomu venuje. Miesta, ktoré to potrebujú najviac, sú v
+   * `sections` označené `review: true` a sú vypísané v `docs/OTAZKY.md`.
+   * Marker sa na stránke nevykresľuje; návštevníkovi do právneho textu nič
+   * také nepatrí.
+   *
+   * Zámerne tu NIE JE: zodpovedná osoba (DPO), lehoty uchovávania, právne
+   * základy podľa paragrafov, zoznam sprostredkovateľov a cezhraničné prenosy.
+   * Nič z toho nevieme a vymýšľať sa to nesmie.
+   *
+   * `{legalName}`, `{address}`, `{ico}`, `{phone}` a `{email}` sa skladajú
+   * z business.ts. Ak údaj nie je potvrdený, príslušný riadok sa nevykreslí.
+   */
+  legal: {
+    /**
+     * Dátum účinnosti je konštanta, nie `new Date()` pri buildu. Dátum
+     * účinnosti právneho textu sa nesmie meniť pri každom redeployi —
+     * **pri zmene textu ho prepíš ručne.**
+     */
+    effectiveFrom: '2026-08-14',
+    effectiveLabel: 'Účinnosť od {date}',
+    operatorLabel: 'Prevádzkovateľ',
+    /** Riadok v pätičke, ktorý na tieto stránky odkazuje. */
+    footerHeading: 'Právne informácie',
+
+    privacy: {
+      slug: '/ochrana-osobnych-udajov',
+      title: 'Ochrana osobných údajov',
+      description:
+        'Tento web nezbiera žiadne osobné údaje, nepoužíva cookies ani analytiku. Zásady ochrany osobných údajov záložne Albion v Lučenci.',
+      lead: 'Krátke a pravdivé. Tento web nezbiera osobné údaje, takže nie je čo komplikovať.',
+      sections: [
+        {
+          h2: 'Prevádzkovateľ',
+          paragraphs: ['{legalName}', '{address}', 'IČO: {ico}', 'Telefón: {phone}'],
+        },
+        {
+          h2: 'Aké údaje spracúvame cez tento web',
+          paragraphs: [
+            'Tento web nezbiera žiadne osobné údaje. Nepoužíva cookies, analytické nástroje, sledovacie skripty ani kontaktné formuláre. Nevytvárame účty ani nepracujeme s prihlásením.',
+          ],
+        },
+        {
+          h2: 'Serverové logy',
+          paragraphs: [
+            'Naša stránka je hosťovaná u poskytovateľa Vercel Inc. Ten pri doručovaní stránky spracúva technické údaje vrátane IP adresy v rozsahu bežnom pre prevádzku webu. Neposkytujeme mu žiadne ďalšie údaje o vás.',
+          ],
+        },
+        {
+          h2: 'Keď nám zavoláte alebo prídete',
+          review: true,
+          paragraphs: [
+            'Ak nás kontaktujete telefonicky alebo prídete do prevádzky, spracúvame údaje v rozsahu, ktorý vyžaduje zákon pre poskytovanie záložných služieb a výkup. Tieto údaje nezbierame cez tento web.',
+          ],
+        },
+        {
+          h2: 'Vaše práva',
+          review: true,
+          paragraphs: [
+            'Máte právo na prístup k svojim údajom, na ich opravu, vymazanie, obmedzenie spracúvania, na prenosnosť údajov a právo namietať proti spracúvaniu.',
+            'Uplatniť si ich môžete na kontaktoch nižšie. Ak s vybavením nebudete spokojní, môžete podať sťažnosť na Úrad na ochranu osobných údajov Slovenskej republiky.',
+          ],
+          link: {
+            href: 'https://dataprotection.gov.sk',
+            text: 'dataprotection.gov.sk',
+          },
+        },
+        {
+          h2: 'Kontakt na uplatnenie práv',
+          paragraphs: ['{phone}', '{email}'],
+        },
+      ],
+    },
+
+    terms: {
+      slug: '/podmienky-pouzivania',
+      title: 'Podmienky používania',
+      description:
+        'Podmienky používania webu záložne Albion v Lučenci. Obsah má informačný charakter, konkrétne podmienky dohodneme osobne.',
+      lead: 'Čo tento web je a čo nie je.',
+      sections: [
+        {
+          h2: 'Informačný charakter',
+          review: true,
+          paragraphs: [
+            'Obsah tohto webu má informačný charakter. Nie je návrhom na uzavretie zmluvy ani záväznou ponukou.',
+            'Konkrétne podmienky, ceny a lehoty závisia od individuálneho posúdenia veci a dohodneme sa na nich osobne v prevádzke.',
+            'Uvedené kategórie vecí sú príklady, nie úplný zoznam.',
+          ],
+        },
+        {
+          h2: 'Prevádzkovateľ',
+          paragraphs: ['{legalName}', '{address}', 'IČO: {ico}'],
+        },
+      ],
+    },
+  },
+
   notFound: {
     title: 'Stránka sa nenašla',
     text: 'Táto stránka neexistuje alebo sa presunula. Skúste domovskú stránku, alebo nám rovno zavolajte.',

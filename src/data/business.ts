@@ -92,17 +92,24 @@ const readEnv = (key: string): string | undefined =>
   runtimeEnv?.[key];
 
 /**
- * PUBLIC_SITE_URL → VERCEL_URL → localhost. Doména ešte nie je známa, ale
- * sitemap a absolútne OG URL potrebujú z čoho vychádzať.
+ * Produkčná adresa. Vlastná doména ešte nie je, toto je stabilný alias
+ * projektu na Verceli.
+ *
+ * Je tu natvrdo zámerne. `VERCEL_URL` nesie adresu **konkrétneho nasadenia**
+ * (`albion-bf4w-8sohs37r3-….vercel.app`), takže canonical, og:url aj sitemap
+ * ukazovali pri každom deploji inam — presne to, čo Google vyhodnotí ako
+ * duplicitu. Canonical musí ukazovať na produkciu aj z preview nasadenia.
+ *
+ * Keď príde vlastná doména, prepíše to `PUBLIC_SITE_URL` bez zásahu do kódu.
  */
+const PRODUCTION_URL = 'https://albion-bf4w.vercel.app';
+
+/** PUBLIC_SITE_URL → produkčný alias. */
 function resolveSiteUrl(): string {
   const explicit = readEnv('PUBLIC_SITE_URL');
   if (explicit) return explicit.replace(/\/$/, '');
 
-  const vercel = readEnv('VERCEL_URL');
-  if (vercel) return `https://${vercel.replace(/^https?:\/\//, '').replace(/\/$/, '')}`;
-
-  return 'http://localhost:4321';
+  return PRODUCTION_URL;
 }
 
 export const business: Business = {

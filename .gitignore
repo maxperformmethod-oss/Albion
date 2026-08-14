@@ -4,3 +4,7 @@ dist/
 .env*
 .DS_Store
 src/assets/raw/
+
+# Kontrolný render mapy — pracovný artefakt, ostrá mapa sa commituje.
+src/data/map-raw.preview.json
+src/components/sections/map.preview.svg

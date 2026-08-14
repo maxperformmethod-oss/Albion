@@ -20,8 +20,11 @@ npm run check        # astro check (TypeScript)
 npm test             # node --test, unit testy filtra JSON-LD
 ```
 
-Doména sa nastavuje premennou `PUBLIC_SITE_URL`. Bez nej beží všetko na
-`http://localhost:4321`, aby mala sitemap a absolútne OG URL z čoho vychádzať.
+Produkcia beží na `https://albion-bf4w.vercel.app`. Táto adresa je predvolená
+v `astro.config.mjs` aj v `business.ts` — **nie** cez `VERCEL_URL`, ktorý nesie
+adresu konkrétneho nasadenia a canonical by sa pri každom deploji menil.
+
+Keď príde vlastná doména, prepíše ju premenná `PUBLIC_SITE_URL` bez zásahu do kódu:
 
 ```powershell
 $env:PUBLIC_SITE_URL = "https://albion-lucenec.sk"; npm run build
