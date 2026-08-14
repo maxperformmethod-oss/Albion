@@ -78,6 +78,24 @@ s adresou a tlačidlo do Google Máp.
 
 ## Nové otvorené body
 
+
+### ⚠ Presná súradnica vchodu — prvá vec, ktorá odblokuje polohu na mape
+
+V Google Mapách nájsť **vchod do predajne** (nie značku firmy), kliknúť naň
+pravým tlačidlom a skopírovať dvojicu čísel, ktorá vyskočí navrchu ponuky.
+Poslať sem.
+
+Značka firmy ukazuje na **ťažisko parcely**, preto sedí inde než dvere —
+a preto sa bod na mape už trikrát posúval heuristikou. Keď príde súradnica
+vchodu, všetky heuristiky sa zahodia a použije sa priamo.
+
+Dovtedy bod stojí tam, kam ho posunulo pravidlo z dávky 10 (kolmý priemet
+na cestu smerom k stanici, 8 m späť k budove). Pravidlo z dávky 11 — nájsť
+lom cesty pri autobusovej stanici — som naprogramoval a **vyhodilo zlý
+výsledok**: trafilo `building=roof`, teda prístrešok nad nástupišťom,
+90 m od potvrdených súradníc. Poistka to zachytila a bod sa neposunul.
+Podrobne v `docs/REPORT_faza17.md`.
+
 ### ⚠ Google profil — dve veci mimo kódu, ktoré spraví len majiteľ
 
 Obe sú lacné a obe zaberú viac než čokoľvek, čo sa ešte dá spraviť na webe.

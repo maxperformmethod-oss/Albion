@@ -9,20 +9,26 @@ import { mapsUrl } from '../../lib/cta.ts';
 /**
  * „Kde nás nájdete“ — vlastná axonometrická mapa zo skutočných dát OSM.
  *
- * Žiadny embed Google Máp ani satelitná snímka. Dôvody sa nezmenili:
- * licencia (ich snímky sa dajú použiť len cez ich API a renderer), rozpočet
- * (iframe = third-party skripty a cookies) a vzhľad. Dáta OSM sú otvorené
- * (ODbL), takže z nich smieme vykresliť **vlastnú** mapu — skutočné pôdorysy
- * budov, skutočná geometria ulíc, naše farby, nula runtime requestov.
- * Jediná podmienka je atribúcia, ktorá je pod mapou.
+ * Žiadny embed Google Máp ani satelitná snímka: ich snímky sú licencované,
+ * embed je third-party iframe s cookies a screenshot na prémiovom webe vyzerá
+ * lacno. Dáta OSM sú otvorené (ODbL), takže z nich smieme vykresliť vlastnú
+ * mapu. Jediná podmienka je atribúcia — je pod mapou.
  *
- * SVG generuje `scripts/build-map.mjs` (`npm run map`) a je commitnuté.
- * Build ho nikdy nevolá — pravidlá Overpass to zakazujú.
+ * ## Dve vrstvy
  *
- * Čo mapa zámerne **neuvádza**: názvy ulíc. OSM na mieste potvrdených
- * súradníc vedie ulicu ako „Mieru“, nie `Kpt. Nálepku` z našej adresy.
- * Písať k nej našu adresu by znamenalo tvrdiť niečo, čo dáta nepodporujú.
- * Adresa je v texte pod mapou — a ten je aj tak jediný záväzný nositeľ údaja.
+ * Vrstva A je **zapečený obraz** (`/images/map-*`): podklad, koľajisko, zeleň,
+ * vzdialené budovy aj s vrhnutými tieňmi, atmosférický úbytok, vinetáž a zrno.
+ * Rozostrené tiene by v inline SVG stáli násobne viac než celý ten obrázok.
+ *
+ * Vrstva B je **inline SVG** nad ním: cesty, budovy v strede, obe stanice,
+ * Albion, trasa a popisy — teda všetko, čo sa animuje alebo nesie informáciu.
+ *
+ * Obe generuje `npm run map` z jednej projekcie (`scripts/map-projection.mjs`),
+ * takže sedia na pixel. Build sa na to nespolieha, obe sú commitnuté.
+ *
+ * Mapa **nevypisuje názvy ulíc**: OSM v tomto bloku nemá `Kpt. Nálepku`
+ * zamapovanú. Adresa je v texte pod mapou, kde je aj tak jediným záväzným
+ * nositeľom údaja.
  */
 
 const { id, h2, cta, map } = content.location;
@@ -44,7 +50,36 @@ const street = isConfirmed(business.street) ? business.street : null;
     IntersectionObserver nikdy neohlási, a `<path>` bez výplne je presne taký.
   */}
   <figure class="mt-10" data-map>
+    {/*
+      Obe vrstvy sú absolútne, takže výšku drží pomer strán tohto obalu.
+      Popis pod mapou musí ostať mimo neho, inak by sa doň zložil navrch.
+    */}
+    <div class="map-frame">
+    <picture>
+      <source
+        type="image/avif"
+        srcset="/images/map-760.avif 760w, /images/map-1600.avif 1600w"
+        sizes="(min-width: 1240px) 1136px, 100vw"
+      />
+      <source
+        type="image/webp"
+        srcset="/images/map-760.webp 760w, /images/map-1600.webp 1600w"
+        sizes="(min-width: 1240px) 1136px, 100vw"
+      />
+      <img
+        src="/images/map-1600.webp"
+        width="1600"
+        height="933"
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        decoding="async"
+        class="map-base"
+      />
+    </picture>
+
     <Fragment set:html={mapSvg} />
+    </div>
 
     <figcaption class="text-bone-muted mt-4 text-[0.8125rem]">
       <a
@@ -78,43 +113,103 @@ const street = isConfirmed(business.street) ? business.street : null;
 </Section>
 
 <style>
+  .map-frame {
+    position: relative;
+    /* Obe vrstvy majú rovnaký pomer strán — 1200 × 700 z projekcie. */
+    aspect-ratio: 1200 / 700;
+  }
+
+  .map-base {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
   /*
     Mapa príde ako hotový reťazec cez `set:html`, takže scoping sa na jej prvky
     nedostane — selektory musia byť `:global()`, zakotvené na `[data-map]`.
   */
   [data-map] :global(.map) {
+    position: absolute;
+    inset: 0;
     display: block;
     width: 100%;
-    height: auto;
-    /* Bez masky by mapa končila ostrým štvorcom, čo vyzerá lacno. */
-    mask-image: radial-gradient(ellipse at center, black 55%, transparent 100%);
+    height: 100%;
   }
 
-  [data-map] :global(.wall) {
-    fill: var(--color-ink-700);
-    stroke: var(--color-hairline-dark);
-    stroke-width: 0.5;
+  /*
+    Vinetáž je jemná a spoločná pre obe vrstvy — mapa nesmie končiť ostrým
+    štvorcom, ale ani vyzerať ako kruhový výrez.
+  */
+  .map-frame > picture,
+  [data-map] :global(.map) {
+    mask-image: radial-gradient(
+      ellipse 78% 82% at 50% 50%,
+      black 42%,
+      rgb(0 0 0 / 0.55) 74%,
+      transparent 100%
+    );
   }
 
-  [data-map] :global(.roof) {
-    fill: var(--color-ink-800);
-    stroke: var(--color-hairline-dark);
-    stroke-width: 0.5;
+  /* --- hmota: tri hodnoty na troch plochách ------------------------------ */
+
+  [data-map] :global(.wd) {
+    fill: #181c24;
   }
 
-  /* Budova, v ktorej pôdoryse leží potvrdený bod prevádzky. */
-  [data-map] :global(.roof-anchor) {
-    fill: color-mix(in srgb, var(--color-gold) 22%, transparent);
+  [data-map] :global(.wl) {
+    fill: #232833;
+  }
+
+  [data-map] :global(.rf) {
+    fill: #2b3039;
+    stroke: #39404b;
+    stroke-width: 0.6;
+  }
+
+  /* Budovy okolo Albionu chytajú to isté svetlo. */
+  [data-map] :global(.b-n .rf) {
+    fill: #313741;
+  }
+
+  /* Albion: zlatá strecha a zlatý rim light na hranách. */
+  [data-map] :global(.rf-a) {
+    fill: color-mix(in srgb, var(--color-gold) 24%, transparent);
     stroke: var(--color-gold);
+    stroke-width: 1.5;
+  }
+
+  [data-map] :global(.b-a .wl),
+  [data-map] :global(.b-a .wd) {
+    stroke: color-mix(in srgb, var(--color-gold) 55%, transparent);
     stroke-width: 1.2;
   }
 
-  [data-map] :global(.street) {
+  [data-map] :global(.shadows) {
+    fill: #000;
+    opacity: 0.35;
+  }
+
+  /* --- cesty: lem pod cestou je detail, ktorý odlišuje návrh od výstupu -- */
+
+  [data-map] :global(.rc) {
     fill: none;
-    stroke: rgba(242, 239, 233, 0.1);
-    stroke-width: 7;
+    stroke: #101318;
     stroke-linecap: round;
     stroke-linejoin: round;
+  }
+
+  [data-map] :global(.rr) {
+    fill: none;
+    stroke: var(--color-bone);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  [data-map] :global(.rr-d) {
+    stroke-dasharray: 4 5;
   }
 
   [data-map] :global(.rail) {
@@ -131,6 +226,8 @@ const street = isConfirmed(business.street) ? business.street : null;
     stroke-dasharray: 8 10;
     stroke-linecap: round;
   }
+
+  /* --- Albion ako ohnisko ------------------------------------------------ */
 
   [data-map] :global(.dot) {
     fill: var(--color-gold);
@@ -151,80 +248,146 @@ const street = isConfirmed(business.street) ? business.street : null;
     opacity: 0;
   }
 
+  /* --- popisy ------------------------------------------------------------ */
+
   /*
-    Popisy sú `<text>`, nie obrysy — musia ostať v DOM a byť vyhľadateľné.
-    Merané voči najsvetlejšiemu podkladu pod nimi, teda voči streche budovy.
+    Halo okolo textu. Bez neho sa popis stratí nad budovami — je to jediný
+    spôsob, ako udržať čitateľnosť bez toho, aby sme text položili na plochu.
   */
+  [data-map] :global(.label),
+  [data-map] :global(.here-label),
+  [data-map] :global(.note),
+  [data-map] :global(.chrome-text) {
+    paint-order: stroke;
+    stroke: var(--color-ink-900);
+    stroke-width: 3px;
+    stroke-linejoin: round;
+  }
+
   [data-map] :global(.label),
   [data-map] :global(.note) {
     fill: var(--color-bone-muted);
     font-family: var(--font-sans);
-    font-size: 20px;
+    font-size: 19px;
     letter-spacing: 0.02em;
   }
 
   [data-map] :global(.note) {
-    font-size: 17px;
+    font-size: 16px;
   }
 
   [data-map] :global(.here-label) {
     fill: var(--color-bone);
     font-family: var(--font-serif);
     font-weight: 600;
-    font-size: 30px;
+    font-size: 32px;
   }
+
+  /* Mierka a severka — drobné a tlmené, ale hovoria „toto je skutočná mapa“. */
+  [data-map] :global(.chrome) {
+    fill: none;
+    stroke: var(--color-bone-muted);
+    stroke-opacity: 0.45;
+    stroke-width: 1.2;
+  }
+
+  [data-map] :global(.chrome-fill) {
+    fill: var(--color-bone-muted);
+    fill-opacity: 0.45;
+    stroke: none;
+  }
+
+  [data-map] :global(.chrome-text) {
+    fill: var(--color-bone-muted);
+    fill-opacity: 0.55;
+    stroke-width: 2.5px;
+    font-family: var(--font-sans);
+    font-size: 15px;
+    letter-spacing: 0.04em;
+  }
+
+  /* --- animácia ---------------------------------------------------------- */
 
   @media (prefers-reduced-motion: no-preference) {
     /*
-      „Mesto sa postaví“ — celá sekvencia do 1,6 s a raz.
-      Počiatočný stav visí na triede `js`: bez JS je mapa rovno hotová,
-      nie prázdna.
+      Celá sekvencia do 2,2 s a raz. Počiatočný stav visí na triede `js`:
+      bez JS je mapa rovno hotová, nie prázdna.
     */
-    :global(.js) [data-map] :global(.street),
-    :global(.js) [data-map] :global(.route-mask) {
+    :global(.js) .map-frame > picture,
+    :global(.js) [data-map] :global(.glow) {
+      opacity: 0;
+    }
+
+    :global(.js) [data-map] :global(.rr) {
       stroke-dasharray: 1;
       stroke-dashoffset: 1;
     }
 
     :global(.js) [data-map] :global(.b) {
       opacity: 0;
-      transform: translateY(10px);
+      transform: translateY(14px);
+    }
+
+    :global(.js) [data-map] :global(.shadows),
+    :global(.js) [data-map] :global(.route-mask) {
+      opacity: 0;
     }
 
     :global(.js) [data-map] :global(.here) {
       opacity: 0;
     }
 
-    :global(.js) [data-map].is-drawn :global(.street) {
-      stroke-dashoffset: 0;
-      transition: stroke-dashoffset 600ms var(--ease-out-quint);
+    :global(.js) [data-map].is-drawn .map-frame > picture {
+      opacity: 1;
+      transition: opacity 500ms var(--ease-out-quint);
     }
 
+    :global(.js) [data-map].is-drawn :global(.rr) {
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 600ms var(--ease-out-quint) 260ms;
+    }
+
+    /*
+      Ľahký prestrel — budova sa o kúsok prehupne a sadne. Vlna ide odzadu
+      dopredu, `--d` je 0–24, teda najviac 192 ms oneskorenia.
+    */
     :global(.js) [data-map].is-drawn :global(.b) {
       opacity: 1;
       transform: none;
       transition:
-        opacity 300ms var(--ease-out-quint),
-        transform 300ms var(--ease-out-quint);
-      /* Vlna ide odzadu dopredu, `--d` je 0–20 → najviac 440 ms. */
-      transition-delay: calc(200ms + var(--d, 0) * 12ms);
+        opacity 320ms var(--ease-out-quint),
+        transform 420ms cubic-bezier(0.34, 1.3, 0.64, 1);
+      transition-delay: calc(700ms + var(--d, 0) * 8ms);
+    }
+
+    /* Tiene nabiehajú 120 ms po svojich budovách. */
+    :global(.js) [data-map].is-drawn :global(.shadows) {
+      opacity: 0.35;
+      transition: opacity 300ms var(--ease-out-quint) 940ms;
     }
 
     :global(.js) [data-map].is-drawn :global(.route-mask) {
+      opacity: 1;
       stroke-dashoffset: 0;
-      transition: stroke-dashoffset 500ms var(--ease-out-quint) 760ms;
+      transition:
+        opacity 1ms 1500ms,
+        stroke-dashoffset 500ms var(--ease-out-quint) 1500ms;
+    }
+
+    :global(.js) [data-map].is-drawn :global(.glow) {
+      opacity: 1;
+      transition: opacity 600ms var(--ease-out-quint) 1600ms;
     }
 
     :global(.js) [data-map].is-drawn :global(.here) {
       opacity: 1;
-      transition: opacity 260ms var(--ease-out-quint) 1180ms;
+      transition: opacity 260ms var(--ease-out-quint) 1800ms;
     }
 
-    /* Jeden raz, nie slučka. Pulzujúci bod je gýč. */
     :global(.js) [data-map].is-drawn :global(.pulse) {
       transform-box: fill-box;
       transform-origin: center;
-      animation: map-pulse 400ms var(--ease-out-quint) 1200ms 1 forwards;
+      animation: map-pulse 400ms var(--ease-out-quint) 1820ms 1 forwards;
     }
 
     @keyframes map-pulse {
@@ -245,7 +408,18 @@ const street = isConfirmed(business.street) ? business.street : null;
   const figure = document.querySelector<HTMLElement>('[data-map]');
 
   if (figure) {
-    const draw = () => figure.classList.add('is-drawn');
+    /*
+      Zapečená vrstva štartuje na `opacity: 0` a s `loading="lazy"`. Prehliadač
+      ju v tej kombinácii nezačne sťahovať sám — a keďže sa má práve odhaliť,
+      pustíme ju tým istým signálom, ktorý spúšťa animáciu. Kto sekciu nikdy
+      neuvidí, obrázok nestiahne.
+    */
+    const base = figure.querySelector<HTMLImageElement>('.map-base');
+
+    const draw = () => {
+      if (base) base.loading = 'eager';
+      figure.classList.add('is-drawn');
+    };
 
     if ('IntersectionObserver' in window) {
       const observer = new IntersectionObserver(

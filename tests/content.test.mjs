@@ -21,7 +21,10 @@ test('šablóny adresy majú svoj zástupný znak', () => {
 });
 
 test('schéma neuvádza vzdialenosť ani čas, ktoré nevieme', () => {
-  const serialized = JSON.stringify(content.location).toLowerCase();
+  // `map.scale` je popis mierky mapy, nie tvrdenie o ceste k prevádzke —
+  // preto sa z kontroly vyníma. Všetko ostatné tvrdí niečo o mieste.
+  const { scale, ...claims } = content.location.map;
+  const serialized = JSON.stringify({ ...content.location, map: claims }).toLowerCase();
   assert.doesNotMatch(serialized, /\d+\s*(min|minút|metrov|m\b)/);
 });
 

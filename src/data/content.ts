@@ -194,6 +194,9 @@ export const content = {
       here: 'Albion',
       /** Aby bolo zrejmé, že to nie je navigačná mapa. */
       note: 'Orientačná schéma',
+      /** Mierka a severka — drobné, ale hovoria „toto je skutočná mapa". */
+      scale: '50 m',
+      north: 'S',
       title: 'Schéma okolia prevádzky Albion',
       desc: 'Schéma okolia — prevádzka Albion sa nachádza na ulici {street}, pár krokov od železničnej stanice v Lučenci.',
       walk: 'Pár krokov od železničnej stanice.',
