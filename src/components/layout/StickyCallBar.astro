@@ -1,0 +1,65 @@
+---
+import Icon from '../ui/Icon.astro';
+import { content } from '../../data/content.ts';
+import { primaryCta, mapsUrl } from '../../lib/cta.ts';
+
+/**
+ * Mobilná lišta (< 768 px). Objaví sa až po odscrollovaní hero — sentinel
+ * vykresľuje Hero ako `#hero-sentinel`. Na desktope neexistuje (BRIEF §8).
+ *
+ * Tlačidlá sa nepoužívajú cez Button.astro: sú to plochy cez celú šírku
+ * s vlastnou geometriou, nie CTA v texte.
+ */
+const linkClass =
+  'flex flex-1 items-center justify-center gap-2 text-small font-medium transition-fast';
+---
+
+<div
+  data-sticky-bar
+  hidden
+  class="border-border-interactive-dark bg-ink-900 fixed inset-x-0 bottom-0 z-40 border-t md:hidden"
+>
+  <div class="flex h-16 items-stretch">
+    <a
+      href={primaryCta.href}
+      aria-label={primaryCta.label}
+      class:list={[linkClass, 'text-ink-900 bg-gold hover:bg-gold-hover']}
+    >
+      {primaryCta.icon && <Icon name={primaryCta.icon} size={20} />}
+      {primaryCta.text}
+    </a>
+
+    {
+      mapsUrl && (
+        <a
+          href={mapsUrl}
+          class:list={[
+            linkClass,
+            'border-border-interactive-dark text-bone hover:text-gold border-l',
+          ]}
+        >
+          <Icon name="map-pin" size={20} />
+          {content.stickyBar.maps}
+        </a>
+      )
+    }
+  </div>
+</div>
+
+<script>
+  const bar = document.querySelector<HTMLElement>('[data-sticky-bar]');
+  const sentinel = document.getElementById('hero-sentinel');
+
+  if (bar && sentinel && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // Sentinel je na spodku hero. `isIntersecting` by nestačilo — pri hero
+        // vyššom ako viewport nie je sentinel viditeľný ani hore na stránke.
+        // Rozhoduje teda, či už vyšiel nad horný okraj.
+        bar.hidden = !entry || entry.boundingClientRect.top >= 0;
+      },
+      { threshold: 0 }
+    );
+    observer.observe(sentinel);
+  }
+</script>

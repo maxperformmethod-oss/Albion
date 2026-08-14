@@ -1,0 +1,220 @@
+---
+import Logo from '../brand/Logo.astro';
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+import { content } from '../../data/content.ts';
+import { primaryCta, hasPhone } from '../../lib/cta.ts';
+
+/**
+ * Mobilné menu je zámerne v tomto súbore, nie ako vlastný komponent:
+ * zdieľa stav s hamburgerom (aria-expanded, návrat focusu), takže rozdelenie
+ * by znamenalo prepájať dva komponenty cez DOM. Jeden súbor, jeden skript.
+ */
+
+const showDevBadge = import.meta.env.DEV && !hasPhone;
+
+/**
+ * S telefónom sa CTA pod 480 px zmenší na ikonu (BRIEF §9).
+ * Bez telefónu je znenie „Chcem oceniť vec“ — na ikonu sa zmenšiť nedá a
+ * v riadku s logom a hamburgerom sa pod 480 px nezmestí. Vtedy ho v hlavičke
+ * skryjeme; tú istú akciu nesie mobilné menu aj sticky call bar.
+ */
+const iconOnly = primaryCta.icon ? 'below-480' : false;
+const ctaClass = primaryCta.icon ? undefined : 'max-[479px]:hidden';
+---
+
+<header data-header class="fixed inset-x-0 top-0 z-50">
+  <div class="container-page flex h-20 items-center justify-between gap-3">
+    <a
+      href="/"
+      class="text-bone hover:text-gold transition-fast shrink-0"
+      aria-label="Albion — domovská stránka"
+    >
+      <Logo variant="responsive" class="text-[1.3rem]" />
+    </a>
+
+    <nav aria-label="Hlavné menu" class="hidden items-center gap-8 md:flex">
+      {
+        content.header.nav.map((item) => (
+          <a
+            href={item.href}
+            class="text-bone-muted hover:text-bone transition-fast text-small"
+          >
+            {item.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="flex items-center gap-2">
+      {
+        showDevBadge && (
+          <span class="rounded-sm bg-red-600 px-2 py-1 text-[0.6875rem] font-bold tracking-wide text-white">
+            {content.dev.missingPhoneBadge}
+          </span>
+        )
+      }
+
+      <Button
+        href={primaryCta.href}
+        icon={primaryCta.icon}
+        label={primaryCta.label}
+        iconOnly={iconOnly}
+        class={ctaClass}
+      >
+        {primaryCta.text}
+      </Button>
+
+      <button
+        type="button"
+        data-menu-toggle
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+        aria-label={content.a11y.openMenu}
+        class="border-border-interactive-dark text-bone hover:border-gold hover:text-gold transition-fast flex h-12 w-12 shrink-0 items-center justify-center rounded-sm border md:hidden"
+      >
+        <Icon name="menu" size={22} />
+      </button>
+    </div>
+  </div>
+</header>
+
+<div
+  id="mobile-menu"
+  data-menu
+  hidden
+  class="bg-ink-900 fixed inset-0 z-60 overflow-y-auto md:hidden"
+>
+  <div class="container-page flex h-20 items-center justify-between">
+    <Logo variant="wordmark" class="text-bone text-[1.3rem]" />
+    <button
+      type="button"
+      data-menu-close
+      aria-label={content.a11y.closeMenu}
+      class="border-border-interactive-dark text-bone hover:border-gold hover:text-gold transition-fast flex h-12 w-12 items-center justify-center rounded-sm border"
+    >
+      <Icon name="close" size={22} />
+    </button>
+  </div>
+
+  <nav aria-label="Hlavné menu" class="container-page mt-6 flex flex-col">
+    {
+      content.header.nav.map((item) => (
+        <a
+          href={item.href}
+          class="border-hairline-dark text-bone hover:text-gold transition-fast font-serif border-b py-5 text-2xl"
+        >
+          {item.label}
+        </a>
+      ))
+    }
+  </nav>
+
+  <div class="container-page mt-8 pb-10">
+    <Button
+      href={primaryCta.href}
+      icon={primaryCta.icon}
+      label={primaryCta.label}
+      class="w-full"
+    >
+      {primaryCta.text}
+    </Button>
+  </div>
+</div>
+
+<style>
+  [data-header] {
+    background-color: transparent;
+    border-bottom: 1px solid transparent;
+    transition:
+      background-color var(--duration-base) var(--ease-out-quint),
+      border-color var(--duration-base) var(--ease-out-quint);
+  }
+
+  [data-header].is-scrolled {
+    background-color: var(--color-ink-900);
+    border-bottom-color: var(--color-hairline-dark);
+  }
+</style>
+
+<script>
+  const header = document.querySelector<HTMLElement>('[data-header]');
+  const menu = document.querySelector<HTMLElement>('[data-menu]');
+  const toggle = document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+  const closeBtn = document.querySelector<HTMLButtonElement>('[data-menu-close]');
+
+  // Hlavička: transparentná → ink-900 po 24 px (BRIEF §10)
+  if (header) {
+    let ticking = false;
+    const update = () => {
+      header.classList.toggle('is-scrolled', window.scrollY > 24);
+      ticking = false;
+    };
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(update);
+      },
+      { passive: true }
+    );
+    update();
+  }
+
+  // Mobilné menu: focus trap, Esc, scroll lock, návrat focusu
+  if (menu && toggle && closeBtn) {
+    const FOCUSABLE = 'a[href], button:not([disabled])';
+
+    const openMenu = () => {
+      menu.hidden = false;
+      document.documentElement.style.overflow = 'hidden';
+      toggle.setAttribute('aria-expanded', 'true');
+      closeBtn.focus();
+    };
+
+    const closeMenu = () => {
+      if (menu.hidden) return;
+      menu.hidden = true;
+      document.documentElement.style.overflow = '';
+      toggle.setAttribute('aria-expanded', 'false');
+      // Menu sa dá otvoriť len hamburgerom, takže focus patrí vždy naň.
+      toggle.focus();
+    };
+
+    toggle.addEventListener('click', openMenu);
+    closeBtn.addEventListener('click', closeMenu);
+    menu.addEventListener('click', (event) => {
+      if ((event.target as HTMLElement).closest('a[href]')) closeMenu();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (menu.hidden) return;
+
+      if (event.key === 'Escape') {
+        closeMenu();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+
+      const items = Array.from(menu.querySelectorAll<HTMLElement>(FOCUSABLE));
+      if (items.length === 0) return;
+
+      const first = items[0]!;
+      const last = items[items.length - 1]!;
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    });
+
+    // Po prechode na desktop nesmie ostať otvorený overlay ani zamknutý scroll.
+    window.matchMedia('(min-width: 48rem)').addEventListener('change', (event) => {
+      if (event.matches) closeMenu();
+    });
+  }
+</script>

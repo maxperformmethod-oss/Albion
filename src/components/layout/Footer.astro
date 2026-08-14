@@ -1,0 +1,88 @@
+---
+import Logo from '../brand/Logo.astro';
+import { business, isConfirmed } from '../../data/business.ts';
+import { content } from '../../data/content.ts';
+import { phoneDisplay, phoneHref, callAriaLabel } from '../../lib/cta.ts';
+
+const year = new Date().getFullYear();
+
+const street = isConfirmed(business.street) ? business.street : null;
+const postalCode = isConfirmed(business.postalCode) ? business.postalCode : null;
+
+// NAP: kým nie je potvrdená ulica, použije sa schválené znenie z BRIEF §7.
+const addressLine = street
+  ? [street, [postalCode, business.city].filter(Boolean).join(' ')].join(', ')
+  : content.footer.addressFallback;
+
+const legalName = isConfirmed(business.legalName) ? business.legalName : null;
+const ico = isConfirmed(business.ico) ? business.ico : null;
+const legalLine =
+  legalName && ico
+    ? content.footer.legal.replace('{legalName}', legalName).replace('{ico}', ico)
+    : null;
+
+const email = isConfirmed(business.email) ? business.email : null;
+---
+
+<footer class="border-hairline-dark bg-ink-900 text-bone border-t">
+  <div class="container-page py-14">
+    <div class="flex flex-col gap-10 md:flex-row md:justify-between">
+      <div>
+        <Logo variant="full" class="text-[1.3rem]" />
+
+        <address class="text-bone-muted text-small mt-6 not-italic">
+          <span class="block">{addressLine}</span>
+          {
+            phoneHref && (
+              <a
+                href={phoneHref}
+                aria-label={callAriaLabel}
+                class="hover:text-gold transition-fast mt-1 block"
+                data-numeric
+              >
+                {phoneDisplay}
+              </a>
+            )
+          }
+          {
+            email && (
+              <a
+                href={`mailto:${email}`}
+                class="hover:text-gold transition-fast mt-1 block"
+              >
+                {email}
+              </a>
+            )
+          }
+        </address>
+      </div>
+
+      <nav aria-label={content.footer.quickLinksHeading}>
+        <h2 class="font-sans text-eyebrow text-gold uppercase tracking-[0.14em]">
+          {content.footer.quickLinksHeading}
+        </h2>
+        <ul class="mt-4 flex flex-col gap-2.5">
+          {
+            content.header.nav.map((item) => (
+              <li>
+                <a
+                  href={item.href}
+                  class="text-bone-muted hover:text-bone transition-fast text-small"
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </div>
+
+    <div
+      class="border-hairline-dark text-bone-muted mt-12 flex flex-col gap-1 border-t pt-6 text-[0.8125rem]"
+    >
+      <p>{content.footer.copyright.replace('{year}', String(year))}</p>
+      {legalLine && <p>{legalLine}</p>}
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,138 @@
+---
+import '../styles/global.css';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+import StickyCallBar from '../components/layout/StickyCallBar.astro';
+import { content } from '../data/content.ts';
+import { FEATURES } from '../data/business.ts';
+import { buildPawnShopSchema } from '../lib/schema.ts';
+
+/**
+ * Meta sa rieši tu cez props — žiadny src/lib/seo.ts (BRIEF §12).
+ */
+interface Props {
+  title?: string;
+  description?: string;
+  noindex?: boolean;
+  /** Sticky call bar potrebuje `#hero-sentinel`, takže len na homepage. */
+  stickyCallBar?: boolean;
+  /** JSON-LD prevádzky. Na 404 nedáva zmysel. */
+  schema?: boolean;
+}
+
+const {
+  title = content.meta.title,
+  description = content.meta.description,
+  noindex = false,
+  stickyCallBar = false,
+  schema = true,
+} = Astro.props;
+
+const jsonLd = schema ? buildPawnShopSchema() : undefined;
+
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImage = new URL('/og.png', Astro.site).href;
+
+const showStickyBar = stickyCallBar && FEATURES.stickyCallBar;
+---
+
+<!doctype html>
+<html lang="sk">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0F1113" />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="sk_SK" />
+    <meta property="og:site_name" content="Albion" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    {/* Len serif, oba subsety — pokrývajú <h1>, teda LCP prvok (BRIEF §4). */}
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/source-serif-4-latin-wght-normal.woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/source-serif-4-latin-ext-wght-normal.woff2"
+      crossorigin
+    />
+
+    {
+      jsonLd && (
+        <script
+          type="application/ld+json"
+          set:html={JSON.stringify(jsonLd)}
+          is:inline
+        />
+      )
+    }
+
+    {/* Musí bežať pred prvým vykreslením, inak reveal preblikne. */}
+    <script is:inline>
+      document.documentElement.classList.add('js');
+    </script>
+
+    {/* Analytics: zámerne nič neinštalované (BRIEF §13). Sem by prišlo. */}
+  </head>
+
+  <body class:list={[showStickyBar && 'pb-16 md:pb-0']}>
+    <a
+      href="#obsah"
+      class="focus-visible:bg-gold focus-visible:text-ink-900 sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-3 focus-visible:left-3 focus-visible:z-70 focus-visible:rounded-sm focus-visible:px-4 focus-visible:py-3"
+    >
+      {content.a11y.skipLink}
+    </a>
+
+    <Header />
+
+    <main id="obsah">
+      <slot />
+    </main>
+
+    <Footer />
+
+    {showStickyBar && <StickyCallBar />}
+
+    <script>
+      // Reveal — jeden observer na celú stránku, každý prvok len raz.
+      const revealed = document.querySelectorAll<HTMLElement>('[data-reveal]');
+
+      if (revealed.length > 0 && 'IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry, index) => {
+              if (!entry.isIntersecting) return;
+              const element = entry.target as HTMLElement;
+              window.setTimeout(
+                () => element.classList.add('is-revealed'),
+                Math.min(index * 60, 180)
+              );
+              observer.unobserve(element);
+            });
+          },
+          { rootMargin: '0px 0px -10% 0px' }
+        );
+
+        revealed.forEach((element) => observer.observe(element));
+      }
+    </script>
+  </body>
+</html>
