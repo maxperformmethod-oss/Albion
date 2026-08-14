@@ -1,5 +1,6 @@
 ---
 import Section from '../ui/Section.astro';
+import SectionTexture from '../ui/SectionTexture.astro';
 import { addressWithPostalCode, business, isConfirmed } from '../../data/business.ts';
 import { content } from '../../data/content.ts';
 import { formatDays } from '../../lib/hours.ts';
@@ -16,13 +17,27 @@ const email = isConfirmed(business.email) ? business.email : null;
 const showDevBadge = import.meta.env.DEV && !phoneHref;
 ---
 
-<Section tone="ink" id={id} labelledby="contact-title">
+<Section
+  tone="ink"
+  id={id}
+  labelledby="contact-title"
+  class="relative overflow-hidden"
+  innerClass="relative z-10"
+>
+  {/*
+    Spodná tretina sekcie. Maska smerom nahor drží obraz mimo textu — pod
+    kontaktnými údajmi nesmie vzniknúť nič, čo by zrážalo ich čitateľnosť.
+  */}
+  <div class="contact-texture" slot="backdrop">
+    <SectionTexture texture="contact" sizes="100vw" />
+  </div>
+
   <div class="measure">
     <h2 id="contact-title" class="font-serif text-h2" data-reveal>{h2}</h2>
     <p class="text-lead text-bone-muted mt-6" data-reveal>{lead}</p>
   </div>
 
-  <dl class="mt-14 grid grid-cols-1 gap-x-12 gap-y-10 sm:grid-cols-2">
+  <dl class="mt-12 grid grid-cols-1 gap-x-12 gap-y-10 sm:grid-cols-2">
     {
       phoneHref && (
         <div class="border-hairline-dark border-t pt-6" data-reveal>
@@ -114,6 +129,24 @@ const showDevBadge = import.meta.env.DEV && !phoneHref;
 </Section>
 
 <style>
+  .contact-texture {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    /* Spodná tretina — nad ňou musí ostať čistý podklad pre kontaktné údaje. */
+    height: 34%;
+    opacity: 0.35;
+    mask-image: linear-gradient(to top, black, transparent);
+    pointer-events: none;
+  }
+
+  .contact-texture :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center bottom;
+  }
+
   [data-open-indicator]::before {
     content: '';
     display: inline-block;

@@ -42,6 +42,12 @@ export interface Cta {
   href: string;
   text: string;
   icon?: 'phone';
+  /**
+   * Číslo pre `Button.astro`, ktoré si z neho a z vlastného viditeľného textu
+   * poskladá prístupný názov. Má hodnotu len vtedy, keď CTA naozaj volá.
+   */
+  phone?: string;
+  /** Hotový aria-label pre miesta, ktoré nepoužívajú `Button.astro`. */
   label?: string;
 }
 
@@ -51,6 +57,7 @@ export const primaryCta: Cta = phoneHref
       href: phoneHref,
       text: content.header.call,
       icon: 'phone',
+      phone: phoneDisplay ?? undefined,
       label: callAriaLabel,
     }
   : { href: '#kontakt', text: content.hero.ctaSecondary };

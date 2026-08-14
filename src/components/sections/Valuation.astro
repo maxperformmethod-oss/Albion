@@ -1,28 +1,35 @@
 ---
 import Section from '../ui/Section.astro';
+import SectionTexture from '../ui/SectionTexture.astro';
 import Button from '../ui/Button.astro';
 import Eyebrow from '../ui/Eyebrow.astro';
 import { content } from '../../data/content.ts';
-import { phoneDisplay, primaryCta, hasPhone } from '../../lib/cta.ts';
+import { primaryCta, hasPhone } from '../../lib/cta.ts';
 
 const { id, eyebrow, h2, paragraphs, cta } = content.valuation;
 
 // „Zavolať a opýtať sa“ dáva zmysel len s telefónom. Bez neho vedie CTA
 // na kontakt a nesie znenie primárneho CTA.
+// Prístupný názov si Button poskladá sám z tohto znenia a z čísla.
 const ctaText = hasPhone ? cta : primaryCta.text;
-
-// Prístupný názov musí obsahovať viditeľný text (WCAG 2.5.3), preto sa skladá
-// z vlastného znenia tlačidla, nie zo všeobecného „Zavolať na číslo …“.
-const ctaLabel =
-  hasPhone && phoneDisplay
-    ? content.a11y.callAriaLabelWithAction
-        .replace('{action}', ctaText)
-        .replace('{phone}', phoneDisplay)
-    : primaryCta.label;
 ---
 
-<Section tone="ink" id={id} labelledby="valuation-title">
-  <div class="measure">
+<Section
+  tone="ink"
+  id={id}
+  labelledby="valuation-title"
+  class="relative overflow-hidden"
+>
+  {/*
+    Pravých 42 % zaberá obraz, text drží ľavých 58 %. Predtým tu bola prázdna
+    pravá polovica, čo nepôsobilo vzdušne, ale nedokončene. Pod `lg` sa panel
+    nevykresľuje vôbec — na úzkom displeji by z neho ostal len pruh.
+  */}
+  <div class="valuation-panel" slot="backdrop">
+    <SectionTexture texture="panel" sizes="(min-width: 1024px) 42vw, 0px" />
+  </div>
+
+  <div class="measure relative z-10 lg:max-w-[58%]">
     <Eyebrow data-reveal>{eyebrow}</Eyebrow>
 
     <h2 id="valuation-title" class="font-serif text-h2 mt-6" data-reveal>{h2}</h2>
@@ -39,10 +46,37 @@ const ctaLabel =
       <Button
         href={primaryCta.href}
         icon={primaryCta.icon}
-        label={ctaLabel}
+        phone={primaryCta.phone}
       >
         {ctaText}
       </Button>
     </div>
   </div>
 </Section>
+
+<style>
+  .valuation-panel {
+    display: none;
+  }
+
+  @media (width >= 64rem) {
+    .valuation-panel {
+      display: block;
+      position: absolute;
+      inset-block: 0;
+      right: 0;
+      width: 42%;
+      /* Mäkký okraj, aby panel nemal viditeľnú zvislú hranu. */
+      mask-image: linear-gradient(to left, black 40%, transparent);
+      opacity: 0.72;
+      pointer-events: none;
+    }
+
+    .valuation-panel :global(img) {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center right;
+    }
+  }
+</style>

@@ -1,0 +1,65 @@
+---
+/**
+ * Prechodový pás medzi dvoma sekciami s rôznym podkladom.
+ *
+ * Bez neho je medzi tmavou a svetlou sekciou ostrý rez a stránka vyzerá ako
+ * dva zlepené weby. Pás je čisto dekoratívny — statický, bez animácie, bez
+ * obsahu. Do DOM ide ako `aria-hidden`, pretože nenesie žiadnu informáciu.
+ *
+ * Prečo tri zarážky a nie priamy prechod ink → paper: lineárna interpolácia
+ * medzi takmer čiernou a teplou svetlou vytvorí mŕtvy sivý pás. Teplé
+ * medzitóny (#4A4640, #A9A296) držia prechod v rovnakej teplote ako obe
+ * susedné sekcie — presne to je dôvod, prečo pôsobí draho.
+ */
+interface Props {
+  /** `down` = tmavá → svetlá, `up` = svetlá → tmavá. */
+  direction: 'down' | 'up';
+  /**
+   * Tmavý koniec prechodu. Musí sedieť s podkladom susednej tmavej sekcie,
+   * inak vznikne na jej hrane druhý, jemnejší rez.
+   */
+  dark?: 'ink-900' | 'ink-800';
+}
+
+const { direction, dark = 'ink-900' } = Astro.props;
+
+const darkToken =
+  dark === 'ink-800' ? 'var(--color-ink-800)' : 'var(--color-ink-900)';
+---
+
+<div
+  aria-hidden="true"
+  class:list={['bridge', direction === 'down' ? 'bridge-down' : 'bridge-up']}
+  style={`--bridge-dark: ${darkToken};`}
+>
+</div>
+
+<style>
+  .bridge {
+    height: clamp(64px, 8vw, 120px);
+    /* Most je statický — nič sa v ňom nepohne, netreba kompozitnú vrstvu. */
+    will-change: auto;
+  }
+
+  /* tmavá -> svetlá */
+  .bridge-down {
+    background: linear-gradient(
+      to bottom,
+      var(--bridge-dark) 0%,
+      #4a4640 46%,
+      #a9a296 72%,
+      var(--color-paper) 100%
+    );
+  }
+
+  /* svetlá -> tmavá */
+  .bridge-up {
+    background: linear-gradient(
+      to bottom,
+      var(--color-paper) 0%,
+      #a9a296 28%,
+      #4a4640 54%,
+      var(--bridge-dark) 100%
+    );
+  }
+</style>

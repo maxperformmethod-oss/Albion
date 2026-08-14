@@ -1,0 +1,68 @@
+---
+/**
+ * Dekoratívna textúra na pozadí tmavej sekcie.
+ *
+ * Je to abstraktný materiál, nie fotka prevádzky — nikdy netvrdí nič o realite,
+ * preto vždy `alt=""` + `aria-hidden` a nikdy nie je jediným nositeľom informácie.
+ * Sekcia musí vyzerať dobre aj vtedy, keď sa obraz nenačíta; pod ním je čistý
+ * podklad sekcie.
+ *
+ * Rozpočet a grading rieši `scripts/build-images.mjs`. Umiestnenie, krytie a
+ * masku si nastavuje volajúca sekcia — tento komponent drží len markup,
+ * prístupnosť a načítanie.
+ *
+ * `fetchpriority="high"` sem nepatrí. Jediný obraz, ktorý ho smie mať, je hero
+ * — je to LCP prvok. Tieto tri sú `lazy` a nesmú súťažiť o prvú dávku requestov.
+ */
+interface Props {
+  texture: 'panel' | 'wide' | 'contact';
+  /** `sizes` musí sedieť so skutočnou šírkou prvku, inak sa stiahne väčší variant. */
+  sizes: string;
+  class?: string;
+}
+
+const TEXTURES = {
+  /** Pravý panel v sekcii Individuálne ocenenie. */
+  panel: {
+    variants: ['tex-panel-700 700w', 'tex-panel-1100 1100w'],
+    width: 1100,
+    height: 614,
+  },
+  /** Full-bleed tón v sekcii Prečo Albion. */
+  wide: {
+    variants: ['tex-wide-900 900w', 'tex-wide-1376 1376w'],
+    width: 1376,
+    height: 768,
+  },
+  /** Spodná tretina sekcie Kontakt. */
+  contact: {
+    variants: ['tex-contact-900 900w', 'tex-contact-1376 1376w'],
+    width: 1376,
+    height: 768,
+  },
+} as const;
+
+const { texture, sizes, class: className } = Astro.props;
+
+const { variants, width, height } = TEXTURES[texture];
+
+const srcset = (extension: string) =>
+  variants.map((v) => `/images/${v.replace(' ', `.${extension} `)}`).join(', ');
+
+const fallback = `/images/${variants[variants.length - 1].split(' ')[0]}.webp`;
+---
+
+<picture>
+  <source type="image/avif" srcset={srcset('avif')} sizes={sizes} />
+  <source type="image/webp" srcset={srcset('webp')} sizes={sizes} />
+  <img
+    src={fallback}
+    width={width}
+    height={height}
+    alt=""
+    aria-hidden="true"
+    loading="lazy"
+    decoding="async"
+    class={className}
+  />
+</picture>

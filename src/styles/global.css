@@ -63,34 +63,40 @@
 --------------------------------------------------------------------------- */
 
 @theme {
-  /* Dark base */
-  --color-ink-900: #0f1113;
-  --color-ink-800: #171a1d;
-  --color-ink-700: #1f2327;
+  /*
+    Paleta je zámerne mäkšia než v BRIEF.md §4 — pôvodná bola príliš tvrdá
+    (takmer absolútna čierna, zlato ťahalo do horčicovej). Zmena je z
+    docs/PROMPT_FINAL3.md §2, kontrasty premerané v docs/REPORT_faza9_art.md.
+  */
 
-  /* Light base */
-  --color-paper: #f5f2ec;
-  --color-paper-2: #ebe6dc;
+  /* Dark base — svetlejšie a teplejšie */
+  --color-ink-900: #14171b;
+  --color-ink-800: #1b1f23;
+  --color-ink-700: #242830;
+
+  /* Light base — teplejšie, menej biele */
+  --color-paper: #f2eee6;
+  --color-paper-2: #e7e1d6;
 
   /* Text */
-  --color-bone: #f5f2ec; /* 16,93:1 na ink-900 */
-  --color-bone-muted: #b7b2a9; /* 8,97:1 na ink-900 */
-  --color-ink-text: #14171a; /* 16,10:1 na paper */
-  --color-ink-muted: #55595e; /* 6,31:1 na paper */
+  --color-bone: #f2efe9; /* 15,66:1 na ink-900 */
+  --color-bone-muted: #b4afa6; /* 8,24:1 na ink-900 */
+  --color-ink-text: #191c20; /* 14,77:1 na paper — mäkšia čierna, nie uhlíková */
+  --color-ink-muted: #5a5f65; /* 5,57:1 na paper */
 
-  /* Accent — champagne gold.
-     gold NIKDY ako text na svetlom podklade (2,02:1). Na svetlom je gold-ink. */
-  --color-gold: #c6a971; /* 8,39:1 na ink-900 · 7,75:1 na ink-800 */
-  --color-gold-hover: #d9c08f;
-  --color-gold-ink: #7e6532; /* 4,95:1 na paper */
+  /* Accent — menej sýte zlato, viac šampanské.
+     gold NIKDY ako text na svetlom podklade (1,97:1). Na svetlom je gold-ink. */
+  --color-gold: #c3a87c; /* 7,89:1 na ink-900 · 7,27:1 na ink-800 */
+  --color-gold-hover: #d6c09b;
+  --color-gold-ink: #7a6438; /* 4,89:1 na paper */
 
   /* Dekoratívne vlasové linky — zámerne rgba, aby fungovali nad ink-900 aj ink-800 */
-  --color-hairline-dark: rgba(245, 242, 236, 0.14);
-  --color-hairline-light: rgba(20, 23, 26, 0.12);
+  --color-hairline-dark: rgba(242, 239, 233, 0.14);
+  --color-hairline-light: rgba(25, 28, 32, 0.12);
 
   /* Hranice interaktívnych prvkov — WCAG 1.4.11, min 3:1 */
-  --color-border-interactive-dark: #6b675f; /* 3,36:1 na ink-900 · 3,10:1 na ink-800 */
-  --color-border-interactive-light: #807b72; /* 3,76:1 na paper */
+  --color-border-interactive-dark: #6f6b63; /* 3,39:1 na ink-900 · 3,13:1 na ink-800 */
+  --color-border-interactive-light: #827d74; /* 3,53:1 na paper */
 
   /* Type */
   --font-serif: 'Source Serif 4 Variable', Georgia, 'Times New Roman', serif;
@@ -105,7 +111,11 @@
   --text-eyebrow: 0.8125rem;
 
   /* Space & shape */
-  --spacing-section: clamp(4.5rem, 9vw, 8.5rem);
+  /*
+    Hustejšie než pôvodných clamp(4.5rem, 9vw, 8.5rem). Pri sekciách, ktoré
+    nemajú plnú pravú polovicu, nepôsobila veľká výška vzdušne, ale nedokončene.
+  */
+  --spacing-section: clamp(3.75rem, 7vw, 6.5rem);
   --radius-sm: 3px;
   --radius-md: 4px;
   --container-max: 1200px;
@@ -115,6 +125,12 @@
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
   --duration-fast: 180ms;
   --duration-base: 420ms;
+  /*
+    Reveal je kratší než ostatné prechody zámerne. Animácia má obsah uviesť,
+    nie ho zdržiavať — pri dlhšom trvaní pôsobí sekcia pri scrollovaní prázdna.
+    Stagger je zastropovaný v BaseLayout na 6 × 40 ms = max 240 ms na sekciu.
+  */
+  --duration-reveal: 320ms;
 }
 
 /* ---------------------------------------------------------------------------
@@ -214,9 +230,13 @@
 /* ---------------------------------------------------------------------------
    Reveal
 
-   Observer žije v BaseLayout (~10 riadkov). Trieda `js` sa na <html> pridáva
-   inline skriptom, takže bez JS sa `[data-reveal]` nikdy neskryje — obsah je
-   plne viditeľný. Nikdy neostane nič na opacity: 0.
+   Observer žije v BaseLayout. Trieda `js` sa na <html> pridáva inline
+   skriptom, takže bez JS sa `[data-reveal]` nikdy neskryje — obsah je plne
+   viditeľný. Nikdy neostane nič na opacity: 0.
+
+   Zásada: animácia nesmie byť podmienkou čitateľnosti. Obsah je viditeľný,
+   animácia ho len uvádza. Preto má skript tri poistky (viditeľné pri načítaní,
+   časový limit po `load`) a `is-instant` na odhalenie bez prechodu.
 --------------------------------------------------------------------------- */
 
 @media (prefers-reduced-motion: no-preference) {
@@ -224,8 +244,8 @@
     opacity: 0;
     transform: translateY(12px);
     transition:
-      opacity var(--duration-base) var(--ease-out-quint),
-      transform var(--duration-base) var(--ease-out-quint);
+      opacity var(--duration-reveal) var(--ease-out-quint),
+      transform var(--duration-reveal) var(--ease-out-quint);
   }
 
   .js [data-reveal].is-revealed {
@@ -249,6 +269,15 @@
 
   .js [data-reveal][data-rule].is-revealed {
     clip-path: inset(0 0 0 0);
+  }
+
+  /*
+    Čo je pri načítaní už vo viewporte, sa neanimuje — je to proste tam.
+    Musí stáť za blokom `[data-rule]`, inak by ho jeho `transition` prebil
+    (rovnaká špecificita, vyhráva neskoršie pravidlo).
+  */
+  .js [data-reveal].is-instant {
+    transition: none;
   }
 }
 

@@ -37,7 +37,7 @@ src/
   data/content.ts        všetky SK texty
   styles/global.css      @font-face, @theme tokeny, base layer, utility
   layouts/BaseLayout     meta, preload fontov, skip link, reveal observer
-  components/ui/         Section, Button, Eyebrow, Icon
+  components/ui/         Section, SectionBridge, SectionTexture, Button, Eyebrow, Icon
   components/brand/      Logo (provizórny wordmark)
   components/layout/     Header (+ mobilné menu), Footer, StickyCallBar
   components/sections/   7 sekcií homepage
@@ -48,6 +48,8 @@ src/
   pages/404.astro        noindex, bez JSON-LD
   pages/robots.txt.ts    generovaný robots.txt
 scripts/check-placeholders.mjs
+scripts/build-images.mjs        hero + 3 dekoratívne textúry, rovnaký grading
+scripts/check-hero-contrast.mjs kontrast textu nad hero obrazom, zopakovateľne
 tests/schema.test.mjs
 public/
   fonts/                 4× woff2 (latin + latin-ext, serif + sans)
@@ -104,7 +106,13 @@ Z mobilu, na výšku aj na šírku, denné svetlo, bez blesku:
 Hero dnes beží na abstraktnej textúre (grafitový povrch, jedno teplé svetlo).
 Nezobrazuje prevádzku, predmet ani osobu — je to materiál, nie tvrdenie o realite,
 preto má `alt=""` a `aria-hidden`. **Reálna fotka ju nahradí okamžite**, je vždy
-silnejšia. Stačí vymeniť zdroj v `scripts/build-hero.mjs` a spustiť `npm run hero`.
+silnejšia. Stačí vymeniť zdroj v `scripts/build-images.mjs` a spustiť `npm run images`.
+
+Tá istá textúra sa v troch ďalších variantoch objavuje aj v sekciách Individuálne
+ocenenie, Prečo Albion a Kontakt. Platí pritom jedno pravidlo art direction:
+**tmavé sekcie = materiál, svetlé sekcie = jasnosť.** Svetlé sekcie sú zámerne
+bez obrazu — ten striedavý rytmus nesie celý dojem. Všetky štyri zdroje idú cez
+rovnaký grading v jednom skripte, ktorý si sám stráži rozpočet aj tmavosť.
 
 ### Ostatné podklady
 

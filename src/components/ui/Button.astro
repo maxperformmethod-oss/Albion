@@ -1,6 +1,7 @@
 ---
 import Icon from './Icon.astro';
 import type { IconName } from './Icon.astro';
+import { content } from '../../data/content.ts';
 
 /**
  * CTA hierarchia z BRIEF §8:
@@ -22,7 +23,13 @@ interface Props {
    * Oboje vyžaduje `label`.
    */
   iconOnly?: boolean | 'below-480';
-  /** aria-label — povinný pri iconOnly a pri tel: odkazoch. */
+  /**
+   * Číslo do prístupného názvu telefónneho CTA. Skladanie názvu robí tlačidlo,
+   * nie miesto použitia — WCAG 2.5.3 (Label in Name) sa nám takto porušiť nedá.
+   * Pozri poznámku nižšie.
+   */
+  phone?: string | null;
+  /** aria-label pre ostatné prípady — povinný pri `iconOnly`. */
   label?: string;
   class?: string;
   [key: string]: unknown;
@@ -35,12 +42,51 @@ const {
   type = 'button',
   icon,
   iconOnly = false,
+  phone,
   label,
   class: className,
   ...rest
 } = Astro.props;
 
 const Tag = href ? 'a' : 'button';
+
+/*
+  WCAG 2.5.3 Label in Name: prístupný názov musí obsahovať viditeľný text,
+  inak sa hlasové ovládanie rozíde s tým, čo užívateľ vidí. Predtým sa názov
+  skladal na troch miestach použitia a zakaždým trochu inak. Tu ho tlačidlo
+  poskladá zo svojho vlastného viditeľného textu, takže to nemôže vyjsť zle.
+*/
+const slotHtml = Astro.slots.has('default')
+  ? await Astro.slots.render('default')
+  : '';
+
+const visibleText =
+  iconOnly === true
+    ? ''
+    : slotHtml
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+const ariaLabel = phone
+  ? visibleText
+    ? content.a11y.callAriaLabelWithAction
+        .replace('{action}', visibleText)
+        .replace('{phone}', phone)
+    : content.a11y.callAriaLabel.replace('{phone}', phone)
+  : label;
+
+// Poistka pre `label` odovzdaný zvonku. Neprejde do produkcie, len upozorní.
+if (
+  import.meta.env.DEV &&
+  ariaLabel &&
+  visibleText &&
+  !ariaLabel.toLowerCase().includes(visibleText.toLowerCase())
+) {
+  console.warn(
+    `[Button] WCAG 2.5.3: aria-label „${ariaLabel}“ neobsahuje viditeľný text „${visibleText}“.`
+  );
+}
 
 const base =
   'inline-flex items-center justify-center gap-2.5 font-sans text-small font-semibold whitespace-nowrap transition-fast';
@@ -82,16 +128,17 @@ const needsBorder = iconOnly && variant === 'ghost' ? 'border' : null;
 <Tag
   href={href}
   type={href ? undefined : type}
-  aria-label={label}
+  aria-label={ariaLabel}
   class:list={[base, shape, needsBorder, skins[variant][tone], className]}
   {...rest}
 >
   {icon && <Icon name={icon} size={iconOnly ? 22 : 18} />}
   {
     iconOnly !== true && (
-      <span class:list={[iconOnly === 'below-480' && 'hidden min-[480px]:inline']}>
-        <slot />
-      </span>
+      <span
+        class:list={[iconOnly === 'below-480' && 'hidden min-[480px]:inline']}
+        set:html={slotHtml}
+      />
     )
   }
 </Tag>

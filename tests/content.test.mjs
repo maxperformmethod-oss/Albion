@@ -16,7 +16,13 @@ test('v textoch nie je adresa natvrdo', () => {
 
 test('šablóny adresy majú svoj zástupný znak', () => {
   assert.ok(content.hero.eyebrow.includes('{address}'));
-  assert.ok(content.location.text.includes('{address}'));
+  // Popis schémy pre čítačku nesie adresu z business.ts, nie natvrdo.
+  assert.ok(content.location.map.desc.includes('{street}'));
+});
+
+test('schéma neuvádza vzdialenosť ani čas, ktoré nevieme', () => {
+  const serialized = JSON.stringify(content.location).toLowerCase();
+  assert.doesNotMatch(serialized, /\d+\s*(min|minút|metrov|m\b)/);
 });
 
 test('zakázané frázy sa v textoch nevyskytujú', () => {

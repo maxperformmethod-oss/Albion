@@ -294,3 +294,57 @@ je v pláne aj manuálny axe beh.
 | Žiadny `TO_CONFIRM` vo výstupe | ✅ |
 | JSON-LD bez vymyslených hodnôt | ✅ |
 | Rich Results Test | ⏳ potrebuje verejnú URL |
+
+---
+
+## Produkcia
+
+> Doplnené 14. 8. 2026 pri fáze 9 (`docs/PROMPT_FINAL2.md` §3).
+
+### Čo sa nedalo urobiť a prečo
+
+**Produkčnú URL nemám a z tohto stroja sa k nej neviem dostať.** Vercel účet
+napojený na tento nástroj (`maximmalovec8-6717's projects`) **nemá ani jeden
+projekt**, v repe nie je `.vercel/`, `git remote` ukazuje len na GitHub a nikde
+v repe nie je zapísaná žiadna `*.vercel.app` adresa. Nedá sa teda ani nastaviť
+`PUBLIC_SITE_URL`, ani premerať LCP na produkcii, ani overiť canonical a sitemap
+na živej doméne.
+
+Nepodsúvam odhad — merať sa dá len to, k čomu je prístup.
+
+### Čo je pripravené, aby to bolo na jeden krok
+
+1. `vercel.json` je v koreni repa (framework `astro`, `npm ci`, `dist`) — rieši
+   pád „No Next.js version detected" z `docs/FIX_VERCEL.md` a už sa to nerozíde
+   s dashboardom. `package-lock.json` je commitnutý, takže `npm ci` prejde.
+2. `engines.node` je priklincované na `22.x`, nie na otvorený rozsah.
+3. Rozlíšenie domény (`src/data/business.ts`, `astro.config.mjs`) je
+   `PUBLIC_SITE_URL` → `VERCEL_URL` → localhost. Aj bez zásahu teda po nasadení
+   canonical, `og:url` a sitemap ukážu na `*.vercel.app`; po nastavení
+   `PUBLIC_SITE_URL` na skutočnú doménu sa v kóde nemení nič.
+4. `isLocalSiteUrl` naďalej drží localhost mimo JSON-LD a OG.
+
+### Čo treba spraviť, keď bude URL
+
+1. Vercel → Settings → Environment Variables → `PUBLIC_SITE_URL` pre Production
+   **aj** Preview, potom **redeploy** (env sa aplikuje až pri novom builde).
+2. Overiť na živej stránke: `<link rel="canonical">`, `og:url`,
+   `/sitemap-index.xml`.
+3. Premerať LCP na produkcii (Slow 4G + 4× CPU) a číslo dopísať sem.
+
+### Lokálne meranie na produkčnom builde — pre porovnanie
+
+Bez throttlingu, `astro preview`, Chrome headless cez CDP, studená cache:
+
+| Metrika | Desktop 1440×900 | Mobil 390×844 |
+|---|---|---|
+| LCP | 176–472 ms | 176–368 ms |
+| Requesty | 10 | 9 |
+| Váha stránky po prejdení celej stránky | 282 kB | 261 kB |
+| Third-party | 0 | 0 |
+| Cookies | 0 | 0 |
+
+Nie je to náhrada za produkčné meranie — chýba latencia, throttling aj CDN.
+Hovorí len toľko, že na strane stránky nepribudla žiadna nová brzda: proti
+fáze 6 pribudli tri dekoratívne textúry (spolu 28 kB AVIF, všetky `lazy`) a
+inline SVG schéma mapy, a počet requestov ostal jednociferný.

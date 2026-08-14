@@ -1,20 +1,31 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionBridge from '../components/ui/SectionBridge.astro';
 import Hero from '../components/sections/Hero.astro';
 import WhatWeAccept from '../components/sections/WhatWeAccept.astro';
 import Valuation from '../components/sections/Valuation.astro';
 import HowItWorks from '../components/sections/HowItWorks.astro';
 import WhyAlbion from '../components/sections/WhyAlbion.astro';
-import Location from '../components/sections/Location.astro';
+import LocationMap from '../components/sections/LocationMap.astro';
 import Contact from '../components/sections/Contact.astro';
+
+/*
+  Poradie podkladov: ink → paper → ink → paper → ink-800 → ink → ink.
+  Most ide len tam, kde sa podklad naozaj mení; medzi dvoma tmavými sekciami
+  by bol zbytočný a rozbil by rytmus.
+*/
 ---
 
 <BaseLayout stickyCallBar preloadHero>
   <Hero />
+  <SectionBridge direction="down" />
   <WhatWeAccept />
+  <SectionBridge direction="up" />
   <Valuation />
+  <SectionBridge direction="down" />
   <HowItWorks />
+  <SectionBridge direction="up" dark="ink-800" />
   <WhyAlbion />
-  <Location />
+  <LocationMap />
   <Contact />
 </BaseLayout>

@@ -1,0 +1,273 @@
+---
+import Section from '../ui/Section.astro';
+import Button from '../ui/Button.astro';
+import { business, isConfirmed, streetName } from '../../data/business.ts';
+import { content } from '../../data/content.ts';
+import { mapsUrl } from '../../lib/cta.ts';
+
+/**
+ * „Kde nás nájdete“ — vlastná orientačná schéma ako inline SVG.
+ *
+ * Žiadny embed Google Máp ani satelitná snímka. Dôvody, v poradí dôležitosti:
+ *   1. Licencia — snímky Google sa legálne dajú použiť len cez ich API,
+ *      s kľúčom, atribúciou a v ich prehliadači. Nie ako stiahnutý obrázok.
+ *   2. Rozpočet — embed je third-party iframe s cookies a stovkami kB skriptov.
+ *      Zrušil by 0 third-party, 0 cookies aj LCP.
+ *   3. Vzhľad — screenshot z Máp je jediný prvok, ktorý by na tomto webe
+ *      vyzeral ako šablóna za 300 €.
+ *
+ * Geometria je zjednodušená, ale nesmie klamať o smere. Kým nemáme
+ * `business.geo` a potvrdenie od majiteľa (pozri docs/OTAZKY.md), schéma stojí
+ * len na dvoch istotách: adresa je Kpt. Nálepku 41 a je to blízko stanice.
+ * Preto tu nie je svetová strana, mierka, počet minút ani metrov.
+ *
+ * Schéma nikdy nie je jediným nositeľom údaja — tá istá informácia je pod ňou
+ * ako text.
+ */
+
+const { id, h2, cta, map } = content.location;
+
+const postalCity = isConfirmed(business.postalCode)
+  ? `${business.postalCode} ${business.city}`
+  : business.city;
+
+const street = isConfirmed(business.street) ? business.street : null;
+
+// `<desc>` nesie tú istú adresu, akú vidí oko — nesmie sa rozísť s business.ts.
+const mapDesc = map.desc.replace('{street}', street ?? business.city);
+
+/**
+ * Trasa stanica → Albion. Rovnaký `d` používa aj maska, ktorá ju nakresľuje —
+ * dashovanú linku (`8 10`) totiž nejde odhaliť cez `stroke-dashoffset`, ten
+ * je už obsadený samotným vzorom čiarok.
+ */
+const ROUTE = 'M 530 296 V 392 Q 530 424 562 430 L 800 468 Q 830 473 830 482';
+---
+
+<Section tone="ink" id={id} labelledby="location-title">
+  <div class="measure">
+    <h2 id="location-title" class="font-serif text-h2" data-reveal>{h2}</h2>
+  </div>
+
+  {/*
+    Pozoruje sa obal, nie SVG cesta. Prvok s nulovým rozmerom (a stroke bez
+    výplne je presne taký) IntersectionObserver nikdy neohlási.
+  */}
+  <figure class="mt-10" data-map>
+    <svg
+      class="map"
+      viewBox="0 0 1200 700"
+      role="img"
+      aria-labelledby="mapTitle mapDesc"
+      preserveAspectRatio="xMidYMid meet"
+    >
+      <title id="mapTitle">{map.title}</title>
+      <desc id="mapDesc">{mapDesc}</desc>
+
+      <defs>
+        <pattern id="mapGrid" width="100" height="100" patternUnits="userSpaceOnUse">
+          <path d="M 100 0 H 0 V 100" fill="none" stroke="rgba(242,239,233,0.07)" stroke-width="1" />
+        </pattern>
+
+        <mask id="routeMask">
+          <path class="route-mask" d={ROUTE} fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round" />
+        </mask>
+      </defs>
+
+      {/* Podklad a mriežka ulíc */}
+      <rect width="1200" height="700" fill="var(--color-ink-800)" />
+      <rect width="1200" height="700" fill="url(#mapGrid)" />
+
+      {/* Železnica — dvojitá linka s priečnymi pražcami */}
+      <g stroke="var(--color-bone-muted)" stroke-opacity="0.25">
+        <line x1="0" y1="150" x2="1200" y2="150" stroke-width="2" />
+        <line x1="0" y1="164" x2="1200" y2="164" stroke-width="2" />
+        <g stroke-width="1.5">
+          {
+            Array.from({ length: Math.floor(1200 / 14) }, (_, i) => (
+              <line x1={i * 14 + 7} y1="145" x2={i * 14 + 7} y2="169" />
+            ))
+          }
+        </g>
+      </g>
+
+      {/* Budova stanice */}
+      <rect
+        x="430"
+        y="196"
+        width="200"
+        height="100"
+        fill="var(--color-ink-900)"
+        stroke="rgba(242,239,233,0.18)"
+        stroke-width="1"
+        rx="2"
+      />
+      <text x="530" y="252" class="label" text-anchor="middle">{map.station}</text>
+
+      {/* Ulica Kpt. Nálepku */}
+      <line x1="0" y1="482" x2="1200" y2="482" stroke="rgba(242,239,233,0.18)" stroke-width="10" />
+      {streetName && <text x="120" y="452" class="label">{streetName}</text>}
+
+      {/* Trasa stanica → Albion */}
+      <path
+        class="route"
+        d={ROUTE}
+        mask="url(#routeMask)"
+        fill="none"
+        stroke="var(--color-gold)"
+        stroke-width="2.5"
+        stroke-dasharray="8 10"
+        stroke-linecap="round"
+      />
+
+      {/*
+        Bod Albion. Prstenec je súčasťou značky a ostáva; `here-pulse` je jeho
+        jednorazové rozšírenie. Slučka by z toho spravila blikajúci bod na mape.
+      */}
+      <g class="here">
+        <circle cx="830" cy="482" r="18" fill="none" stroke="var(--color-gold)" stroke-width="1" stroke-opacity="0.45" />
+        <circle class="here-pulse" cx="830" cy="482" r="18" fill="none" stroke="var(--color-gold)" stroke-width="1" opacity="0" />
+        <circle class="here-dot" cx="830" cy="482" r="9" fill="var(--color-gold)" />
+      </g>
+      <text x="830" y="440" class="here-label" text-anchor="middle">{map.here}</text>
+
+      <text x="1176" y="672" class="note" text-anchor="end">{map.note}</text>
+    </svg>
+  </figure>
+
+  <div class="mt-10">
+    <p class="font-serif text-h2" data-reveal>
+      {street && <span class="block">{street}</span>}
+      <span class="block">{postalCity}</span>
+    </p>
+
+    <p class="text-lead text-bone-muted mt-4" data-reveal>{map.walk}</p>
+
+    {
+      mapsUrl && (
+        <div class="mt-6" data-reveal>
+          <Button variant="link" href={mapsUrl} icon="map-pin">
+            {cta}
+          </Button>
+        </div>
+      )
+    }
+  </div>
+</Section>
+
+<style>
+  .map {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /*
+    Popisy sú `<text>`, nie obrysy — musia ostať v DOM a byť vyhľadateľné.
+    bone-muted na ink-800 je 7,60:1, „Albion“ v bone 14,44:1.
+  */
+  .label,
+  .note {
+    fill: var(--color-bone-muted);
+    font-family: var(--font-sans);
+    font-size: 20px;
+    letter-spacing: 0.02em;
+  }
+
+  .note {
+    font-size: 17px;
+  }
+
+  .here-label {
+    fill: var(--color-bone);
+    font-family: var(--font-serif);
+    font-weight: 600;
+    font-size: 30px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    /*
+      Počiatočný stav visí na triede `js` — bez JS by trasa aj bod ostali
+      navždy neviditeľné. Presnú dĺžku cesty dopočíta skript cez
+      `getTotalLength()`; kým to neurobí, drží ju schválne nadsadených 1200 px,
+      aby trasa nepreblikla.
+    */
+    :global(.js) .route-mask {
+      stroke-dasharray: var(--route-len, 1200);
+      stroke-dashoffset: var(--route-len, 1200);
+    }
+
+    :global(.js) [data-map].is-drawn .route-mask {
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 1100ms var(--ease-out-quint);
+    }
+
+    :global(.js) .here {
+      opacity: 0;
+    }
+
+    :global(.js) .here-dot,
+    :global(.js) .here-pulse {
+      transform: scale(0.85);
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+
+    :global(.js) [data-map].is-drawn .here {
+      opacity: 1;
+      transition: opacity 300ms var(--ease-out-quint) 900ms;
+    }
+
+    :global(.js) [data-map].is-drawn .here-dot {
+      transform: scale(1);
+      transition: transform 300ms var(--ease-out-quint) 900ms;
+    }
+
+    /* Jeden raz, nie slučka. Pulzujúci bod je gýč. */
+    :global(.js) [data-map].is-drawn .here-pulse {
+      animation: here-pulse 700ms var(--ease-out-quint) 1150ms 1 forwards;
+    }
+
+    @keyframes here-pulse {
+      from {
+        transform: scale(1);
+        opacity: 0.6;
+      }
+      to {
+        transform: scale(1.35);
+        opacity: 0;
+      }
+    }
+  }
+</style>
+
+<script>
+  // Pozoruje sa obal figúry, nie cesta — pozri poznámku v šablóne.
+  const figure = document.querySelector<HTMLElement>('[data-map]');
+  const mask = figure?.querySelector<SVGPathElement>('.route-mask');
+
+  if (figure && mask) {
+    // Presná dĺžka cesty. Bez nej by vzor čiarok nesadol a trasa by sa
+    // „dokreslila“ skôr, než animácia dobehne.
+    const length = Math.ceil(mask.getTotalLength());
+    figure.style.setProperty('--route-len', `${length}`);
+
+    const draw = () => figure.classList.add('is-drawn');
+
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            observer.disconnect();
+            draw();
+          });
+        },
+        { threshold: 0.35 }
+      );
+      observer.observe(figure);
+    } else {
+      draw();
+    }
+  }
+</script>

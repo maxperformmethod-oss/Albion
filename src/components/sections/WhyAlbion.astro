@@ -1,5 +1,6 @@
 ---
 import Section from '../ui/Section.astro';
+import SectionTexture from '../ui/SectionTexture.astro';
 import { business } from '../../data/business.ts';
 import { content } from '../../data/content.ts';
 
@@ -17,10 +18,24 @@ const withPrefix = (title: string, text: string) =>
   title === 'Dlhoročná miestna firma' ? `${foundedPrefix}${text}` : text;
 ---
 
-<Section tone="ink-soft" id={id} labelledby="why-albion-title">
+<Section
+  tone="ink-soft"
+  id={id}
+  labelledby="why-albion-title"
+  class="relative overflow-hidden"
+  innerClass="relative z-10"
+>
+  {/*
+    Full-bleed, ale len ako tón — nie ako obrázok. Pri krytí 0,10 a odsýtení
+    už nie je čitateľný motív, ostáva len materiál pod textom.
+  */}
+  <div class="why-texture" slot="backdrop">
+    <SectionTexture texture="wide" sizes="100vw" />
+  </div>
+
   <h2 id="why-albion-title" class="font-serif text-h2" data-reveal>{h2}</h2>
 
-  <ul class="mt-14 grid grid-cols-1 gap-x-12 gap-y-10 md:grid-cols-2">
+  <ul class="mt-12 grid grid-cols-1 gap-x-12 gap-y-10 md:grid-cols-2">
     {
       items.map((item) => (
         <li class="border-hairline-dark border-t pt-6" data-reveal>
@@ -31,3 +46,19 @@ const withPrefix = (title: string, text: string) =>
     }
   </ul>
 </Section>
+
+<style>
+  .why-texture {
+    position: absolute;
+    inset: 0;
+    opacity: 0.1;
+    filter: grayscale(0.4);
+    pointer-events: none;
+  }
+
+  .why-texture :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+</style>

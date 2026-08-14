@@ -64,7 +64,7 @@ export const content = {
      * Spojené medzerou sa musia rovnať `h1` — stráži to unit test.
      */
     h1Lines: ['Záložňa, kde sa', 'vieme dohodnúť.'],
-    lead: 'Albion v Lučenci. Zlato, šperky, hodinky, elektronika, náradie, autá aj netypické veci. Každú vec oceníme individuálne a povieme vám to na rovinu.',
+    lead: 'Albion v Lučenci. Zlato, šperky, hodinky, elektronika, náradie, autá aj atypické veci. Každú vec oceníme individuálne a povieme vám to na rovinu.',
     ctaPrimary: 'Zavolať',
     ctaSecondary: 'Chcem oceniť vec',
     micro: 'Osobne · Diskrétne · Bez čakania na schválenie z centrály',
@@ -135,7 +135,7 @@ export const content = {
         text: 'Albion patrí k najdlhšie fungujúcim záložniam v Lučenci. Nie sme pobočka reťazca — sme miestna firma, ktorá tu chce fungovať aj o desať rokov.',
       },
       {
-        title: 'Berieme aj netypické veci',
+        title: 'Berieme aj atypické veci',
         text: 'Od šperkov po autá a stroje. Ak to má hodnotu, vieme sa o tom baviť.',
       },
       {
@@ -148,15 +148,34 @@ export const content = {
   location: {
     id: 'kde-nas-najdete',
     h2: 'Nájdete nás pri stanici',
-    /** `{address}` sa skladá z business.ts. */
-    text: '{address} — pár krokov od železničnej stanice.',
     cta: 'Otvoriť v Google Mapách',
+    /**
+     * Popisy vo vlastnej orientačnej schéme. Schéma je zjednodušená, ale nesmie
+     * klamať o smere — kým nemáme `business.geo` a potvrdenie od majiteľa, drží
+     * sa len dvoch istôt: adresa a blízkosť stanice. Žiadne minúty ani metre.
+     *
+     * Názov ulice sem nepatrí — skladá sa z business.ts cez `{street}`.
+     */
+    map: {
+      station: 'Železničná stanica',
+      here: 'Albion',
+      /** Aby bolo zrejmé, že to nie je navigačná mapa. */
+      note: 'Orientačná schéma',
+      title: 'Schéma okolia prevádzky Albion',
+      desc: 'Schéma okolia — prevádzka Albion sa nachádza na ulici {street}, pár krokov od železničnej stanice v Lučenci.',
+      walk: 'Pár krokov od železničnej stanice.',
+    },
   },
 
   contact: {
     id: 'kontakt',
-    h2: 'Ozvite sa',
-    lead: 'Najrýchlejšie to vyriešime telefonicky alebo osobne.',
+    /*
+      „Ozvite sa“ bol príkaz. Toto je ponuka rozhovoru a nadväzuje na celý
+      pozicioning („záložňa, kde sa vieme dohodnúť“). Posledná veta odstraňuje
+      jedinú reálnu obavu — že návšteva k niečomu zaväzuje.
+    */
+    h2: 'Poďme sa o tom porozprávať.',
+    lead: 'Zavolajte alebo jednoducho prídite. Pozrieme sa na vec, povieme vám sumu a rozhodnete sa vy. Opýtať sa nič nestojí.',
     labels: {
       phone: 'Telefón',
       address: 'Adresa',

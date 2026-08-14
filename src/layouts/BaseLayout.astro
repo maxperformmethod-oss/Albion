@@ -44,7 +44,7 @@ const showStickyBar = stickyCallBar && FEATURES.stickyCallBar;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#0F1113" />
+    <meta name="theme-color" content="#14171B" />
 
     <title>{title}</title>
     <meta name="description" content={description} />
@@ -145,29 +145,71 @@ const showStickyBar = stickyCallBar && FEATURES.stickyCallBar;
     {showStickyBar && <StickyCallBar />}
 
     <script>
-      // Reveal — jeden observer na celú stránku, každý prvok len raz.
-      const revealed = document.querySelectorAll<HTMLElement>('[data-reveal]');
+      /*
+        Reveal — jeden observer na celú stránku, každý prvok len raz.
+
+        Zásada: animácia nesmie byť podmienkou čitateľnosti. Predtým sa stávalo,
+        že pri scrollovaní ostal pod nadpisom sekcie niekoľko sto pixelov
+        prázdna — používateľ to čítal ako rozbitú stránku, nie ako animáciu.
+        Preto sú tu tri nezávislé cesty, ako sa obsah odhalí:
+          1. čo je pri načítaní vo viewporte, sa odhalí hneď a bez prechodu,
+          2. zvyšok odhalí observer, len čo sa prvok objaví (nie v strede),
+          3. poistka 1200 ms po `load` odhalí všetko, čo ešte ostalo skryté.
+      */
+      const revealed = Array.from(
+        document.querySelectorAll<HTMLElement>('[data-reveal]')
+      );
+
+      /** Stagger max 6 × 40 ms — celá sekcia je hotová do 240 ms. */
+      const STAGGER = 40;
+      const MAX_STEPS = 6;
+
+      const revealAll = () => {
+        revealed.forEach((element) => element.classList.add('is-revealed'));
+      };
 
       if (revealed.length > 0 && 'IntersectionObserver' in window) {
+        // 1. Už viditeľné pri načítaní. IntersectionObserver ich síce ohlási,
+        //    ale až v ďalšom rámci a s prechodom — tu ich chceme rovno na mieste.
+        const pending = revealed.filter((element) => {
+          const { top, bottom } = element.getBoundingClientRect();
+          const visible = top < window.innerHeight && bottom > 0;
+          if (visible) element.classList.add('is-instant', 'is-revealed');
+          return !visible;
+        });
+
         const observer = new IntersectionObserver(
           (entries) => {
-            entries.forEach((entry, index) => {
+            // `index` musí ísť cez odhaľované prvky, nie cez celú dávku —
+            // v dávke sú aj tie, ktoré práve odchádzajú z viewportu.
+            let step = 0;
+            entries.forEach((entry) => {
               if (!entry.isIntersecting) return;
               const element = entry.target as HTMLElement;
+              observer.unobserve(element);
               window.setTimeout(
                 () => element.classList.add('is-revealed'),
-                Math.min(index * 60, 180)
+                Math.min(step++, MAX_STEPS) * STAGGER
               );
-              observer.unobserve(element);
             });
           },
-          // Pevných 48 px, nie percento: percentuálny spodný okraj znamená, že
-          // prvky v poslednej desatine vysokého viewportu sa pri dokrolovaní
-          // na koniec stránky nikdy neprekryjú s koreňom a zostanú neviditeľné.
-          { rootMargin: '0px 0px -48px 0px' }
+          {
+            // Prvok sa odhalí, keď sa objaví, nie keď je v strede. `threshold: 0`
+            // znamená prvý pixel; spodných -8 % len bráni odhaleniu tesne
+            // pod hranou, kde by to používateľ ešte nevidel.
+            rootMargin: '0px 0px -8% 0px',
+            threshold: 0,
+          }
         );
 
-        revealed.forEach((element) => observer.observe(element));
+        pending.forEach((element) => observer.observe(element));
+
+        // 3. Poistka. Ak sa čokoľvek pokazí, stránka ostane čitateľná.
+        const arm = () => window.setTimeout(revealAll, 1200);
+        if (document.readyState === 'complete') arm();
+        else window.addEventListener('load', arm, { once: true });
+      } else {
+        revealAll();
       }
     </script>
   </body>

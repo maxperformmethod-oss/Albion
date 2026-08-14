@@ -173,6 +173,14 @@ export const addressLine = isConfirmed(business.street)
   ? `${business.street}, ${business.city}`
   : business.city;
 
+/**
+ * Ulica bez orientačného čísla — popis pozdĺž ulice v orientačnej schéme.
+ * Číslo tam nepatrí, do mapy sa píše názov ulice; celá adresa je pod schémou.
+ */
+export const streetName = isConfirmed(business.street)
+  ? business.street.replace(/\s+\d+(\s*\/\s*\d+)?[a-zA-Z]?$/, '')
+  : null;
+
 /** `Kpt. Nálepku 41, 984 01 Lučenec` */
 export const addressWithPostalCode =
   isConfirmed(business.street) && isConfirmed(business.postalCode)

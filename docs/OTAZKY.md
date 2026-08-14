@@ -36,7 +36,7 @@ Zámer, nie opomenutie. Typografický blok + tlačidlo do Google Máp.
 |---|---|---|
 | 1 | **Doména** | `PUBLIC_SITE_URL` → canonical, OG URL, sitemap a `url`/`image` v JSON-LD. Dovtedy sa `url` a `image` do JSON-LD **nevygenerujú** — localhost tam nepatrí. |
 | 2 | **E-mail** | Pribudne riadok v sekcii Kontakt a `email` v JSON-LD. |
-| 3 | **GPS súradnice** | Pribudne `geo` v JSON-LD (lokálne SEO). |
+| 3 | **GPS súradnice + orientácia voči stanici** | Pribudne `geo` v JSON-LD (lokálne SEO) a spresní sa orientačná schéma v sekcii „Kde nás nájdete". Potrebujeme dve veci: presné súradnice prevádzky a odpoveď na otázku, **ktorým smerom je stanica od prevádzky** (a či sa k nám ide priamo po Kpt. Nálepku). Kým to nevieme, schéma zámerne neuvádza svetovú stranu, mierku ani počet minút či metrov — `Pár krokov` je pravdivé, `2 minúty pešo` by bol výmysel. |
 | 4 | **Potvrdenie roku 2001** | Prepni `foundedYearConfirmed: true` → do bodu „Dlhoročná miestna firma" pribudne veta `V Lučenci pôsobíme od roku 2001.` |
 | 5 | **Priamy odkaz na Google profil** | Nahradí vyhľadávací odkaz — otvorí kartu prevádzky s recenziami namiesto zoznamu výsledkov. |
 | 6 | **6 fotiek od majiteľa** | Nahradia abstraktnú textúru v hero. Zoznam je v `README.md`. |

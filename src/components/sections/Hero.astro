@@ -95,7 +95,7 @@ const eyebrow = content.hero.eyebrow
       <Button
         href={primaryCta.href}
         icon={primaryCta.icon}
-        label={primaryCta.label}
+        phone={primaryCta.phone}
       >
         {primaryCta.text}
       </Button>
@@ -135,7 +135,13 @@ const eyebrow = content.hero.eyebrow
     }
   }
 
-  /* Text nesmie závisieť od toho, ako obraz vyzerá. */
+  /*
+    Text nesmie závisieť od toho, ako obraz vyzerá.
+
+    Krytie sa po zmene palety muselo priplusovať: svetlejší `ink-900` znížil
+    kontrast H1 z 12,14:1 na 11,65:1. Zarážky sú zrkadlené v
+    `scripts/check-hero-contrast.mjs` — pri zmene uprav oboje a spusti ho.
+  */
   .hero::after {
     content: '';
     position: absolute;
@@ -144,11 +150,11 @@ const eyebrow = content.hero.eyebrow
     background:
       linear-gradient(
         100deg,
-        rgb(15 17 19 / 0.96) 0%,
-        rgb(15 17 19 / 0.88) 42%,
-        rgb(15 17 19 / 0.58) 100%
+        rgb(20 23 27 / 0.96) 0%,
+        rgb(20 23 27 / 0.92) 42%,
+        rgb(20 23 27 / 0.66) 100%
       ),
-      linear-gradient(to top, rgb(15 17 19 / 0.95) 0%, rgb(15 17 19 / 0) 45%);
+      linear-gradient(to top, rgb(20 23 27 / 0.95) 0%, rgb(20 23 27 / 0) 45%);
   }
 
   /* Jediný výnimočný pohyb na celom webe: riadkový reveal H1. */

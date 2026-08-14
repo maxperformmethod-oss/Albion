@@ -1,12 +1,19 @@
 /**
- * Predspracovanie hero obrazu.
+ * Predspracovanie všetkých obrazov webu — hero aj dekoratívnych textúr.
  *
  * Surový obraz sa nesmie použiť priamo — má bežnú expozíciu, zrážal by kontrast
- * H1 a bol by príliš veľký. Stmavíme, odsýtime a prekódujeme ho deterministicky,
+ * textu a bol by príliš veľký. Stmavíme, odsýtime a prekódujeme ho deterministicky,
  * nie ručne v editore, nech sa to dá zopakovať, keď príde reálna fotka.
  *
+ * Všetky štyri zdroje idú cez ten istý `grade()` — jediné, čo sa líši, je
+ * `brightness`, pretože každý zdroj prišiel inak exponovaný. Rovnaký grading je
+ * dôvod, prečo textúry v rôznych sekciách pôsobia ako jeden materiál.
+ *
+ * Art direction (docs/PROMPT_FINAL3.md §4): textúra patrí LEN do tmavých sekcií.
+ * Svetlé sekcie sú zámerne čisté — ten striedavý rytmus nesie celý dojem.
+ *
  * Zdroje v `src/assets/raw/` sa necommitujú. Do repa idú len výstupy
- * v `public/images/`. Ak zdroje chýbajú, skript sa ticho preskočí — hero
+ * v `public/images/`. Ak zdroje chýbajú, skript sa ticho preskočí — stránka
  * musí fungovať aj bez obrazu.
  *
  * Používa `sharp`, ktorý už máme cez Astro. Žiadna nová závislosť.
@@ -16,14 +23,14 @@ import sharp from 'sharp';
 import { mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 
-const DESKTOP_SRC = 'src/assets/raw/hero-raw.png';
-const MOBILE_SRC = 'src/assets/raw/hero-raw-mobile.png';
+const RAW = 'src/assets/raw';
 const OUT = 'public/images';
 
 /** Cieľ: priemerná luminancia ≤ 0.12 (0–1). */
 const MAX_MEAN_LUMINANCE = 0.12;
 
-// Brightness je per zdroj — mobilný obraz prišiel svetlejší ako desktopový.
+// Brightness je per zdroj — mobilný obraz prišiel svetlejší ako desktopový
+// a dekoratívne textúry musia ísť ešte nižšie, lebo ležia pod textom.
 const grade = (src, brightness) =>
   sharp(src)
     .modulate({ brightness, saturation: 0.75 })
@@ -32,7 +39,7 @@ const grade = (src, brightness) =>
 
 const sets = [
   {
-    src: DESKTOP_SRC,
+    src: `${RAW}/hero-raw.png`,
     brightness: 0.85,
     variants: [
       { w: 1920, avif: 40, webp: 66, name: 'hero-1920', budget: 140 },
@@ -41,11 +48,41 @@ const sets = [
     ],
   },
   {
-    src: MOBILE_SRC,
+    src: `${RAW}/hero-raw-mobile.png`,
     brightness: 0.7,
     variants: [
       { w: 760, avif: 45, webp: 70, name: 'hero-m-760', budget: 55 },
       { w: 480, avif: 48, webp: 72, name: 'hero-m-480', budget: 30 },
+    ],
+  },
+
+  /*
+    Dekoratívne textúry. Zdroje sú 1376×768, takže sa neškálujú nahor —
+    rozpočet z §4 (45 kB pri 1600 px) tým platí s rezervou. Sú tmavé,
+    rozmazané a ležia pod krytím 0,10–0,35, takže nižšia kvalita nie je vidieť.
+  */
+  {
+    src: `${RAW}/tex-1.png`,
+    brightness: 0.62,
+    variants: [
+      { w: 1100, avif: 40, webp: 62, name: 'tex-panel-1100', budget: 45 },
+      { w: 700, avif: 42, webp: 64, name: 'tex-panel-700', budget: 28 },
+    ],
+  },
+  {
+    src: `${RAW}/tex-2.png`,
+    brightness: 0.5,
+    variants: [
+      { w: 1376, avif: 38, webp: 60, name: 'tex-wide-1376', budget: 45 },
+      { w: 900, avif: 40, webp: 62, name: 'tex-wide-900', budget: 30 },
+    ],
+  },
+  {
+    src: `${RAW}/tex-3.png`,
+    brightness: 0.6,
+    variants: [
+      { w: 1376, avif: 38, webp: 60, name: 'tex-contact-1376', budget: 45 },
+      { w: 900, avif: 40, webp: 62, name: 'tex-contact-900', budget: 30 },
     ],
   },
 ];
@@ -62,13 +99,17 @@ await mkdir(OUT, { recursive: true });
 
 let overBudget = 0;
 let tooBright = 0;
+let totalAvifKb = 0;
 
 /**
  * `sharp(...).stats()` číta zdrojový súbor, nie výsledok pipeline — merať sa
  * teda musí až na prekódovanom buffri, inak stmavenie kontrolu vôbec neovplyvní.
  */
 async function meanLuminance(src, brightness) {
-  const processed = await grade(src, brightness).resize({ width: 400 }).png().toBuffer();
+  const processed = await grade(src, brightness)
+    .resize({ width: 400 })
+    .png()
+    .toBuffer();
   const { channels } = await sharp(processed).stats();
   return channels.slice(0, 3).reduce((sum, c) => sum + c.mean, 0) / 3 / 255;
 }
@@ -92,12 +133,15 @@ for (const set of sets) {
       const kb = Math.round(info.size / 1024);
       const over = format === 'avif' && kb > variant.budget;
       if (over) overBudget += 1;
+      if (format === 'avif') totalAvifKb += kb;
       console.log(
         `  ${file}  ${info.width}x${info.height}  ${kb} kB${over ? `  ⚠ NAD ROZPOČET (${variant.budget} kB)` : ''}`
       );
     }
   }
 }
+
+console.log(`\nAVIF spolu (všetky varianty): ${totalAvifKb} kB`);
 
 if (overBudget > 0 || tooBright > 0) {
   console.log(

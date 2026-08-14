@@ -3,6 +3,11 @@
  * Jedna sekcia homepage. Nesie podklad, vertikálny rytmus a kontajner.
  *
  * `labelledby` je povinné vždy, keď sekcia má nadpis — BRIEF §11.
+ *
+ * Slot `backdrop` stojí mimo kontajnera, takže dekoratívna vrstva (textúra)
+ * môže ísť cez celú šírku sekcie. Sekcia k nemu musí dostať `relative
+ * overflow-hidden` a obsah `innerClass="relative z-10"` — bez neho by
+ * pozicovaný backdrop prekryl text.
  */
 interface Props {
   tone?: 'ink' | 'ink-soft' | 'paper';
@@ -35,6 +40,8 @@ const tones = {
   aria-labelledby={labelledby}
   class:list={['py-section', tones[tone], className]}
 >
+  <slot name="backdrop" />
+
   <div class:list={['container-page', innerClass]}>
     {divider && <span data-rule data-reveal aria-hidden="true" class="rule-gold mb-14 w-full" />}
     <slot />
