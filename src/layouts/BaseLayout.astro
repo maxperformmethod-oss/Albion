@@ -18,6 +18,8 @@ interface Props {
   stickyCallBar?: boolean;
   /** JSON-LD prevádzky. Na 404 nedáva zmysel. */
   schema?: boolean;
+  /** Preload hero obrazu — len tam, kde hero naozaj je. */
+  preloadHero?: boolean;
 }
 
 const {
@@ -26,6 +28,7 @@ const {
   noindex = false,
   stickyCallBar = false,
   schema = true,
+  preloadHero = false,
 } = Astro.props;
 
 const jsonLd = schema ? buildPawnShopSchema() : undefined;
@@ -59,7 +62,37 @@ const showStickyBar = stickyCallBar && FEATURES.stickyCallBar;
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
-    {/* Len serif, oba subsety — pokrývajú <h1>, teda LCP prvok (BRIEF §4). */}
+    {
+      /*
+        Hero obraz je LCP prvok. Bez preloadu ho prehliadač objaví až po CSS
+        a jeho request sa v meraní queueoval o ~730 ms neskôr. `type` zaistí,
+        že si ho nestiahne prehliadač bez podpory AVIF.
+      */
+      preloadHero && (
+        <>
+          <link
+            rel="preload"
+            as="image"
+            type="image/avif"
+            media="(max-width: 767px)"
+            imagesrcset="/images/hero-m-480.avif 480w, /images/hero-m-760.avif 760w"
+            imagesizes="(max-width: 767px) 40vw, 100vw"
+            fetchpriority="high"
+          />
+          <link
+            rel="preload"
+            as="image"
+            type="image/avif"
+            media="(min-width: 768px)"
+            imagesrcset="/images/hero-760.avif 760w, /images/hero-1280.avif 1280w, /images/hero-1920.avif 1920w"
+            imagesizes="100vw"
+            fetchpriority="high"
+          />
+        </>
+      )
+    }
+
+    {/* Serif, oba subsety — pokrývajú nadpisy vrátane <h1> (BRIEF §4). */}
     <link
       rel="preload"
       as="font"
@@ -128,7 +161,10 @@ const showStickyBar = stickyCallBar && FEATURES.stickyCallBar;
               observer.unobserve(element);
             });
           },
-          { rootMargin: '0px 0px -10% 0px' }
+          // Pevných 48 px, nie percento: percentuálny spodný okraj znamená, že
+          // prvky v poslednej desatine vysokého viewportu sa pri dokrolovaní
+          // na koniec stránky nikdy neprekryjú s koreňom a zostanú neviditeľné.
+          { rootMargin: '0px 0px -48px 0px' }
         );
 
         revealed.forEach((element) => observer.observe(element));

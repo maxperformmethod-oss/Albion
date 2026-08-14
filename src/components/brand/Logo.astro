@@ -27,11 +27,12 @@ const showDescriptor = variant !== 'wordmark';
 const descriptorHide = variant === 'responsive' ? 'max-[479px]:hidden' : null;
 ---
 
-<span
-  role="img"
-  aria-label={business.name}
-  class:list={['inline-flex flex-col items-stretch leading-none', className]}
->
+{/*
+  Zámerne bez `role="img"` a bez `aria-label`: wordmark je skutočný text, takže
+  prístupný názov si nesie sám. Vlastný label by porušil WCAG 2.5.3 (Label in
+  Name) — nesedel by s tým, čo je na obrazovke vidieť.
+*/}
+<span class:list={['inline-flex flex-col items-stretch leading-none', className]}>
   <span class="font-serif font-semibold uppercase tracking-[0.16em] whitespace-nowrap">
     {business.shortName}
   </span>

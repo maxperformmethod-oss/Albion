@@ -24,8 +24,18 @@ export const phoneHref = isConfirmed(business.phone)
 
 export const hasPhone = phoneHref !== null;
 
+/**
+ * WCAG 2.5.3 (Label in Name): prístupný názov musí obsahovať viditeľný text.
+ * Tam, kde je viditeľné samotné číslo, musí byť v labeli to isté číslo —
+ * inak sa hlasové ovládanie a čítačka rozchádzajú s tým, čo užívateľ vidí.
+ */
 export const callAriaLabel = phoneDisplay
   ? content.a11y.callAriaLabel.replace('{phone}', phoneDisplay)
+  : undefined;
+
+/** Pre odkazy, kde je viditeľným textom medzinárodný tvar čísla. */
+export const callAriaLabelLong = phoneDisplayLong
+  ? content.a11y.callAriaLabel.replace('{phone}', phoneDisplayLong)
   : undefined;
 
 export interface Cta {

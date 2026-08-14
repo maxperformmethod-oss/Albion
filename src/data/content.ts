@@ -35,8 +35,14 @@ export const content = {
     skipLink: 'Preskočiť na obsah',
     openMenu: 'Otvoriť menu',
     closeMenu: 'Zavrieť menu',
-    /** {phone} sa nahradí zobrazovaným tvarom čísla. */
+    /**
+     * {phone} sa nahradí zobrazovaným tvarom čísla. Použiteľné len tam, kde je
+     * viditeľným textom „Zavolať" alebo samotné číslo — prístupný názov musí
+     * obsahovať viditeľný text (WCAG 2.5.3 Label in Name).
+     */
     callAriaLabel: 'Zavolať na číslo {phone}',
+    /** Pre tlačidlá s vlastným znením, napr. „Zavolať a opýtať sa". */
+    callAriaLabelWithAction: '{action} — číslo {phone}',
   },
 
   header: {
@@ -167,6 +173,8 @@ export const content = {
 
   stickyBar: {
     maps: 'Mapa',
+    /** Lišta je vlastný landmark, inak by jej obsah stál mimo orientačných bodov. */
+    ariaLabel: 'Rýchly kontakt',
   },
 
   footer: {

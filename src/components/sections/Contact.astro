@@ -3,7 +3,7 @@ import Section from '../ui/Section.astro';
 import { addressWithPostalCode, business, isConfirmed } from '../../data/business.ts';
 import { content } from '../../data/content.ts';
 import { formatDays } from '../../lib/hours.ts';
-import { phoneDisplayLong, phoneHref, callAriaLabel } from '../../lib/cta.ts';
+import { phoneDisplayLong, phoneHref, callAriaLabelLong } from '../../lib/cta.ts';
 
 const { id, h2, lead, labels } = content.contact;
 
@@ -32,7 +32,7 @@ const showDevBadge = import.meta.env.DEV && !phoneHref;
           <dd class="mt-3">
             <a
               href={phoneHref}
-              aria-label={callAriaLabel}
+              aria-label={callAriaLabelLong}
               class="font-serif text-h3 hover:text-gold transition-fast"
               data-numeric
             >

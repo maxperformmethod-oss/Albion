@@ -2,7 +2,7 @@
 import Logo from '../brand/Logo.astro';
 import { addressWithPostalCode, business, isConfirmed } from '../../data/business.ts';
 import { content } from '../../data/content.ts';
-import { phoneDisplayLong, phoneHref, callAriaLabel } from '../../lib/cta.ts';
+import { phoneDisplayLong, phoneHref, callAriaLabelLong } from '../../lib/cta.ts';
 
 const year = new Date().getFullYear();
 
@@ -29,7 +29,7 @@ const email = isConfirmed(business.email) ? business.email : null;
             phoneHref && (
               <a
                 href={phoneHref}
-                aria-label={callAriaLabel}
+                aria-label={callAriaLabelLong}
                 class="hover:text-gold transition-fast mt-1 block"
                 data-numeric
               >

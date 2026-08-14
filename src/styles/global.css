@@ -233,16 +233,22 @@
     transform: none;
   }
 
-  /* Zlatý oddeľovač sekcií sa nakreslí zľava doprava, nie vyplynie. */
+  /*
+    Zlatý oddeľovač sekcií sa nakreslí zľava doprava, nie vyplynie.
+    Zámerne `clip-path`, nie `scaleX(0)`: prvok zmenšený na nulovú šírku má
+    prázdny prienik s viewportom, takže by ho IntersectionObserver nikdy
+    neohlásil a linka by zostala neviditeľná. Clip mení len maľovanie,
+    rozloženie prvku ostáva.
+  */
   .js [data-reveal][data-rule] {
     opacity: 1;
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 500ms var(--ease-out-quint);
+    transform: none;
+    clip-path: inset(0 100% 0 0);
+    transition: clip-path 500ms var(--ease-out-quint);
   }
 
   .js [data-reveal][data-rule].is-revealed {
-    transform: scaleX(1);
+    clip-path: inset(0 0 0 0);
   }
 }
 

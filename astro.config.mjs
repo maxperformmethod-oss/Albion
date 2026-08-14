@@ -19,6 +19,8 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
   build: {
+    // Merané: externý štýl pridal render-blocking request a zhoršil FCP o 376 ms
+    // aj LCP o ~130 ms. Inline zostáva. Pozri docs/REPORT_faza6_audit.md.
     inlineStylesheets: 'always',
   },
 });

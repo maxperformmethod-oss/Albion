@@ -3,13 +3,22 @@ import Section from '../ui/Section.astro';
 import Button from '../ui/Button.astro';
 import Eyebrow from '../ui/Eyebrow.astro';
 import { content } from '../../data/content.ts';
-import { primaryCta, hasPhone } from '../../lib/cta.ts';
+import { phoneDisplay, primaryCta, hasPhone } from '../../lib/cta.ts';
 
 const { id, eyebrow, h2, paragraphs, cta } = content.valuation;
 
 // „Zavolať a opýtať sa“ dáva zmysel len s telefónom. Bez neho vedie CTA
 // na kontakt a nesie znenie primárneho CTA.
 const ctaText = hasPhone ? cta : primaryCta.text;
+
+// Prístupný názov musí obsahovať viditeľný text (WCAG 2.5.3), preto sa skladá
+// z vlastného znenia tlačidla, nie zo všeobecného „Zavolať na číslo …“.
+const ctaLabel =
+  hasPhone && phoneDisplay
+    ? content.a11y.callAriaLabelWithAction
+        .replace('{action}', ctaText)
+        .replace('{phone}', phoneDisplay)
+    : primaryCta.label;
 ---
 
 <Section tone="ink" id={id} labelledby="valuation-title">
@@ -30,7 +39,7 @@ const ctaText = hasPhone ? cta : primaryCta.text;
       <Button
         href={primaryCta.href}
         icon={primaryCta.icon}
-        label={primaryCta.label}
+        label={ctaLabel}
       >
         {ctaText}
       </Button>

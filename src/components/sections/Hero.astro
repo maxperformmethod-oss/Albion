@@ -25,17 +25,22 @@ const eyebrow = content.hero.eyebrow
 
 <section aria-labelledby="hero-title" class="hero bg-ink-900 relative overflow-hidden">
   <picture>
+    {/*
+      Mobil dostáva menší variant zámerne. Je to rozostrená dekoratívna textúra
+      pod 96 % maskou — plné retina rozlíšenie by sa nedalo rozoznať, ale dekód
+      760×943 stál v meraní stovky ms na LCP. Pozri docs/REPORT_faza6_audit.md.
+    */}
     <source
       media="(max-width: 767px)"
       type="image/avif"
       srcset="/images/hero-m-480.avif 480w, /images/hero-m-760.avif 760w"
-      sizes="100vw"
+      sizes="(max-width: 767px) 40vw, 100vw"
     />
     <source
       media="(max-width: 767px)"
       type="image/webp"
       srcset="/images/hero-m-480.webp 480w, /images/hero-m-760.webp 760w"
-      sizes="100vw"
+      sizes="(max-width: 767px) 40vw, 100vw"
     />
     <source
       type="image/avif"
