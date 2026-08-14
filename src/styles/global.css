@@ -193,6 +193,13 @@
   max-width: min(68ch, var(--container-text));
 }
 
+/** Hover prechody. Jediný povolený druh mikro-animácie mimo reveal (BRIEF §10). */
+@utility transition-fast {
+  transition-property: color, background-color, border-color, opacity;
+  transition-timing-function: var(--ease-out-quint);
+  transition-duration: var(--duration-fast);
+}
+
 /* ---------------------------------------------------------------------------
    Reveal
 

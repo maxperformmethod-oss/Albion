@@ -1,0 +1,51 @@
+---
+/**
+ * Provizórny typografický wordmark. BRIEF §5.
+ *
+ * `full`     — ALBION + vlasová linka + ZÁLOŽŇA · LUČENEC
+ * `wordmark` — len ALBION (header pod 480 px)
+ *
+ * Veľkosť sa riadi `font-size` rodiča: descriptor je 0.34em, takže celá zostava
+ * škáluje jedným číslom. Farba wordmarku je `currentColor` — funguje v monochróme.
+ */
+interface Props {
+  variant?: 'full' | 'wordmark' | 'responsive';
+  class?: string;
+}
+
+const { variant = 'full', class: className } = Astro.props;
+
+// `responsive` = vykreslí sa `full`, ale descriptor sa pod 480 px skryje cez CSS.
+// Prepínať variant za behu podľa šírky by znamenalo JS, a to na logo nechceme.
+const showDescriptor = variant !== 'wordmark';
+const descriptorHide = variant === 'responsive' ? 'max-[479px]:hidden' : null;
+---
+
+<span
+  role="img"
+  aria-label="Albion — Záložňa Lučenec"
+  class:list={['inline-flex flex-col items-stretch leading-none', className]}
+>
+  <span class="font-serif uppercase tracking-[0.16em] whitespace-nowrap">
+    Albion
+  </span>
+
+  {
+    showDescriptor && (
+      <>
+        <span
+          class:list={['bg-current mt-[0.34em] block h-px opacity-30', descriptorHide]}
+        />
+        <span
+          class:list={[
+            'font-sans mt-[0.34em] text-gold uppercase whitespace-nowrap',
+            descriptorHide,
+          ]}
+          style="font-size:0.34em;letter-spacing:0.22em"
+        >
+          Záložňa · Lučenec
+        </span>
+      </>
+    )
+  }
+</span>

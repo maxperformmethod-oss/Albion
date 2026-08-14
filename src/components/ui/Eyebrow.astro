@@ -1,0 +1,24 @@
+---
+/**
+ * Malý nadradený štítok nad nadpisom. BRIEF §4 — typografia.
+ * Na tmavom zlatá, na svetlom gold-ink (zlatá na svetlom má 2,02:1, je zakázaná).
+ */
+interface Props {
+  tone?: 'dark' | 'light';
+  class?: string;
+}
+
+const { tone = 'dark', class: className } = Astro.props;
+
+const toneClass = tone === 'light' ? 'text-gold-ink' : 'text-gold';
+---
+
+<p
+  class:list={[
+    'font-sans text-eyebrow uppercase tracking-[0.14em]',
+    toneClass,
+    className,
+  ]}
+>
+  <slot />
+</p>

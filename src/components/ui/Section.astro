@@ -1,0 +1,38 @@
+---
+/**
+ * Jedna sekcia homepage. Nesie podklad, vertikálny rytmus a kontajner.
+ *
+ * `labelledby` je povinné vždy, keď sekcia má nadpis — BRIEF §11.
+ */
+interface Props {
+  tone?: 'ink' | 'ink-soft' | 'paper';
+  id?: string;
+  labelledby?: string;
+  class?: string;
+  innerClass?: string;
+}
+
+const {
+  tone = 'ink',
+  id,
+  labelledby,
+  class: className,
+  innerClass,
+} = Astro.props;
+
+const tones = {
+  ink: 'bg-ink-900 text-bone',
+  'ink-soft': 'bg-ink-800 text-bone',
+  paper: 'bg-paper text-ink-text',
+} as const;
+---
+
+<section
+  id={id}
+  aria-labelledby={labelledby}
+  class:list={['py-section', tones[tone], className]}
+>
+  <div class:list={['container-page', innerClass]}>
+    <slot />
+  </div>
+</section>

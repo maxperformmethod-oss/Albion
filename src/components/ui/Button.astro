@@ -1,0 +1,97 @@
+---
+import Icon from './Icon.astro';
+import type { IconName } from './Icon.astro';
+
+/**
+ * CTA hierarchia z BRIEF §8:
+ *   primary → „Zavolať“ (tel:)
+ *   ghost   → „Chcem oceniť vec“ (#kontakt), hranica border-interactive-*
+ *   link    → „Otvoriť v Google Mapách“, textový odkaz
+ *
+ * Tap target min 48×48 px (BRIEF §9). Rádius 3 px, žiadne pill tvary.
+ */
+interface Props {
+  variant?: 'primary' | 'ghost' | 'link';
+  tone?: 'dark' | 'light';
+  href?: string;
+  type?: 'button' | 'submit';
+  icon?: IconName;
+  /**
+   * `true` — vždy len ikona.
+   * `'below-480'` — pod 480 px len ikona, nad ňou ikona + text (BRIEF §9).
+   * Oboje vyžaduje `label`.
+   */
+  iconOnly?: boolean | 'below-480';
+  /** aria-label — povinný pri iconOnly a pri tel: odkazoch. */
+  label?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  variant = 'primary',
+  tone = 'dark',
+  href,
+  type = 'button',
+  icon,
+  iconOnly = false,
+  label,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const Tag = href ? 'a' : 'button';
+
+const base =
+  'inline-flex items-center justify-center gap-2.5 font-sans text-small font-medium whitespace-nowrap transition-fast';
+
+const shapes = {
+  primary: 'min-h-12 rounded-sm px-6',
+  ghost: 'min-h-12 rounded-sm border px-6',
+  link: 'min-h-12 underline underline-offset-4 decoration-1',
+};
+
+const skins = {
+  primary: {
+    dark: 'bg-gold text-ink-900 hover:bg-gold-hover',
+    light: 'bg-gold text-ink-text hover:bg-gold-hover',
+  },
+  ghost: {
+    // hover na tmavom ide na zlatú (8,39:1); na svetlom na gold-ink (4,95:1),
+    // pretože zlatá na paper má 2,02:1 a ako hranica by spadla pod 3:1.
+    dark: 'border-border-interactive-dark text-bone hover:border-gold hover:text-gold',
+    light:
+      'border-border-interactive-light text-ink-text hover:border-gold-ink hover:text-gold-ink',
+  },
+  link: {
+    dark: 'text-gold hover:text-gold-hover',
+    light: 'text-gold-ink hover:text-ink-text',
+  },
+} as const;
+
+const shape =
+  iconOnly === true
+    ? 'h-12 w-12 min-h-12 shrink-0 rounded-sm px-0'
+    : iconOnly === 'below-480'
+      ? 'h-12 w-12 min-h-12 shrink-0 rounded-sm px-0 min-[480px]:w-auto min-[480px]:px-6'
+      : shapes[variant];
+
+const needsBorder = iconOnly && variant === 'ghost' ? 'border' : null;
+---
+
+<Tag
+  href={href}
+  type={href ? undefined : type}
+  aria-label={label}
+  class:list={[base, shape, needsBorder, skins[variant][tone], className]}
+  {...rest}
+>
+  {icon && <Icon name={icon} size={iconOnly ? 22 : 18} />}
+  {
+    iconOnly !== true && (
+      <span class:list={[iconOnly === 'below-480' && 'hidden min-[480px]:inline']}>
+        <slot />
+      </span>
+    )
+  }
+</Tag>
