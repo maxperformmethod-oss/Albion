@@ -17,6 +17,7 @@ npm run build        # produkčný build — ZLYHÁ, ak chýbajú údaje v busin
 npm run build:draft  # náhľadový build, placeholdery povolené (nenasadzovať)
 npm run preview      # lokálny náhľad dist/
 npm run check        # astro check (TypeScript)
+npm test             # node --test, unit testy filtra JSON-LD
 ```
 
 Doména sa nastavuje premennou `PUBLIC_SITE_URL`. Bez nej beží všetko na
@@ -32,16 +33,25 @@ $env:PUBLIC_SITE_URL = "https://albion-lucenec.sk"; npm run build
 
 ```
 src/
-  data/business.ts     jediný zdroj pravdy o prevádzke (TO_CONFIRM, FEATURES)
-  data/content.ts      všetky SK texty                     ← Fáza 1, čaká na copy
-  styles/global.css    @font-face, @theme tokeny, base layer
-  pages/index.astro    dočasná držiaca stránka             ← Fáza 3/4 ju prepíše
-  pages/robots.txt.ts  generovaný robots.txt
-scripts/
-  check-placeholders.mjs
+  data/business.ts       jediný zdroj pravdy o prevádzke (TO_CONFIRM, FEATURES)
+  data/content.ts        všetky SK texty
+  styles/global.css      @font-face, @theme tokeny, base layer, utility
+  layouts/BaseLayout     meta, preload fontov, skip link, reveal observer
+  components/ui/         Section, Button, Eyebrow, Icon
+  components/brand/      Logo (provizórny wordmark)
+  components/layout/     Header (+ mobilné menu), Footer, StickyCallBar
+  components/sections/   7 sekcií homepage
+  lib/cta.ts             podoba primárneho CTA na jednom mieste
+  lib/hours.ts           „Otvorené teraz“ v Europe/Bratislava
+  lib/schema.ts          PawnShop JSON-LD + rekurzívny filter placeholderov
+  pages/index.astro      homepage
+  pages/404.astro        noindex, bez JSON-LD
+  pages/robots.txt.ts    generovaný robots.txt
+scripts/check-placeholders.mjs
+tests/schema.test.mjs
 public/
-  fonts/               4× woff2 (latin + latin-ext, serif + sans)
-  favicon.svg          provizórny
+  fonts/                 4× woff2 (latin + latin-ext, serif + sans)
+  favicon.svg, og.png    provizórne
 ```
 
 **Pravidlo:** žiadny údaj o firme a žiadny text sa nepíše priamo do šablóny.
