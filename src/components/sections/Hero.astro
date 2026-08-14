@@ -1,31 +1,85 @@
 ---
 import Button from '../ui/Button.astro';
 import Eyebrow from '../ui/Eyebrow.astro';
+import { addressLine, business } from '../../data/business.ts';
 import { content } from '../../data/content.ts';
 import { primaryCta, hasPhone } from '../../lib/cta.ts';
 
 /**
  * Hero nepoužíva Section.astro — má vlastný vertikálny rytmus (prekrýva ho
- * fixná hlavička) a sentinel pre sticky call bar.
+ * fixná hlavička), obraz na pozadí a sentinel pre sticky call bar.
+ *
+ * Obraz je abstraktná textúra, nie fotka prevádzky: `alt=""` + `aria-hidden`.
+ * Nikdy nesmie tvrdiť, že zobrazuje Albion. Hero funguje aj bez neho —
+ * pod obrazom je čistý ink-900.
  *
  * Ak telefón chýba, primárne CTA je už „Chcem oceniť vec“, takže sekundárne
  * tlačidlo by bolo jeho duplikát. Vtedy sa nevykreslí.
  */
 const showSecondary = hasPhone;
+
+const eyebrow = content.hero.eyebrow
+  .replace('{address}', addressLine)
+  .replace('{landmark}', business.landmark);
 ---
 
-<section aria-labelledby="hero-title" class="bg-ink-900 relative">
+<section aria-labelledby="hero-title" class="hero bg-ink-900 relative overflow-hidden">
+  <picture>
+    <source
+      media="(max-width: 767px)"
+      type="image/avif"
+      srcset="/images/hero-m-480.avif 480w, /images/hero-m-760.avif 760w"
+      sizes="100vw"
+    />
+    <source
+      media="(max-width: 767px)"
+      type="image/webp"
+      srcset="/images/hero-m-480.webp 480w, /images/hero-m-760.webp 760w"
+      sizes="100vw"
+    />
+    <source
+      type="image/avif"
+      srcset="/images/hero-760.avif 760w, /images/hero-1280.avif 1280w, /images/hero-1920.avif 1920w"
+      sizes="100vw"
+    />
+    <source
+      type="image/webp"
+      srcset="/images/hero-760.webp 760w, /images/hero-1280.webp 1280w, /images/hero-1920.webp 1920w"
+      sizes="100vw"
+    />
+    <img
+      src="/images/hero-1280.webp"
+      width="1920"
+      height="1076"
+      alt=""
+      aria-hidden="true"
+      fetchpriority="high"
+      decoding="async"
+      class="hero-bg"
+    />
+  </picture>
+
   <div
-    class="container-page flex min-h-[min(100svh,44rem)] flex-col justify-center pt-32 pb-20"
+    class="container-page relative z-10 flex min-h-[min(100svh,44rem)] flex-col justify-center pt-32 pb-20"
   >
-    <Eyebrow data-reveal>{content.hero.eyebrow}</Eyebrow>
+    <Eyebrow data-reveal>{eyebrow}</Eyebrow>
+
+    <span aria-hidden="true" class="rule-gold mt-5 w-16" data-rule data-reveal></span>
 
     <h1
       id="hero-title"
-      class="font-serif text-display mt-6 max-w-[18ch]"
-      data-reveal
+      data-hero-title
+      class="hero-title font-serif text-display mt-7 max-w-[18ch]"
     >
-      {content.hero.h1}
+      {
+        content.hero.h1Lines.map((line, index) => (
+          <span class="line">
+            <span class="line-inner" style={`--line-index:${index}`}>
+              {line}
+            </span>
+          </span>
+        ))
+      }
     </h1>
 
     <p class="text-lead text-bone-muted measure mt-7" data-reveal>
@@ -58,3 +112,74 @@ const showSecondary = hasPhone;
   {/* Sentinel pre sticky call bar — nesmie zmiznúť, je to riadiaci prvok. */}
   <div id="hero-sentinel" aria-hidden="true" class="h-px w-full"></div>
 </section>
+
+<style>
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Svetlo je vpravo hore, text vľavo. */
+    object-position: center right;
+  }
+
+  @media (max-width: 767px) {
+    .hero-bg {
+      object-position: center;
+    }
+  }
+
+  /* Text nesmie závisieť od toho, ako obraz vyzerá. */
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(
+        100deg,
+        rgb(15 17 19 / 0.96) 0%,
+        rgb(15 17 19 / 0.88) 42%,
+        rgb(15 17 19 / 0.58) 100%
+      ),
+      linear-gradient(to top, rgb(15 17 19 / 0.95) 0%, rgb(15 17 19 / 0) 45%);
+  }
+
+  /* Jediný výnimočný pohyb na celom webe: riadkový reveal H1. */
+  .line {
+    display: block;
+    overflow: hidden;
+    /* Priestor na diakritiku — line-height 1.04 by ju inak orezalo. */
+    padding-block: 0.1em;
+    margin-block: -0.1em;
+  }
+
+  .line-inner {
+    display: block;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .hero-title .line-inner {
+      transform: translateY(100%);
+    }
+
+    :global(.js) .hero-title.is-animated .line-inner {
+      transform: translateY(0);
+      transition: transform 700ms var(--ease-out-quint);
+      transition-delay: calc(var(--line-index) * 90ms);
+    }
+  }
+</style>
+
+<script>
+  // Spúšťa sa raz po `load`, nie cez IntersectionObserver — H1 je nad ohybom.
+  // Pri prefers-reduced-motion sa nespustí vôbec, CSS drží text na mieste.
+  const title = document.querySelector<HTMLElement>('[data-hero-title]');
+
+  if (title) {
+    const start = () => title.classList.add('is-animated');
+    if (document.readyState === 'complete') start();
+    else window.addEventListener('load', start, { once: true });
+  }
+</script>

@@ -20,9 +20,15 @@ export interface Step {
 
 export const content = {
   meta: {
-    title: 'Záložňa Lučenec — Albion | Výkup zlata, šperkov a elektroniky',
+    title:
+      'Staničná Záložňa Albion Lučenec | Výkup zlata, šperkov a elektroniky',
     description:
       'Záložňa Albion v Lučenci pri stanici. Založenie a výkup zlata, šperkov, elektroniky, náradia aj áut. Individuálne ocenenie a osobná dohoda.',
+  },
+
+  brand: {
+    /** Descriptor pod wordmarkom. Vykresľuje sa verzálkami cez CSS. */
+    logoDescriptor: 'Staničná záložňa · Lučenec',
   },
 
   a11y: {
@@ -44,8 +50,14 @@ export const content = {
   },
 
   hero: {
-    eyebrow: 'Kapitána Nálepku 41, Lučenec — pri stanici',
+    /** `{address}` a `{landmark}` sa skladajú z business.ts. */
+    eyebrow: '{address} — {landmark}',
     h1: 'Záložňa, kde sa vieme dohodnúť.',
+    /**
+     * Rovnaká veta rozdelená na riadky kvôli riadkovému revealu.
+     * Spojené medzerou sa musia rovnať `h1` — stráži to unit test.
+     */
+    h1Lines: ['Záložňa, kde sa', 'vieme dohodnúť.'],
     lead: 'Albion v Lučenci. Zlato, šperky, hodinky, elektronika, náradie, autá aj netypické veci. Každú vec oceníme individuálne a povieme vám to na rovinu.',
     ctaPrimary: 'Zavolať',
     ctaSecondary: 'Chcem oceniť vec',
@@ -130,7 +142,8 @@ export const content = {
   location: {
     id: 'kde-nas-najdete',
     h2: 'Nájdete nás pri stanici',
-    text: 'Kapitána Nálepku 41, Lučenec — pár krokov od železničnej stanice.',
+    /** `{address}` sa skladá z business.ts. */
+    text: '{address} — pár krokov od železničnej stanice.',
     cta: 'Otvoriť v Google Mapách',
   },
 
@@ -146,6 +159,10 @@ export const content = {
     },
     openNow: 'Otvorené teraz',
     closedNow: 'Momentálne zatvorené',
+    /** `{time}` = čas, kedy sa po prestávke otvára. */
+    onBreak: 'Obedňajšia prestávka · otvárame o {time}',
+    /** `{when}` = „dnes“ / „zajtra“ / „v pondelok“. */
+    closedUntil: 'Zatvorené · otvárame {when} o {time}',
   },
 
   stickyBar: {
@@ -154,13 +171,6 @@ export const content = {
 
   footer: {
     quickLinksHeading: 'Rýchle odkazy',
-    /**
-     * Adresa do NAP bloku, kým `business.street` nie je potvrdená. Znenie sa
-     * zhoduje so schváleným hero eyebrow (BRIEF §7). Keď príde potvrdená
-     * adresa, NAP sa skladá z business.ts a toto pole zaniká.
-     * Viď docs/OTAZKY.md #1.
-     */
-    addressFallback: 'Kapitána Nálepku 41, Lučenec',
     /** {year} sa nahradí aktuálnym rokom. */
     copyright: '© {year} Albion',
     /** {ico} a {legalName} sa doplnia len ak sú potvrdené. */

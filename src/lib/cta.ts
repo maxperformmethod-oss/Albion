@@ -8,9 +8,15 @@ import { content } from '../data/content.ts';
  * „Chcem oceniť vec“ s kotvou na #kontakt. Web nikdy neostane bez primárnej akcie.
  */
 
+/** Krátky tvar — hlavička, sticky bar, aria-label. */
 export const phoneDisplay = isConfirmed(business.phoneDisplay)
   ? business.phoneDisplay
   : null;
+
+/** Medzinárodný tvar — sekcia Kontakt a pätička. */
+export const phoneDisplayLong = isConfirmed(business.phoneDisplayLong)
+  ? business.phoneDisplayLong
+  : phoneDisplay;
 
 export const phoneHref = isConfirmed(business.phone)
   ? `tel:${business.phone}`

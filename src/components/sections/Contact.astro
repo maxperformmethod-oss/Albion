@@ -1,17 +1,11 @@
 ---
 import Section from '../ui/Section.astro';
-import { business, isConfirmed } from '../../data/business.ts';
+import { addressWithPostalCode, business, isConfirmed } from '../../data/business.ts';
 import { content } from '../../data/content.ts';
 import { formatDays } from '../../lib/hours.ts';
-import { phoneDisplay, phoneHref, callAriaLabel } from '../../lib/cta.ts';
+import { phoneDisplayLong, phoneHref, callAriaLabel } from '../../lib/cta.ts';
 
-const { id, h2, lead, labels, openNow, closedNow } = content.contact;
-
-const street = isConfirmed(business.street) ? business.street : null;
-const postalCode = isConfirmed(business.postalCode) ? business.postalCode : null;
-const addressLine = street
-  ? [street, [postalCode, business.city].filter(Boolean).join(' ')].join(', ')
-  : content.footer.addressFallback;
+const { id, h2, lead, labels } = content.contact;
 
 const openingHours = isConfirmed(business.openingHours)
   ? business.openingHours
@@ -42,7 +36,7 @@ const showDevBadge = import.meta.env.DEV && !phoneHref;
               class="font-serif text-h3 hover:text-gold transition-fast"
               data-numeric
             >
-              {phoneDisplay}
+              {phoneDisplayLong}
             </a>
           </dd>
         </div>
@@ -64,7 +58,7 @@ const showDevBadge = import.meta.env.DEV && !phoneHref;
         {labels.address}
       </dt>
       <dd class="font-serif text-h3 mt-3">
-        <address class="not-italic">{addressLine}</address>
+        <address class="not-italic">{addressWithPostalCode}</address>
       </dd>
     </div>
 
@@ -90,8 +84,7 @@ const showDevBadge = import.meta.env.DEV && !phoneHref;
             <span
               data-open-indicator
               data-hours={JSON.stringify(openingHours)}
-              data-open-text={openNow}
-              data-closed-text={closedNow}
+              data-text={JSON.stringify(content.contact)}
               hidden
               class="text-small mt-4 inline-flex items-center gap-2"
             />
@@ -134,13 +127,14 @@ const showDevBadge = import.meta.env.DEV && !phoneHref;
     color: var(--color-gold);
   }
 
+  [data-open-indicator][data-state='break'],
   [data-open-indicator][data-state='closed'] {
     color: var(--color-bone-muted);
   }
 </style>
 
 <script>
-  import { isOpenNow } from '../../lib/hours.ts';
+  import { getOpenState } from '../../lib/hours.ts';
   import type { OpeningInterval } from '../../data/business.ts';
 
   // Stav sa počíta na klientovi — statický build by ho zamrazil v čase buildu.
@@ -151,13 +145,34 @@ const showDevBadge = import.meta.env.DEV && !phoneHref;
       const intervals = JSON.parse(
         indicator.dataset.hours ?? '[]'
       ) as OpeningInterval[];
-      const open = isOpenNow(intervals);
+      const text = JSON.parse(indicator.dataset.text ?? '{}') as Record<
+        string,
+        string
+      >;
 
-      indicator.textContent = open
-        ? (indicator.dataset.openText ?? '')
-        : (indicator.dataset.closedText ?? '');
-      indicator.dataset.state = open ? 'open' : 'closed';
-      indicator.hidden = false;
+      const status = getOpenState(intervals);
+
+      const label =
+        status.state === 'open'
+          ? text.openNow
+          : status.state === 'break'
+            ? text.onBreak?.replace('{time}', status.time)
+            : status.state === 'closed'
+              ? text.closedUntil
+                  ?.replace('{when}', status.when)
+                  .replace('{time}', status.time)
+              : text.closedNow;
+
+      if (label) {
+        indicator.textContent = label;
+        indicator.dataset.state =
+          status.state === 'open'
+            ? 'open'
+            : status.state === 'break'
+              ? 'break'
+              : 'closed';
+        indicator.hidden = false;
+      }
     } catch {
       // Radšej nič, ako nesprávny stav.
     }

@@ -51,10 +51,20 @@ function collect(value, path, sentinel, out) {
 
 async function checkPre() {
   const mod = await import(pathToFileURL(BUSINESS).href);
-  const missing = collect(mod.business, 'business', mod.TO_CONFIRM, []);
+  const optional = new Set(mod.OPTIONAL_FIELDS ?? []);
+
+  const all = collect(mod.business, 'business', mod.TO_CONFIRM, []);
+  const missing = all.filter((path) => !optional.has(path));
+  const skipped = all.filter((path) => optional.has(path));
+
+  if (skipped.length > 0) {
+    console.log(
+      `${dim('·')} voliteľné a zatiaľ nedoplnené: ${skipped.join(', ')}`
+    );
+  }
 
   if (missing.length === 0) {
-    console.log(green('✓ business.ts — všetky údaje sú doplnené.'));
+    console.log(green('✓ business.ts — všetky povinné údaje sú doplnené.'));
     return 0;
   }
 

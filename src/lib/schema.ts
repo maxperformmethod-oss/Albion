@@ -1,4 +1,9 @@
-import { business, isConfirmed, TO_CONFIRM } from '../data/business.ts';
+import {
+  business,
+  isConfirmed,
+  isLocalSiteUrl,
+  TO_CONFIRM,
+} from '../data/business.ts';
 import type { OpeningInterval, Weekday } from '../data/business.ts';
 import { content } from '../data/content.ts';
 
@@ -69,17 +74,24 @@ function toOpeningHoursSpecification(intervals: readonly OpeningInterval[]) {
 }
 
 export function buildPawnShopSchema(): Record<string, unknown> | undefined {
-  const siteUrl = isConfirmed(business.siteUrl) ? business.siteUrl : undefined;
+  // Localhost do JSON-LD nepatrí — radšej pole vynechať než publikovať nezmysel.
+  const siteUrl = isLocalSiteUrl ? undefined : business.siteUrl;
 
   const raw = {
     '@context': 'https://schema.org',
     '@type': 'PawnShop',
-    name: 'Albion — Záložňa Lučenec',
+    // Musí sedieť s Google Business Profile, inak je NAP nekonzistentné.
+    name: business.name,
+    legalName: business.legalName,
     description: content.meta.description,
     url: siteUrl,
     image: siteUrl ? new URL('/og.png', siteUrl).href : undefined,
     telephone: business.phone,
     email: business.email,
+    // IČO v JSON-LD bez medzier; v pätičke s medzerami.
+    identifier: isConfirmed(business.ico)
+      ? { '@type': 'PropertyValue', name: 'IČO', value: business.ico }
+      : undefined,
     address: {
       '@type': 'PostalAddress',
       streetAddress: business.street,

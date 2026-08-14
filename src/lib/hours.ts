@@ -1,11 +1,15 @@
 import type { OpeningInterval, Weekday } from '../data/business.ts';
 
 /**
- * „Otvorené teraz“ v pásme Europe/Bratislava, bez knižnice.
+ * Otváracie hodiny v pásme Europe/Bratislava, bez knižnice.
  *
- * Počíta sa na klientovi — statický build by stav zamrazil v čase buildu.
+ * Stav sa počíta na klientovi — statický build by ho zamrazil v čase buildu.
  * Ak `openingHours` nie sú potvrdené, indikátor sa nevykreslí vôbec (BRIEF §7).
+ *
+ * Letný a zimný čas rieši `Intl.DateTimeFormat` s `timeZone`, nie offset natvrdo.
  */
+
+const TIME_ZONE = 'Europe/Bratislava';
 
 const WEEKDAYS: Record<string, Weekday> = {
   Sun: 0,
@@ -16,8 +20,6 @@ const WEEKDAYS: Record<string, Weekday> = {
   Fri: 5,
   Sat: 6,
 };
-
-const TIME_ZONE = 'Europe/Bratislava';
 
 /** Poradie dní tak, ako ich číta človek — pondelkom počnúc. */
 const DAY_ORDER: Weekday[] = [1, 2, 3, 4, 5, 6, 0];
@@ -30,6 +32,17 @@ const DAY_LABELS: Record<Weekday, string> = {
   5: 'Pi',
   6: 'So',
   0: 'Ne',
+};
+
+/** Tvar do vety „otvárame …“. */
+const DAY_LOCATIVE: Record<Weekday, string> = {
+  1: 'v pondelok',
+  2: 'v utorok',
+  3: 'v stredu',
+  4: 'vo štvrtok',
+  5: 'v piatok',
+  6: 'v sobotu',
+  0: 'v nedeľu',
 };
 
 /** `[1,2,3,4,5]` → `'Po – Pi'`, `[1,3,5]` → `'Po, St, Pi'`. */
@@ -57,6 +70,11 @@ export function formatDays(days: readonly Weekday[]): string {
   }
 
   return groups.join(', ');
+}
+
+/** '07:00' → '7:00' — vo vete pôsobí vedúca nula úradne. */
+export function formatTime(time: string): string {
+  return time.replace(/^0/, '');
 }
 
 /** 'HH:MM' → počet minút od polnoci. */
@@ -124,4 +142,74 @@ export function isOpenNow(
       (interval.days.includes(yesterday) && current.minutes < close)
     );
   });
+}
+
+export type OpenState =
+  | { state: 'open' }
+  /** Medzi dvoma intervalmi toho istého dňa — typicky obedňajšia prestávka. */
+  | { state: 'break'; time: string }
+  | { state: 'closed'; when: string; time: string }
+  /** Zatvorené a v najbližších 7 dňoch sa neotvára. */
+  | { state: 'closed-indefinitely' };
+
+/** Najskorší čas otvorenia v daný deň po zadanej minúte. */
+function nextOpeningOn(
+  intervals: readonly OpeningInterval[],
+  day: Weekday,
+  afterMinutes: number
+): string | null {
+  const candidates = intervals
+    .filter((interval) => interval.days.includes(day))
+    .map((interval) => interval.open)
+    .filter((open) => toMinutes(open) > afterMinutes)
+    .sort((a, b) => toMinutes(a) - toMinutes(b));
+
+  return candidates[0] ?? null;
+}
+
+/** Skončil dnes už nejaký interval? Odlišuje prestávku od „ešte sme neotvorili“. */
+function hasClosedIntervalToday(
+  intervals: readonly OpeningInterval[],
+  day: Weekday,
+  minutes: number
+): boolean {
+  return intervals.some(
+    (interval) =>
+      interval.days.includes(day) &&
+      toMinutes(interval.open) <= toMinutes(interval.close) &&
+      toMinutes(interval.close) <= minutes
+  );
+}
+
+/**
+ * Stav pre indikátor v sekcii Kontakt. Keď je zatvorené, povie aj kedy
+ * otvárame — zákazníkovi to ušetrí zbytočný telefonát.
+ */
+export function getOpenState(
+  intervals: readonly OpeningInterval[],
+  now: Date = new Date()
+): OpenState {
+  const current = localNow(now);
+  if (!current) return { state: 'closed-indefinitely' };
+
+  if (isOpenNow(intervals, now)) return { state: 'open' };
+
+  const todayNext = nextOpeningOn(intervals, current.day, current.minutes);
+
+  if (todayNext) {
+    return hasClosedIntervalToday(intervals, current.day, current.minutes)
+      ? { state: 'break', time: formatTime(todayNext) }
+      : { state: 'closed', when: 'dnes', time: formatTime(todayNext) };
+  }
+
+  for (let offset = 1; offset <= 7; offset += 1) {
+    const day = ((current.day + offset) % 7) as Weekday;
+    const opening = nextOpeningOn(intervals, day, -1);
+    if (!opening) continue;
+
+    const when = offset === 1 ? 'zajtra' : DAY_LOCATIVE[day];
+    return { state: 'closed', when, time: formatTime(opening) };
+  }
+
+  return { state: 'closed-indefinitely' };
 }

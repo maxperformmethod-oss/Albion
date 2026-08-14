@@ -145,9 +145,20 @@
   h3,
   h4 {
     font-family: var(--font-serif);
+    /* Ťažší rez nesie dizajn — pozri docs/ODPOVEDE_v3.md B1. */
+    font-weight: 600;
     line-height: 1.12;
     letter-spacing: -0.015em;
     text-wrap: balance;
+  }
+
+  h1 {
+    line-height: 1.04;
+    letter-spacing: -0.022em;
+  }
+
+  h2 {
+    letter-spacing: -0.018em;
   }
 
   p {
@@ -221,6 +232,25 @@
     opacity: 1;
     transform: none;
   }
+
+  /* Zlatý oddeľovač sekcií sa nakreslí zľava doprava, nie vyplynie. */
+  .js [data-reveal][data-rule] {
+    opacity: 1;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 500ms var(--ease-out-quint);
+  }
+
+  .js [data-reveal][data-rule].is-revealed {
+    transform: scaleX(1);
+  }
+}
+
+/** Zlatá vlasová linka. Dekoratívna — nie je to hranica ovládacieho prvku. */
+@utility rule-gold {
+  display: block;
+  height: 1px;
+  background-color: color-mix(in srgb, var(--color-gold) 40%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {

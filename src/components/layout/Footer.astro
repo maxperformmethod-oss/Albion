@@ -1,21 +1,14 @@
 ---
 import Logo from '../brand/Logo.astro';
-import { business, isConfirmed } from '../../data/business.ts';
+import { addressWithPostalCode, business, isConfirmed } from '../../data/business.ts';
 import { content } from '../../data/content.ts';
-import { phoneDisplay, phoneHref, callAriaLabel } from '../../lib/cta.ts';
+import { phoneDisplayLong, phoneHref, callAriaLabel } from '../../lib/cta.ts';
 
 const year = new Date().getFullYear();
 
-const street = isConfirmed(business.street) ? business.street : null;
-const postalCode = isConfirmed(business.postalCode) ? business.postalCode : null;
-
-// NAP: kým nie je potvrdená ulica, použije sa schválené znenie z BRIEF §7.
-const addressLine = street
-  ? [street, [postalCode, business.city].filter(Boolean).join(' ')].join(', ')
-  : content.footer.addressFallback;
-
 const legalName = isConfirmed(business.legalName) ? business.legalName : null;
-const ico = isConfirmed(business.ico) ? business.ico : null;
+// V pätičke IČO s medzerami, v JSON-LD bez nich.
+const ico = isConfirmed(business.icoDisplay) ? business.icoDisplay : null;
 const legalLine =
   legalName && ico
     ? content.footer.legal.replace('{legalName}', legalName).replace('{ico}', ico)
@@ -31,7 +24,7 @@ const email = isConfirmed(business.email) ? business.email : null;
         <Logo variant="full" class="text-[1.3rem]" />
 
         <address class="text-bone-muted text-small mt-6 not-italic">
-          <span class="block">{addressLine}</span>
+          <span class="block">{addressWithPostalCode}</span>
           {
             phoneHref && (
               <a
@@ -40,7 +33,7 @@ const email = isConfirmed(business.email) ? business.email : null;
                 class="hover:text-gold transition-fast mt-1 block"
                 data-numeric
               >
-                {phoneDisplay}
+                {phoneDisplayLong}
               </a>
             )
           }

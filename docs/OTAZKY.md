@@ -1,53 +1,53 @@
 # OTÁZKY
 
 Otvorené body, ktoré potrebujú tvoje alebo majiteľovo rozhodnutie.
-Odpoveď píš rovno pod otázku.
 
 ---
 
-## 1. Adresa v texte hero a v sekcii „Kde nás nájdete" — kolízia s `business.ts`
+## ✅ VYRIEŠENÉ
 
-**Stav:** otvorené · blokuje: nič, ale je to riziko
+### 1. Adresa natvrdo v textoch — splatené
 
-Schválené texty v BRIEF §7 majú adresu **napísanú priamo v reťazci**:
+Odpoveď: `docs/PROMPT_FINAL.md` §1 + `docs/UDAJE_FINAL.md` §2.
+Adresa je potvrdená (`Kpt. Nálepku 41, 984 01 Lučenec`), v `business.ts` už nie je
+`TO_CONFIRM` a **z textov zmizla natvrdo**. Hero eyebrow aj sekcia „Kde nás nájdete"
+sa skladajú z `business.ts` cez zástupný znak `{address}`. Stráži to unit test
+`tests/content.test.mjs` — ak sa adresa do textov vráti, testy spadnú.
 
-- hero eyebrow: `Kapitána Nálepku 41, Lučenec — pri stanici`
-- sekcia 7: `Kapitána Nálepku 41, Lučenec — pár krokov od železničnej stanice.`
+### 2. Obedňajšia prestávka — implementovaná
 
-Pritom `business.street` je `TO_CONFIRM` a `docs/FIRMA_UDAJE.md` hovorí, že táto
-adresa je rozporná s verejnými zdrojmi.
+Odpoveď: prestávku nemajú, ale kód pre ňu existuje.
+`getOpenState()` v `src/lib/hours.ts` vracia `open` / `break` / `closed`.
+Stav `break` sa dnes nikdy nevykreslí; keby ju majiteľ zaviedol, stačí pridať
+druhý interval do `openingHours`.
 
-Znamená to, že adresa je na webe na dvoch miestach napevno a placeholder gate ju
-nezachytí. Ak sa ukáže, že prevádzka je inde, texty sa musia prepísať ručne.
+Navyše: pri zatvorenom obchode indikátor povie **kedy otvárame**
+(`Zatvorené · otvárame zajtra o 7:00`), nielen že je zatvorené.
 
-**Čo navrhujem:** nechať texty presne tak, ako sú (sú schválené), ale hneď ako
-príde potvrdená adresa, prepísať ich tak, aby sa skladali z `business.ts`.
-Do tej doby to beriem ako známy dlh, nie ako chybu.
+### 3. Mapa bez `<iframe>` — potvrdené
 
-**Tvoje rozhodnutie:** ______
-
----
-
-## 2. Otváracie hodiny — obedňajšia prestávka
-
-**Stav:** otvorené · blokuje: `src/lib/hours.ts` (Fáza 4)
-
-`OpeningInterval` v `business.ts` vie viac intervalov na deň, takže prestávku
-zvládne (napr. 9:00–12:00 a 13:00–17:00). Potrebujem len vedieť, či ju majú —
-ovplyvní to, či indikátor „Otvorené teraz" musí riešiť aj stav „obedňajšia
-prestávka, otvárame o 13:00", alebo stačí otvorené/zatvorené.
-
-**Odpoveď:** ______
+Zámer, nie opomenutie. Typografický blok + tlačidlo do Google Máp.
 
 ---
 
-## 3. Google Maps — odkaz, nie vloženie
+## ⏳ ZOSTÁVA (nič z toho neblokuje)
 
-Brief §13 zakazuje `<iframe>` mapy. Sekcia „Kde nás nájdete" bude teda
-typografický blok s adresou + tlačidlo do Google Máp. Bez obrázka mapy,
-bez statického screenshotu (bol by to buď platený Static Maps API request,
-alebo porušenie licencie).
+| # | Vec | Čo sa stane, keď príde |
+|---|---|---|
+| 1 | **Doména** | `PUBLIC_SITE_URL` → canonical, OG URL, sitemap a `url`/`image` v JSON-LD. Dovtedy sa `url` a `image` do JSON-LD **nevygenerujú** — localhost tam nepatrí. |
+| 2 | **E-mail** | Pribudne riadok v sekcii Kontakt a `email` v JSON-LD. |
+| 3 | **GPS súradnice** | Pribudne `geo` v JSON-LD (lokálne SEO). |
+| 4 | **Potvrdenie roku 2001** | Prepni `foundedYearConfirmed: true` → do bodu „Dlhoročná miestna firma" pribudne veta `V Lučenci pôsobíme od roku 2001.` |
+| 5 | **Priamy odkaz na Google profil** | Nahradí vyhľadávací odkaz — otvorí kartu prevádzky s recenziami namiesto zoznamu výsledkov. |
+| 6 | **6 fotiek od majiteľa** | Nahradia abstraktnú textúru v hero. Zoznam je v `README.md`. |
+| 7 | **Doklady k založeniu** | `requiredDocuments` → poznámka pod krokmi v sekcii „Ako to funguje". |
 
-Len potvrdzujem, že to takto je zámer a nie opomenutie.
+---
 
-**Súhlas?** ______
+## Nový otvorený bod
+
+### Fallback font pre nadpisy
+
+Nadpisy sú teraz v reze 600. Georgia (fallback) je v tučnom reze širšia než
+Source Serif 4, takže pri načítaní fontu môže nastať posun. Nameraný CLS
+a rozhodnutie o `size-adjust` sú v `docs/REPORT_faza6_audit.md`.

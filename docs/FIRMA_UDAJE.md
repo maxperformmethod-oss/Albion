@@ -1,7 +1,15 @@
 # FIRMA — NÁJDENÉ ÚDAJE (stav 14. 8. 2026)
 
-> ⚠ **NIČ Z TOHTO NEVKLADAJ DO `business.ts`.** Všetko čaká na potvrdenie majiteľom.
-> Verejné katalógy sú často roky neaktuálne a NAP (názov–adresa–telefón) sa v lokálnom SEO nesmie pomýliť.
+> ✅ **VYRIEŠENÉ.** Majiteľ údaje potvrdil — platné znenie je v `docs/UDAJE_FINAL.md`
+> a v `src/data/business.ts`. Tento súbor zostáva ako záznam o tom, čo sa našlo
+> a ako sa rozpor vysvetlil.
+>
+> **Rúbanisko II 76 je ZRUŠENÁ prevádzka.** Platí jediná adresa
+> **Kpt. Nálepku 41, 984 01 Lučenec**. Rozpor nevznikol dvoma firmami, ale jednou,
+> ktorá sa presťahovala a premenovala na **Staničná Záložňa Albion**.
+>
+> Telefón `047 4512 888` ani `047 / 433 44 44` z katalógov sa nepoužil naslepo —
+> platné číslo potvrdil majiteľ: **+421 47 433 44 44**.
 
 ## Čo som našiel
 
@@ -11,10 +19,10 @@
 | IČO | **36050814** | zoznam.sk, finstat | vysoká |
 | Predmet podnikania | „Prevádzkovanie záložne" | zoznam.sk | vysoká |
 | Zápis do OR | **15. 10. 2001**, OS Banská Bystrica | finstat (výsledok vyhľadávania) | stredná — treba overiť na orsr.sk |
-| Adresa (katalógová) | Rúbanisko II. 76, 984 03 Lučenec | zoznam.sk, azet.sk | ⚠ **rozporná** |
-| Adresa (iná zmienka) | Jókaiho 21, 984 01 Lučenec | finstat | ⚠ **rozporná** |
-| Telefón (katalógový) | **047 4512 888** | zoznam.sk | ⚠ neoverený |
-| Telefón (iná zmienka) | 047 / 433 44 44 | polomap.com | ⚠ neoverený |
+| Adresa (katalógová) | ~~Rúbanisko II. 76, 984 03 Lučenec~~ | zoznam.sk, azet.sk | ❌ **zrušená prevádzka** |
+| Adresa (iná zmienka) | ~~Jókaiho 21, 984 01 Lučenec~~ | finstat | ❌ neplatná |
+| Telefón (katalógový) | ~~047 4512 888~~ | zoznam.sk | ❌ neplatný |
+| Telefón (iná zmienka) | 047 / 433 44 44 | polomap.com | ✅ **potvrdený majiteľom** |
 
 ## Rozpor, ktorý treba vyriešiť ako prvý
 

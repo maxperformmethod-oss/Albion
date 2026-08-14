@@ -73,34 +73,45 @@ nerobí sa z neho komponent.
 
 ---
 
-## Čo potrebujeme od klienta
+## Čo ešte potrebujeme od klienta
 
-Bez týchto údajov produkčný build zámerne neprejde. Zoradené podľa dopadu.
+Kľúčové údaje sú **doplnené a potvrdené** (názov, adresa, telefón, hodiny, IČO,
+Google Maps). Produkčný build prechádza. Zvyšok neblokuje.
 
-| # | Údaj | Bez neho nefunguje |
+| # | Údaj | Čo pribudne, keď príde |
 |---|---|---|
-| 1 | **Telefónne číslo** `+421…` + tvar pre oko | Primárne CTA v hlavičke, hero, sekcii ocenenia, kontakte aj v sticky bare |
-| 2 | **Doména / cieľová URL** | `canonical`, absolútna `og:image`, sitemap |
-| 3 | Otváracie hodiny | Indikátor „Otvorené teraz", kontaktný blok, `openingHoursSpecification` v JSON-LD |
-| 4 | Presná ulica a číslo + **PSČ** Lučenca | Hero eyebrow, kontakt, `PostalAddress` v JSON-LD |
-| 5 | Google Maps URL prevádzky | Terciárne CTA v sekcii „Kde nás nájdete" a tlačidlo „Mapa" v sticky bare |
-| 6 | GPS súradnice | `geo` v JSON-LD (lokálne SEO) |
-| 7 | IČO + presný obchodný názov prevádzkovateľa | Pätička, právny riadok |
-| 8 | Potvrdenie roku 2001 | Veta „V Lučenci pôsobíme od roku 2001" v sekcii „Prečo Albion" |
-| 9 | E-mail *(voliteľné)* | Kontaktný blok |
+| 1 | **Doména / cieľová URL** | `canonical`, absolútna `og:image`, sitemap a `url`/`image` v JSON-LD |
+| 2 | E-mail | Riadok v sekcii Kontakt a `email` v JSON-LD |
+| 3 | GPS súradnice | `geo` v JSON-LD (lokálne SEO) |
+| 4 | Potvrdenie roku 2001 | Veta „V Lučenci pôsobíme od roku 2001" v sekcii „Prečo Albion" |
+| 5 | Priamy odkaz na Google profil | Nahradí vyhľadávací odkaz — otvorí kartu prevádzky s recenziami |
+| 6 | Doklady k založeniu | Poznámka pod krokmi v sekcii „Ako to funguje" |
 
-Ak telefón chýba, primárne CTA sa **neskrýva** — zmení sa na „Chcem oceniť vec"
-s kotvou na `#kontakt`, aby web nikdy neostal bez primárnej akcie.
+Ak by telefón niekedy chýbal, primárne CTA sa **neskrýva** — zmení sa na
+„Chcem oceniť vec" s kotvou na `#kontakt`, aby web nikdy neostal bez primárnej akcie.
+
+### Fotky od majiteľa — 6 kusov
+
+Z mobilu, na výšku aj na šírku, denné svetlo, bez blesku:
+
+1. **exteriér** prevádzky s viditeľným vchodom,
+2. **výklad / označenie**,
+3. **interiér — pult**, kde sa oceňuje,
+4. **detail zlata alebo šperkov** na tmavom podklade,
+5. **okolie so stanicou** v zábere (dokazuje „pri stanici"),
+6. **majiteľ pri pulte** (ak súhlasí — najsilnejší trust prvok, aký môžeme mať).
+
+Hero dnes beží na abstraktnej textúre (grafitový povrch, jedno teplé svetlo).
+Nezobrazuje prevádzku, predmet ani osobu — je to materiál, nie tvrdenie o realite,
+preto má `alt=""` a `aria-hidden`. **Reálna fotka ju nahradí okamžite**, je vždy
+silnejšia. Stačí vymeniť zdroj v `scripts/build-hero.mjs` a spustiť `npm run hero`.
 
 ### Ostatné podklady
 
-- **Fotky** — vo Fáze 1 sa nepoužívajú žiadne. Kde majú neskôr prísť, je v kóde
-  komentár `{/* TODO: photo */}`. Každá sekcia je navrhnutá tak, aby bez fotky
-  bola kompletná — nie „diera po fotke".
 - **Logo** — zatiaľ provizórny typografický wordmark a favicon. Ak existuje
   originál (SVG, prípadne krivky), nahradíme ho.
 - **`public/og.png`** — jeden statický obrázok 1200×630 (tmavé pozadie, wordmark,
-  adresa). Vzniká vo Fáze 5, žiadny generátor sa nepridáva.
+  adresa). Žiadny generátor v repe.
 
 ---
 
@@ -109,7 +120,9 @@ s kotvou na `#kontakt`, aby web nikdy neostal bez primárnej akcie.
 | Súbor | Čo je v ňom |
 |---|---|
 | [docs/BRIEF.md](docs/BRIEF.md) | zdroj pravdy — dizajn, texty, pravidlá. Neprepisovať. |
-| [docs/FIRMA_UDAJE.md](docs/FIRMA_UDAJE.md) | nájdené, **neoverené** údaje o firme. Nič odtiaľ nejde do `business.ts`. |
-| [docs/NEXT.md](docs/NEXT.md) | aktuálne pokyny |
+| [docs/UDAJE_FINAL.md](docs/UDAJE_FINAL.md) | **potvrdené údaje o firme** — čo je v `business.ts` a prečo |
+| [docs/FIRMA_UDAJE.md](docs/FIRMA_UDAJE.md) | záznam o pátraní v katalógoch a o tom, ako sa vyriešil rozpor s adresou |
+| [docs/HERO_ASSET.md](docs/HERO_ASSET.md) | spracovanie hero obrazu |
+| [docs/NEXT.md](docs/NEXT.md), [docs/PROMPT_FINAL.md](docs/PROMPT_FINAL.md), [docs/ODPOVEDE_v3.md](docs/ODPOVEDE_v3.md) | pokyny a rozhodnutia |
 | [docs/OTAZKY.md](docs/OTAZKY.md) | otvorené otázky |
 | `docs/REPORT_faza<N>.md` | čo sa v danej fáze urobilo a čo je overené |

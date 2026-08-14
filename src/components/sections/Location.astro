@@ -1,10 +1,12 @@
 ---
 import Section from '../ui/Section.astro';
 import Button from '../ui/Button.astro';
+import { addressLine } from '../../data/business.ts';
 import { content } from '../../data/content.ts';
 import { mapsUrl } from '../../lib/cta.ts';
 
-const { id, h2, text, cta } = content.location;
+const { id, h2, cta } = content.location;
+const text = content.location.text.replace('{address}', addressLine);
 
 // Žiadny <iframe> mapy a žiadny statický screenshot (BRIEF §13) — len
 // typografický blok a odkaz do Máp. Ak URL nie je potvrdená, odkaz zanikne.

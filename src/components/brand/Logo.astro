@@ -1,9 +1,16 @@
 ---
+import { business } from '../../data/business.ts';
+import { content } from '../../data/content.ts';
+
 /**
  * Provizórny typografický wordmark. BRIEF §5.
  *
- * `full`     — ALBION + vlasová linka + ZÁLOŽŇA · LUČENEC
- * `wordmark` — len ALBION (header pod 480 px)
+ * `full`       — ALBION + vlasová linka + STANIČNÁ ZÁLOŽŇA · LUČENEC
+ * `wordmark`   — len ALBION (mobilné menu)
+ * `responsive` — `full`, ale descriptor sa pod 480 px skryje cez CSS
+ *
+ * Wordmark zostáva krátky zámerne: verejný názov „Staničná Záložňa Albion“ je
+ * na logo príliš dlhý. Descriptor nesie zvyšok.
  *
  * Veľkosť sa riadi `font-size` rodiča: descriptor je 0.34em, takže celá zostava
  * škáluje jedným číslom. Farba wordmarku je `currentColor` — funguje v monochróme.
@@ -15,7 +22,6 @@ interface Props {
 
 const { variant = 'full', class: className } = Astro.props;
 
-// `responsive` = vykreslí sa `full`, ale descriptor sa pod 480 px skryje cez CSS.
 // Prepínať variant za behu podľa šírky by znamenalo JS, a to na logo nechceme.
 const showDescriptor = variant !== 'wordmark';
 const descriptorHide = variant === 'responsive' ? 'max-[479px]:hidden' : null;
@@ -23,11 +29,11 @@ const descriptorHide = variant === 'responsive' ? 'max-[479px]:hidden' : null;
 
 <span
   role="img"
-  aria-label="Albion — Záložňa Lučenec"
+  aria-label={business.name}
   class:list={['inline-flex flex-col items-stretch leading-none', className]}
 >
-  <span class="font-serif uppercase tracking-[0.16em] whitespace-nowrap">
-    Albion
+  <span class="font-serif font-semibold uppercase tracking-[0.16em] whitespace-nowrap">
+    {business.shortName}
   </span>
 
   {
@@ -43,7 +49,7 @@ const descriptorHide = variant === 'responsive' ? 'max-[479px]:hidden' : null;
           ]}
           style="font-size:0.34em;letter-spacing:0.22em"
         >
-          Záložňa · Lučenec
+          {content.brand.logoDescriptor}
         </span>
       </>
     )
