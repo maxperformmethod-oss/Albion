@@ -189,6 +189,8 @@ export const content = {
      */
     map: {
       station: 'Železničná stanica',
+      /** Pre miestneho rovnako silný orientačný bod ako železničná stanica. */
+      busStation: 'Autobusová stanica',
       here: 'Albion',
       /** Aby bolo zrejmé, že to nie je navigačná mapa. */
       note: 'Orientačná schéma',

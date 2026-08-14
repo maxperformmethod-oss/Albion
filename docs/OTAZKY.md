@@ -36,7 +36,26 @@ Navyše: pri zatvorenom obchode indikátor povie **kedy otvárame**
 Preto celá vzťahová vrstva hovorí **„my"**, nie „majiteľ" v tretej osobe —
 firmu vedú dvaja ľudia.
 
-### 4. Mapa bez `<iframe>` — potvrdené
+### 4. NAP kontrola — prešla (15. 8. 2026)
+
+Odpísané z Google profilu prevádzky, znak po znaku:
+
+| Údaj | Google profil | Web | |
+|---|---|---|---|
+| Názov | Staničná Záložňa Albion | rovnako | ✅ |
+| Adresa | `Kpt. Nálepku 41, 984 01 Lučenec` | rovnako | ✅ |
+| Telefón | `047 433 44 44` | rovnako | ✅ |
+| Hodiny | Closed · Opens 7 am Mon | Po–Pi 07:00–17:30 | ✅ |
+| Kategória | Pawn shop | JSON-LD `PawnShop` | ✅ |
+
+Adresa teda platí a nemení sa. Že ju OpenStreetMap v tom bloku nemá
+zamapovanú (najbližšiu pomenovanú cestu vedie ako „Mieru“), je medzera
+v OSM, nie v našich údajoch. **Mapa preto zámerne nevypisuje názvy ulíc** —
+adresa je v texte pod ňou, kde je aj tak jediným záväzným nositeľom údaja.
+
+Plus Code prevádzky `8MM9+W2 Lučenec` je v `docs/FIRMA_UDAJE.md`.
+
+### 5. Mapa bez `<iframe>` — potvrdené
 
 Zámer, nie opomenutie. Od dávky 6 je na mieste **vlastná axonometrická mapa
 zo skutočných dát OpenStreetMap** (licencia ODbL, atribúcia pod mapou) —
@@ -54,40 +73,23 @@ s adresou a tlačidlo do Google Máp.
 | 3 | **6 fotiek od majiteľov** | Nahradia abstraktnú textúru v hero. Zoznam je v `README.md`. Jedna z nich patrí aj vpravo do osobného odkazu — miesto je pripravené. |
 | 4 | **Doklady k založeniu** | `requiredDocuments` → poznámka pod krokmi v sekcii „Ako to funguje". |
 | 5 | **Mená majiteľov** | Zatiaľ zverejniť nechcú. Keby zmenili názor, doplní sa podpis pod osobným odkazom. |
+
 ---
 
 ## Nové otvorené body
 
-### ⚠ Adresa `Kpt. Nálepku` verzus `Mieru` v OpenStreetMap
+### ⚠ Google profil — dve veci mimo kódu, ktoré spraví len majiteľ
 
-Súradnice prevádzky sú potvrdené (`48.334768, 19.667564`) a **3D mapa beží**.
-Pri práci s ňou však vyplávalo niečo, čo stojí za overenie.
+Obe sú lacné a obe zaberú viac než čokoľvek, čo sa ešte dá spraviť na webe.
 
-Overené (14. 8. 2026):
+1. **Profil nemá odkaz na web.** V karte prevádzky je tlačidlo „Add website“ —
+   patrí tam produkčná adresa. Je to jeden z najsilnejších lokálnych signálov
+   a trvá to minútu.
+2. **Profil má 3,0 hviezdy z 2 hodnotení.** Dve recenzie sú štatisticky nič
+   a trojka pri takom počte odrádza viac než žiadne hodnotenie. Pár
+   skutočných recenzií od pravidelných zákazníkov spraví pre lokálne pozície
+   viac než zvyšok webu dokopy. Poprosiť — **nie kupovať, nie vymýšľať.**
 
-- V OSM **v Lučenci nie je ulica `Kpt. Nálepku`**. Nominatim vracia dve ulice
-  toho mena, obe mimo mesta — vo Fiľakove (986 01) a v Haliči (985 11).
-  Medzi 192 pomenovanými ulicami v okruhu 3 km od centra Lučenca ani jedna
-  neobsahuje „Nálepk“ ani „Kpt./Kapitána“.
-- **Reverzné geokódovanie potvrdených súradníc** vráti
-  `6303/7A, Mieru, Opatová, Lučenec, 984 01`. Podľa OSM je teda prevádzka
-  na ulici **Mieru**.
-- Súradnice samotné sedia: sú **135 m od uzla železničnej stanice**, čo
-  presne zodpovedá „pár krokov od stanice“, a padnú dovnútra pôdorysu budovy.
-
-Sú dve možné vysvetlenia: ulicu v OSM niekto pomenoval nesprávne alebo
-zastaralo, alebo sa ulica premenovala a jeden z oboch zdrojov je pozadu.
-
-**Ako je to vyriešené na webe:** mapa kreslí skutočnú geometriu a presný bod,
-ale **nevypisuje názvy ulíc**. Adresa `Kpt. Nálepku 41` je v texte pod mapou,
-kde je aj tak jediným záväzným nositeľom údaja. Ani jedno tvrdenie tak
-nestojí na dátach, ktoré si protirečia.
-
-**Čo overiť:** či je `Kpt. Nálepku 41` naozaj aktuálna úradná adresa — mala
-by sedieť s Google Business Profile, s obchodným registrom aj s tým, čo je
-na dverách. Ak sa niekde líši, Google to vyhodnotí ako nekonzistentné NAP
-a lokálne pozície klesnú. Je to jediný údaj na webe, ktorý sa neoplatí
-nechať tak.
 ### ⚠ Právne stránky sú návrh pripravený neprávnikom
 
 `/ochrana-osobnych-udajov` a `/podmienky-pouzivania` sú **návrh, nie právne

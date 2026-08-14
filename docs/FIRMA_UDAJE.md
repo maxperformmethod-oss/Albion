@@ -49,6 +49,20 @@ Zadanie hovorí **Kapitána Nálepku 41, pri železničnej stanici**. Ani jeden 
 9. E-mail (voliteľné): ______
 10. Doména: ______
 
+## Identifikátory z Google profilu (odpísané 15. 8. 2026)
+
+Doplnkové identifikátory prevádzky. Na webe sa nepoužívajú — sú tu preto, aby
+sa dala prevádzka kedykoľvek jednoznačne dohľadať.
+
+| Údaj | Hodnota |
+|---|---|
+| Plus Code | `8MM9+W2 Lučenec` |
+| CID (odkaz na kartu) | `17146046179967197220` → `business.mapsUrl` |
+| Súradnice značky | `48.334768, 19.667564` → `business.geo` |
+
+**NAP kontrola prešla.** Názov, adresa, telefón, hodiny aj kategória sa
+zhodujú s Google profilom znak po znaku — detaily v `docs/OTAZKY.md`.
+
 ## Poznámka k roku 2001
 
 Zápis firmy do obchodného registra **15. 10. 2001** je silná nepriama podpora tvrdenia „od roku 2001". Nie je to však dôkaz, že prevádzka fyzicky funguje od vtedy. Flag `foundedYearConfirmed` prepni na `true` až po potvrdení majiteľom.

@@ -36,23 +36,29 @@ const PREVIEW = 'src/components/sections/map.preview.svg';
 
 /**
  * Polomer výrezu v metroch. Okolie prevádzky je hustejšie zastavané než okolie
- * stanice, takže 350 aj 250 m prekročilo rozpočet. Pri 180 m sa vojde a stanica
- * (135 m od prevádzky) je v zábere stále. Zmenšuje sa výrez, nie kvalita.
+ * stanice, takže 350 aj 250 m prekročilo rozpočet. Pri 180 m sa vojde, a obe
+ * stanice — železničná (135 m) aj autobusová (61 m) — sú v zábere.
  */
 const RADIUS_M = 180;
 
-/** Rozpočet hotového SVG. */
-const MAX_KB = 60;
+/** Rozpočet hotového SVG. Mapa je nosný prvok sekcie a stojí to za to. */
+const MAX_KB = 75;
 
 /** Douglas–Peucker tolerancia v metroch. */
 const SIMPLIFY_M = 0.6;
+
+/** O koľko metrov od cesty stojí značka, smerom k budove. */
+const MARKER_OFFSET_M = 8;
+
+/** Koľkonásobok vzdušnej vzdialenosti ešte znesie trasa po uliciach. */
+const MAX_ROUTE_DETOUR = 2.5;
 
 const VIEW = { w: 1200, h: 700 };
 
 /** Počet krokov vlny „mesto sa postaví“. 21 × 12 ms = max 252 ms. */
 const STAGGER_STEPS = 20;
 
-/** Výška extrúzie v px. Stanica a Albion sú vyššie, aby sa dali nájsť očami. */
+/** Výška extrúzie v px. Stanice a Albion sú vyššie, aby sa dali nájsť očami. */
 const WALL_H = 12;
 const WALL_H_LANDMARK = 18;
 
@@ -76,6 +82,9 @@ const fail = (message) => {
  * Nominatim vracia aj vzdialené zhody s rovnakým názvom ulice v inom meste —
  * bez tejto kontroly by mapa ukázala úplne iné mesto a vyzerala by pritom
  * úplne v poriadku. Preto sa vyžaduje zhoda mesta aj ulice.
+ *
+ * Dnes sa nepoužije: `business.geo` je potvrdené z Google profilu. Zostáva
+ * pre prípad, že by sa prevádzka presťahovala.
  */
 async function geocode() {
   const query = new URLSearchParams({
@@ -132,6 +141,7 @@ async function fetchGeometry(center) {
   way["highway"](around:${RADIUS_M},${lat},${lng});
   way["railway"~"^(rail|station|halt)$"](around:${RADIUS_M},${lat},${lng});
   node["railway"~"^(station|halt)$"](around:${RADIUS_M},${lat},${lng});
+  nwr["amenity"="bus_station"](around:${RADIUS_M},${lat},${lng});
 );
 out geom tags;`;
 
@@ -196,12 +206,110 @@ function simplify(points, tolerance) {
   ];
 }
 
+/** Najbližší bod na úsečke a jeho vzdialenosť. */
+function nearestOnSegment(p, a, b) {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const lengthSq = dx * dx + dy * dy;
+  const t =
+    lengthSq === 0
+      ? 0
+      : Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / lengthSq));
+  const point = { x: a.x + t * dx, y: a.y + t * dy };
+  return { point, dist: Math.hypot(p.x - point.x, p.y - point.y) };
+}
+
+/** Kolmý priemet bodu na lomenú čiaru. */
+function nearestOnPolyline(p, points) {
+  let best = null;
+  for (let i = 1; i < points.length; i += 1) {
+    const candidate = nearestOnSegment(p, points[i - 1], points[i]);
+    if (!best || candidate.dist < best.dist) best = candidate;
+  }
+  return best;
+}
+
+/**
+ * Najkratšia cesta po uliciach (Dijkstra).
+ *
+ * Graf sa stavia z **nezjednodušenej** geometrie — Douglas–Peucker vie zahodiť
+ * práve ten vrchol, ktorým sa dve ulice stretávajú, a graf by sa rozpadol.
+ * Uzly sa kľúčujú surovými súradnicami z OSM, takže križovatky sadnú na seba
+ * presne: je to fyzicky ten istý uzol v tých istých dátach.
+ */
+function shortestPath(roads, fromMetres, toMetres_) {
+  const nodes = new Map();
+
+  const nodeAt = (raw, metres) => {
+    const key = `${raw.lat},${raw.lon}`;
+    if (!nodes.has(key)) nodes.set(key, { metres, edges: [] });
+    return nodes.get(key);
+  };
+
+  for (const road of roads) {
+    for (let i = 0; i < road.raw.length; i += 1) {
+      const node = nodeAt(road.raw[i], road.rawMetres[i]);
+      if (i === 0) continue;
+      const previous = nodeAt(road.raw[i - 1], road.rawMetres[i - 1]);
+      const weight = Math.hypot(
+        node.metres.x - previous.metres.x,
+        node.metres.y - previous.metres.y
+      );
+      node.edges.push({ to: previous, weight });
+      previous.edges.push({ to: node, weight });
+    }
+  }
+
+  const nearestNode = (metres) => {
+    let best = null;
+    for (const node of nodes.values()) {
+      const distance = Math.hypot(node.metres.x - metres.x, node.metres.y - metres.y);
+      if (!best || distance < best.distance) best = { node, distance };
+    }
+    return best ? best.node : null;
+  };
+
+  const start = nearestNode(fromMetres);
+  const end = nearestNode(toMetres_);
+  if (!start || !end || start === end) return null;
+
+  const distance = new Map([[start, 0]]);
+  const previous = new Map();
+  const queue = new Set(nodes.values());
+
+  while (queue.size > 0) {
+    let current = null;
+    for (const node of queue) {
+      const d = distance.get(node);
+      if (d === undefined) continue;
+      if (current === null || d < distance.get(current)) current = node;
+    }
+    if (current === null || current === end) break;
+    queue.delete(current);
+
+    for (const edge of current.edges) {
+      if (!queue.has(edge.to)) continue;
+      const candidate = distance.get(current) + edge.weight;
+      if (distance.get(edge.to) === undefined || candidate < distance.get(edge.to)) {
+        distance.set(edge.to, candidate);
+        previous.set(edge.to, current);
+      }
+    }
+  }
+
+  if (distance.get(end) === undefined) return null;
+
+  const points = [];
+  for (let node = end; node; node = previous.get(node)) points.unshift(node.metres);
+  return { points, length: distance.get(end) };
+}
+
 /* -------------------------------------------------------------------------
    4. Render
 ------------------------------------------------------------------------- */
 
 /*
-  Kompaktný zápis cesty. Pri 432 budovách je formát súradníc väčšia položka
+  Kompaktný zápis cesty. Pri stovkách budov je formát súradníc väčšia položka
   než ich počet: jedno desatinné miesto, bez nuly pred desatinnou čiarkou,
   `L` sa neopakuje (implicitné lineto) a pred záporným číslom netreba medzeru.
   Je to čisto zápis — na geometrii sa nemení nič.
@@ -227,6 +335,21 @@ const path = (points) => {
   return out;
 };
 
+/** Leží bod vnútri pôdorysu? Ray casting. */
+const contains = (polygon, point) => {
+  if (!point) return false;
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i, i += 1) {
+    const a = polygon[i];
+    const b = polygon[j];
+    const straddles = a.y > point.y !== b.y > point.y;
+    if (straddles && point.x < ((b.x - a.x) * (point.y - a.y)) / (b.y - a.y) + a.x) {
+      inside = !inside;
+    }
+  }
+  return inside;
+};
+
 function render(data, { anchor }) {
   const project = toMetres(data.center);
 
@@ -237,65 +360,141 @@ function render(data, { anchor }) {
     return { x: VIEW.w / 2 + iso.x * scale, y: VIEW.h / 2 + iso.y * scale };
   };
 
-  const prepared = (element) =>
-    simplify(element.geometry.map(project), SIMPLIFY_M).map(toView);
-
   const buildings = [];
-  const streets = [];
+  const roads = [];
   const rails = [];
+  let stationRaw = null;
+  let busRaw = null;
 
   for (const element of data.elements) {
-    if (!element.geometry || element.geometry.length < 2) continue;
-    const points = prepared(element);
-    const depth = points.reduce((sum, p) => sum + p.y, 0) / points.length;
+    const tags = element.tags ?? {};
 
-    if (element.tags?.building) buildings.push({ points, depth, tags: element.tags });
-    else if (element.tags?.railway === 'rail') rails.push({ points });
-    else if (element.tags?.highway) streets.push({ points, tags: element.tags });
+    if (element.type === 'node') {
+      if (!stationRaw && /^(station|halt)$/.test(tags.railway ?? '')) {
+        stationRaw = { lat: element.lat, lon: element.lon };
+      }
+      if (!busRaw && tags.amenity === 'bus_station') {
+        busRaw = { lat: element.lat, lon: element.lon };
+      }
+      continue;
+    }
+
+    if (!element.geometry || element.geometry.length < 2) continue;
+
+    const rawMetres = element.geometry.map(project);
+    const metres = simplify(rawMetres, SIMPLIFY_M);
+
+    if (tags.building || tags.amenity === 'bus_station') {
+      buildings.push({ metres, tags });
+      if (!busRaw && tags.amenity === 'bus_station') {
+        const middle = element.geometry[Math.floor(element.geometry.length / 2)];
+        busRaw = { lat: middle.lat, lon: middle.lon };
+      }
+    } else if (tags.railway === 'rail') {
+      rails.push({ metres });
+    } else if (tags.highway) {
+      roads.push({ metres, raw: element.geometry, rawMetres, tags });
+    }
   }
 
-  // Maliarov algoritmus: čo je vzadu, kreslí sa prvé.
-  buildings.sort((a, b) => a.depth - b.depth);
+  const stationMetres = stationRaw ? project(stationRaw) : null;
+  const busMetres = busRaw ? project(busRaw) : null;
+  const anchorMetres = anchor ? project(anchor) : null;
+
+  /*
+    Poloha značky.
+
+    Google značka ukazuje na ťažisko parcely, nie na vchod — na schéme potom bod
+    sedel vnútri bloku, hoci prevádzka stojí priamo pri ceste oproti stanici.
+    Posun je preto deterministický, nie odhadnutý:
+
+      1. spomedzi ciest sa vezme tá, ktorej najbližší bod leží smerom
+         k stanici (polrovina daná vektorom prevádzka → stanica),
+      2. z potvrdených súradníc sa spraví kolmý priemet na jej geometriu,
+      3. značka sa posunie 8 m od cesty späť smerom k pôvodným súradniciam,
+         teda medzi cestu a budovu.
+
+    `business.geo` sa tým **nemení** — v JSON-LD zostávajú pôvodné potvrdené
+    súradnice z Google profilu. Posun je len vizuálny, kvôli čitateľnosti.
+  */
+  let markerMetres = anchorMetres;
+  let projectionMetres = null;
+
+  if (anchorMetres && roads.length > 0) {
+    const toStation = stationMetres
+      ? { x: stationMetres.x - anchorMetres.x, y: stationMetres.y - anchorMetres.y }
+      : null;
+
+    const candidates = roads
+      .map((road) => nearestOnPolyline(anchorMetres, road.metres))
+      .filter(Boolean);
+
+    const towardStation = toStation
+      ? candidates.filter(
+          (candidate) =>
+            (candidate.point.x - anchorMetres.x) * toStation.x +
+              (candidate.point.y - anchorMetres.y) * toStation.y >
+            0
+        )
+      : candidates;
+
+    const pool = towardStation.length > 0 ? towardStation : candidates;
+    const nearest = pool.reduce((best, c) => (c.dist < best.dist ? c : best));
+
+    projectionMetres = nearest.point;
+
+    const dx = anchorMetres.x - nearest.point.x;
+    const dy = anchorMetres.y - nearest.point.y;
+    const length = Math.hypot(dx, dy) || 1;
+    const offset = Math.min(MARKER_OFFSET_M, length);
+    markerMetres = {
+      x: nearest.point.x + (dx / length) * offset,
+      y: nearest.point.y + (dy / length) * offset,
+    };
+  }
+
+  /*
+    Zlatá strecha ide na budovu, v ktorej značka leží. Ak značka po posune
+    padne mimo pôdorysu (na chodník alebo do dvora), dostane ju budova, ktorá
+    je k nej najbližšia — nie žiadna. Prevádzka niekde stojí.
+  */
+  let anchorIndex = buildings.findIndex((b) => contains(b.metres, markerMetres));
+  const markerInsideBuilding = anchorIndex >= 0;
+
+  if (!markerInsideBuilding && markerMetres) {
+    let best = Infinity;
+    buildings.forEach((building, index) => {
+      const nearest = nearestOnPolyline(markerMetres, building.metres);
+      if (nearest && nearest.dist < best) {
+        best = nearest.dist;
+        anchorIndex = index;
+      }
+    });
+  }
+
+  if (anchorIndex >= 0) buildings[anchorIndex].isAnchor = true;
 
   const isLandmark = (tags) =>
     tags.building === 'train_station' ||
     tags.railway === 'station' ||
-    tags.public_transport === 'station';
+    tags.public_transport === 'station' ||
+    tags.amenity === 'bus_station';
 
-  /**
-   * Budova, v ktorej leží kotva. Číslo domu 41 v OSM zamapované nie je, takže
-   * sa hľadá geometricky — budova, ktorej pôdorys obsahuje potvrdený bod.
-   * Ak taká nie je (bod padne do dvora alebo na chodník), nezvýrazní sa nič
-   * a Albion nesie iba značka. Nič sa nedohaduje.
-   */
-  const anchorView = anchor ? toView(project(anchor)) : null;
+  // Maliarov algoritmus: čo je vzadu, kreslí sa prvé.
+  const drawn = buildings
+    .map((building) => {
+      const points = building.metres.map(toView);
+      return {
+        ...building,
+        points,
+        depth: points.reduce((sum, p) => sum + p.y, 0) / points.length,
+      };
+    })
+    .sort((a, b) => a.depth - b.depth);
 
-  const containsAnchor = (points) => {
-    if (!anchorView) return false;
-    let inside = false;
-    for (let i = 0, j = points.length - 1; i < points.length; j = i, i += 1) {
-      const a = points[i];
-      const b = points[j];
-      const straddles = a.y > anchorView.y !== b.y > anchorView.y;
-      if (
-        straddles &&
-        anchorView.x <
-          ((b.x - a.x) * (anchorView.y - a.y)) / (b.y - a.y) + a.x
-      ) {
-        inside = !inside;
-      }
-    }
-    return inside;
-  };
-
-  let anchorBuilding = null;
-
-  const wallsAndRoofs = buildings
-    .map(({ points, tags }, index) => {
-      const landmark = isLandmark(tags);
-      const anchored = anchorBuilding === null && containsAnchor(points);
-      if (anchored) anchorBuilding = index;
-      const height = landmark || anchored ? WALL_H_LANDMARK : WALL_H;
+  const wallsAndRoofs = drawn
+    .map(({ points, tags, isAnchor }, index) => {
+      const height = isLandmark(tags) || isAnchor ? WALL_H_LANDMARK : WALL_H;
       const top = points.map((p) => ({ x: p.x, y: p.y - height }));
 
       /*
@@ -303,14 +502,9 @@ function render(data, { anchor }) {
         aj tak schované za strechou a telom budovy, takže ich vynechanie nič
         nezmení na vzhľade a ušetrí polovicu dát.
 
-        Kritérium: vnútro budovy (ťažisko) leží nad hranou. Pri pôdorysoch,
-        aké sú v OSM — teda prevažne pravouhlých — to sedí.
-
         Všetky steny jednej budovy idú do jedného `<path>` ako podcesty.
-        Samostatný `<path>` na každú hranu bol o tretinu väčší a vyzeral rovnako.
       */
-      const centroid =
-        points.reduce((sum, p) => sum + p.y, 0) / points.length;
+      const centroid = points.reduce((sum, p) => sum + p.y, 0) / points.length;
 
       const walls = points
         .slice(0, -1)
@@ -322,16 +516,17 @@ function render(data, { anchor }) {
         )
         .join('');
 
-      const roofClass = anchored ? 'roof roof-anchor' : 'roof';
       /*
         Vlna „mesto sa postaví“ ide odzadu dopredu. Stagger je zastropovaný na
-        21 krokov po 12 ms — pri 162 budovách by inline `transition-delay`
+        21 krokov po 12 ms — pri stovke budov by inline `transition-delay`
         na každej z nich stál viac než celá geometria a trval by dve sekundy.
       */
       const step = Math.min(
         STAGGER_STEPS,
-        Math.floor((index / buildings.length) * (STAGGER_STEPS + 1))
+        Math.floor((index / drawn.length) * (STAGGER_STEPS + 1))
       );
+
+      const roofClass = isAnchor ? 'roof roof-anchor' : 'roof';
 
       return (
         `<g class="b" style="--d:${step}">` +
@@ -343,44 +538,63 @@ function render(data, { anchor }) {
     .join('\n');
 
   /*
-    Ulica prevádzky sa nezvýrazňuje. OSM na mieste potvrdených súradníc vedie
-    ulicu ako „Mieru“, nie „Kpt. Nálepku“ — zvýrazniť ju a napísať k nej našu
-    adresu by znamenalo tvrdiť niečo, čo dáta nepodporujú. Adresa je v texte
-    pod mapou. Pozri docs/OTAZKY.md.
+    Názvy ulíc sa nevypisujú. OSM v tomto bloku nemá `Kpt. Nálepku` zamapovanú
+    a najbližšiu pomenovanú cestu vedie ako „Mieru“ — písať k nej našu adresu
+    by znamenalo tvrdiť niečo, čo dáta nepodporujú. Adresa je v texte pod
+    mapou. Pozri docs/OTAZKY.md.
+
+    `pathLength="1"` normalizuje dĺžku, takže sa všetky ulice nakreslia rovnako
+    rýchlo bez ohľadu na to, aké sú dlhé.
   */
-  const streetPaths = streets
+  const streetPaths = roads
     .map(
-      ({ points }) =>
-        // `pathLength="1"` normalizuje dĺžku, takže sa všetky ulice nakreslia
-        // rovnako rýchlo bez ohľadu na to, aké sú dlhé.
-        `<path class="street" pathLength="1" d="${path(points)}"/>`
+      ({ metres }) =>
+        `<path class="street" pathLength="1" d="${path(metres.map(toView))}"/>`
     )
     .join('\n');
 
   const railPaths = rails
-    .map(({ points }) => `<path class="rail" d="${path(points)}"/>`)
+    .map(({ metres }) => `<path class="rail" d="${path(metres.map(toView))}"/>`)
     .join('\n');
 
-  // Uzol stanice — z Overpassu, nie odhadom.
-  const stationNode = data.elements.find(
-    (element) =>
-      element.type === 'node' &&
-      /^(station|halt)$/.test(element.tags?.railway ?? '')
-  );
-  const stationView = stationNode
-    ? toView(project({ lat: stationNode.lat, lon: stationNode.lon }))
-    : null;
+  /*
+    Trasa vedie po skutočnej geometrii ulíc, nie vzdušnou čiarou — rovná čiara
+    cez bloky domov vyzerá ako letecká vzdialenosť, nie ako cesta pešo.
+    Ak by cesta po uliciach vyšla nezmyselne dlhá (rozpadnutý graf, obchádzka
+    cez pol mesta), radšej sa nekreslí vôbec: rovná čiara cez domy je horšia
+    než žiadna.
+  */
+  let routeMetres = null;
+  let routeLength = null;
+  if (stationMetres && projectionMetres && roads.length > 0) {
+    const found = shortestPath(roads, stationMetres, projectionMetres);
+    const direct = Math.hypot(
+      stationMetres.x - projectionMetres.x,
+      stationMetres.y - projectionMetres.y
+    );
+    if (found && found.length <= direct * MAX_ROUTE_DETOUR) {
+      routeMetres = [stationMetres, ...found.points, projectionMetres, markerMetres];
+      routeLength = found.length;
+    }
+  }
 
   return {
     wallsAndRoofs,
     streetPaths,
     railPaths,
-    anchorView,
-    stationView,
-    anchorFound: anchorBuilding !== null,
+    markerView: markerMetres ? toView(markerMetres) : null,
+    stationView: stationMetres ? toView(stationMetres) : null,
+    busView: busMetres ? toView(busMetres) : null,
+    routePath: routeMetres ? path(routeMetres.map(toView)) : null,
+    routeLength,
+    markerInsideBuilding,
+    markerMoved:
+      anchorMetres && markerMetres
+        ? Math.hypot(anchorMetres.x - markerMetres.x, anchorMetres.y - markerMetres.y)
+        : 0,
     counts: {
       buildings: buildings.length,
-      streets: streets.length,
+      streets: roads.length,
       rails: rails.length,
     },
   };
@@ -437,36 +651,26 @@ const {
   wallsAndRoofs,
   streetPaths,
   railPaths,
-  anchorView,
+  markerView,
   stationView,
-  anchorFound,
+  busView,
+  routePath,
+  routeLength,
+  markerInsideBuilding,
+  markerMoved,
   counts,
 } = render(data, { anchor });
 
 const map = content.location.map;
-
-/**
- * Trasa stanica → Albion. Je to schematický spojník, nie navigačná trasa —
- * preto je prerušovaná a preto je pod mapou napísané „orientačná schéma“.
- * Skutočnú cestu neurčujeme, tú nevieme.
- */
-const route =
-  anchorView && stationView
-    ? `M${fmt(stationView.x)} ${fmt(stationView.y)}Q${fmt(
-        (stationView.x + anchorView.x) / 2 - 26
-      )} ${fmt((stationView.y + anchorView.y) / 2 + 14)} ${fmt(anchorView.x)} ${fmt(
-        anchorView.y
-      )}`
-    : null;
 
 /*
   Dashovaná linka sa nedá nakresliť cez `stroke-dashoffset` — ten je už
   obsadený vzorom čiarok. Kreslí ju preto maska s tou istou cestou; na maske
   `pathLength="1"` normalizuje dĺžku, takže netreba nič dopočítavať.
 */
-const routeMarkup = route
-  ? `<defs><mask id="routeMask"><path class="route-mask" pathLength="1" d="${route}" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/></mask></defs>` +
-    `<path class="route" mask="url(#routeMask)" d="${route}"/>`
+const routeMarkup = routePath
+  ? `<defs><mask id="routeMask"><path class="route-mask" pathLength="1" d="${routePath}" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/></mask></defs>` +
+    `<path class="route" mask="url(#routeMask)" d="${routePath}"/>`
   : '';
 
 const label = (point, text, cls, dy) =>
@@ -474,12 +678,11 @@ const label = (point, text, cls, dy) =>
     ? `<text class="${cls}" x="${fmt(point.x)}" y="${fmt(point.y + dy)}" text-anchor="middle">${text}</text>`
     : '';
 
-const here = anchorView
-  ? `<g class="here">
-<circle cx="${fmt(anchorView.x)}" cy="${fmt(anchorView.y)}" r="18" class="halo"/>
-<circle cx="${fmt(anchorView.x)}" cy="${fmt(anchorView.y)}" r="18" class="pulse"/>
-<circle cx="${fmt(anchorView.x)}" cy="${fmt(anchorView.y)}" r="9" class="dot"/>
-</g>`
+const circle = (point, r, cls) =>
+  `<circle cx="${fmt(point.x)}" cy="${fmt(point.y)}" r="${r}" class="${cls}"/>`;
+
+const here = markerView
+  ? `<g class="here">${circle(markerView, 18, 'halo')}${circle(markerView, 18, 'pulse')}${circle(markerView, 9, 'dot')}</g>`
   : '';
 
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${VIEW.w} ${VIEW.h}" class="map" role="img" aria-labelledby="mapTitle mapDesc">
@@ -497,7 +700,8 @@ ${wallsAndRoofs}
 ${routeMarkup}
 ${here}
 ${label(stationView, map.station, 'label', -26)}
-${label(anchorView, map.here, 'here-label', -34)}
+${label(busView, map.busStation, 'label', -26)}
+${label(markerView, map.here, 'here-label', -34)}
 <text class="note" x="${VIEW.w - 24}" y="${VIEW.h - 28}" text-anchor="end">${map.note}</text>
 </svg>
 `;
@@ -512,19 +716,23 @@ console.log(
 );
 
 if (anchor) {
+  console.log(`značka posunutá o ${markerMoved.toFixed(1)} m ku ceste`);
   console.log(
-    anchorFound
-      ? 'kotva padla do pôdorysu budovy — strecha je zvýraznená zlatou'
-      : 'kotva nepadla do žiadneho pôdorysu — Albion nesie iba značka, nič sa nedohaduje'
+    markerInsideBuilding
+      ? 'značka leží v pôdoryse budovy — strecha je zvýraznená zlatou'
+      : 'značka je mimo pôdorysu — zlatú dostala najbližšia budova'
   );
-  if (!stationView) {
-    console.log('⚠ v dátach nie je uzol stanice — trasa sa nekreslí');
-  }
+  console.log(
+    busView ? 'autobusová stanica v zábere' : '⚠ autobusová stanica mimo výrezu'
+  );
+  console.log(
+    routePath
+      ? `trasa vedie po uliciach, ${Math.round(routeLength)} m`
+      : '⚠ trasa sa nekreslí — po cestách sa nedala nájsť rozumná'
+  );
 }
 
 if (kb > MAX_KB) {
-  console.log(
-    `\n⚠ NAD ROZPOČET (${MAX_KB} kB). Zmenši RADIUS_M, nie kvalitu.`
-  );
+  console.log(`\n⚠ NAD ROZPOČET (${MAX_KB} kB). Zjednoduš polygóny, nie výrez.`);
   process.exit(1);
 }
