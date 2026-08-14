@@ -1,0 +1,50 @@
+---
+import { business, FEATURES } from '../../data/business.ts';
+import { content } from '../../data/content.ts';
+
+/**
+ * Tenký pás pod hero. Jedna veta, nič iné.
+ *
+ * Je to prvé z troch miest, kde sa buduje vzťah — a zámerne je to jedna
+ * konkrétna veta na správnom mieste, nie odstavec o histórii firmy.
+ *
+ * Bez potvrdení sa nevykreslí vôbec. Žiadne dočasné znenie na produkcii.
+ */
+const { familyBusiness } = FEATURES;
+const { foundedYearConfirmed, foundedYear } = business;
+
+const text = !foundedYearConfirmed
+  ? null
+  : (familyBusiness ? content.trust.band : content.trust.bandYearOnly).replace(
+      '{year}',
+      String(foundedYear)
+    );
+---
+
+{
+  text && (
+    <div class="bg-ink-800 border-y-gold-hairline">
+      <div class="container-page flex min-h-[72px] items-center justify-center py-4">
+        <p class="font-serif text-h3 trust-band text-center" data-reveal>
+          {text}
+        </p>
+      </div>
+    </div>
+  )
+}
+
+<style>
+  .trust-band {
+    letter-spacing: -0.01em;
+  }
+
+  /*
+    Zlatá vlasová linka nad aj pod. Cez `border-color` by sa nedala stlmiť
+    na 40 % bez toho, aby sme zaviedli ďalší token — `color-mix` je tu presne
+    tá istá hodnota, akú používa `rule-gold`.
+  */
+  .border-y-gold-hairline {
+    border-block: 1px solid
+      color-mix(in srgb, var(--color-gold) 40%, transparent);
+  }
+</style>

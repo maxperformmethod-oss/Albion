@@ -24,9 +24,24 @@ druhý interval do `openingHours`.
 Navyše: pri zatvorenom obchode indikátor povie **kedy otvárame**
 (`Zatvorené · otvárame zajtra o 7:00`), nielen že je zatvorené.
 
-### 3. Mapa bez `<iframe>` — potvrdené
+### 3. Vzťahová vrstva — potvrdená majiteľmi (dávka 7)
 
-Zámer, nie opomenutie. Typografický blok + tlačidlo do Google Máp.
+| Otázka | Odpoveď |
+|---|---|
+| Rodinná firma? | **Áno** — vedú ju manžel a manželka, nikto ďalší |
+| Rok 2001? | **Potvrdený** → `foundedYearConfirmed: true` |
+| Osobný odkaz? | **Schválený**, znenie je v `content.ts` a nemení sa |
+| Mená majiteľov? | **Nie**, zatiaľ nezverejňujeme |
+
+Preto celá vzťahová vrstva hovorí **„my"**, nie „majiteľ" v tretej osobe —
+firmu vedú dvaja ľudia.
+
+### 4. Mapa bez `<iframe>` — potvrdené
+
+Zámer, nie opomenutie. Od dávky 6 je na mieste **vlastná axonometrická mapa
+zo skutočných dát OpenStreetMap** (licencia ODbL, atribúcia pod mapou) —
+skutočné pôdorysy budov, nula third-party requestov. Plus typografický blok
+s adresou a tlačidlo do Google Máp.
 
 ---
 
@@ -34,46 +49,45 @@ Zámer, nie opomenutie. Typografický blok + tlačidlo do Google Máp.
 
 | # | Vec | Čo sa stane, keď príde |
 |---|---|---|
-| 1 | **Doména** | `PUBLIC_SITE_URL` → canonical, OG URL, sitemap a `url`/`image` v JSON-LD. Dovtedy sa `url` a `image` do JSON-LD **nevygenerujú** — localhost tam nepatrí. |
-| 2 | **E-mail** | Pribudne riadok v sekcii Kontakt a `email` v JSON-LD. |
-| 3 | **GPS súradnice prevádzky** ⚠ **blokuje 3D mapu** | Pribudne `geo` v JSON-LD a **rozbehne sa 3D mapa z OSM** — pozri nový otvorený bod nižšie. |
-| 4 | **Potvrdenie roku 2001** | Prepni `foundedYearConfirmed: true` → do bodu „Dlhoročná miestna firma" pribudne veta `V Lučenci pôsobíme od roku 2001.` |
-| 5 | **Priamy odkaz na Google profil** | Nahradí vyhľadávací odkaz — otvorí kartu prevádzky s recenziami namiesto zoznamu výsledkov. |
-| 6 | **6 fotiek od majiteľa** | Nahradia abstraktnú textúru v hero. Zoznam je v `README.md`. |
-| 7 | **Doklady k založeniu** | `requiredDocuments` → poznámka pod krokmi v sekcii „Ako to funguje". |
-
+| 1 | **Vlastná doména** | `PUBLIC_SITE_URL` prepíše predvolenú produkčnú adresu. Dovtedy beží všetko na `albion-bf4w.vercel.app`. |
+| 2 | **E-mail** | Pribudne riadok v sekcii Kontakt, `email` v JSON-LD a kontakt v zásadách ochrany údajov. |
+| 3 | **6 fotiek od majiteľov** | Nahradia abstraktnú textúru v hero. Zoznam je v `README.md`. Jedna z nich patrí aj vpravo do osobného odkazu — miesto je pripravené. |
+| 4 | **Doklady k založeniu** | `requiredDocuments` → poznámka pod krokmi v sekcii „Ako to funguje". |
+| 5 | **Mená majiteľov** | Zatiaľ zverejniť nechcú. Keby zmenili názor, doplní sa podpis pod osobným odkazom. |
 ---
 
 ## Nové otvorené body
 
-### ⚠ „Kpt. Nálepku“ v Lučenci nie je v OpenStreetMap — blokuje 3D mapu
+### ⚠ Adresa `Kpt. Nálepku` verzus `Mieru` v OpenStreetMap
 
-Pipeline na 3D mapu z OSM dát je hotová (`scripts/build-map.mjs`) a funguje.
-Chýba jediná vec: **kde presne stojí prevádzka.**
+Súradnice prevádzky sú potvrdené (`48.334768, 19.667564`) a **3D mapa beží**.
+Pri práci s ňou však vyplávalo niečo, čo stojí za overenie.
 
-Čo som overil (14. 8. 2026):
+Overené (14. 8. 2026):
 
-- Nominatim na `Kpt. Nálepku 41, Lučenec` vráti dve ulice rovnakého mena, ale
-  **ani jednu v Lučenci** — sú vo Fiľakove (986 01) a v Haliči (985 11).
-  Obe sú v okrese Lučenec, čo je presne tá zámena, na ktorú sa dá naletieť.
-- V Overpass som vypísal **všetkých 192 pomenovaných ulíc v okruhu 3 km od
-  centra Lučenca**. Ani jedna neobsahuje „Nálepk“ ani „Kpt./Kapitána“.
-- V okruhu 500 m od stanice nie je ani jedna budova s `addr:housenumber=41`.
-- Jediná záložňa označená v OSM v okolí je bez názvu a je ~800 m od stanice,
-  takže ako potvrdenie neposlúži.
+- V OSM **v Lučenci nie je ulica `Kpt. Nálepku`**. Nominatim vracia dve ulice
+  toho mena, obe mimo mesta — vo Fiľakove (986 01) a v Haliči (985 11).
+  Medzi 192 pomenovanými ulicami v okruhu 3 km od centra Lučenca ani jedna
+  neobsahuje „Nálepk“ ani „Kpt./Kapitána“.
+- **Reverzné geokódovanie potvrdených súradníc** vráti
+  `6303/7A, Mieru, Opatová, Lučenec, 984 01`. Podľa OSM je teda prevádzka
+  na ulici **Mieru**.
+- Súradnice samotné sedia: sú **135 m od uzla železničnej stanice**, čo
+  presne zodpovedá „pár krokov od stanice“, a padnú dovnútra pôdorysu budovy.
 
-**Súradnice si nevymýšľam** — mapa s domom o ulicu vedľa by vyzerala úplne
-dôveryhodne a bola by nepravdivá. Sú dve možné vysvetlenia: ulica v OSM chýba,
-alebo sa dnes volá inak (premenovanie ulíc s týmto názvom je bežné).
+Sú dve možné vysvetlenia: ulicu v OSM niekto pomenoval nesprávne alebo
+zastaralo, alebo sa ulica premenovala a jeden z oboch zdrojov je pozadu.
 
-**Čo potrebujem:** stačí otvoriť Google Mapy na prevádzke, kliknúť pravým na
-značku a odkopírovať dvojicu čísel (napr. `48.3361, 19.6669`). Prípadne presný
-odkaz na Google profil prevádzky (bod 5 v tabuľke vyššie).
+**Ako je to vyriešené na webe:** mapa kreslí skutočnú geometriu a presný bod,
+ale **nevypisuje názvy ulíc**. Adresa `Kpt. Nálepku 41` je v texte pod mapou,
+kde je aj tak jediným záväzným nositeľom údaja. Ani jedno tvrdenie tak
+nestojí na dátach, ktoré si protirečia.
 
-Potom: doplniť do `business.geo`, spustiť `npm run map` a mapa je hotová.
-Kontrolný render okolia stanice je v `docs/mapa-3d-nahlad.png` — kvalita
-sedí, dáta OSM sú v okolí stanice husté (162 budov v okruhu 250 m).
-
+**Čo overiť:** či je `Kpt. Nálepku 41` naozaj aktuálna úradná adresa — mala
+by sedieť s Google Business Profile, s obchodným registrom aj s tým, čo je
+na dverách. Ak sa niekde líši, Google to vyhodnotí ako nekonzistentné NAP
+a lokálne pozície klesnú. Je to jediný údaj na webe, ktorý sa neoplatí
+nechať tak.
 ### ⚠ Právne stránky sú návrh pripravený neprávnikom
 
 `/ochrana-osobnych-udajov` a `/podmienky-pouzivania` sú **návrh, nie právne

@@ -4,18 +4,17 @@ import SectionTexture from '../ui/SectionTexture.astro';
 import { business } from '../../data/business.ts';
 import { content } from '../../data/content.ts';
 
-const { id, h2, items, foundedSentence } = content.whyAlbion;
+const { id, h2, items } = content.whyAlbion;
 
 /**
- * Rok sa doplní iba pri potvrdenom `foundedYearConfirmed`. Kým je `false`,
- * bod „Dlhoročná miestna firma“ stojí bez neho — žiadna diera v layoute.
+ * Rok je priamo v texte bodu „Rodinná firma, nie pobočka“. Ak by nebol
+ * potvrdený, veta s ním sa z toho bodu vypustí celá — nie je to prívlastok,
+ * ktorý sa dá nechať visieť.
  */
-const foundedPrefix = business.foundedYearConfirmed
-  ? `${foundedSentence.replace('{year}', String(business.foundedYear))} `
-  : '';
-
-const withPrefix = (title: string, text: string) =>
-  title === 'Dlhoročná miestna firma' ? `${foundedPrefix}${text}` : text;
+const withYear = (text: string) =>
+  business.foundedYearConfirmed
+    ? text.replace('{year}', String(business.foundedYear))
+    : text.replace(/\s*V Lučenci pôsobíme od roku \{year\}\./, '');
 ---
 
 <Section
@@ -40,7 +39,7 @@ const withPrefix = (title: string, text: string) =>
       items.map((item) => (
         <li class="border-hairline-dark border-t pt-6" data-reveal>
           <h3 class="font-serif text-h3">{item.title}</h3>
-          <p class="text-bone-muted mt-3">{withPrefix(item.title, item.text)}</p>
+          <p class="text-bone-muted mt-3">{withYear(item.text)}</p>
         </li>
       ))
     }

@@ -130,9 +130,17 @@ export const business: Business = {
   countryCode: 'SK',
   landmark: 'pri stanici',
 
-  geo: TO_CONFIRM,
-  mapsUrl:
-    'https://www.google.com/maps/search/?api=1&query=Stani%C4%8Dn%C3%A1+Z%C3%A1lo%C5%BE%C5%88a+Albion+Kpt.+N%C3%A1lepku+41+Lu%C4%8Denec',
+  /**
+   * Poloha značky z Google profilu prevádzky, potvrdená majiteľom.
+   * Je to ~135 m od uzla železničnej stanice, čo sedí s „pár krokov od stanice“.
+   *
+   * Pozor pri práci s mapou: OSM na tomto mieste vedie ulicu ako **Mieru**,
+   * nie `Kpt. Nálepku` — pozri docs/OTAZKY.md. Preto sa v schéme nekreslí
+   * názov ulice, len bod.
+   */
+  geo: { lat: 48.334768, lng: 19.667564 },
+  /** Priamy odkaz na kartu prevádzky (recenzie, hodiny), nie vyhľadávanie. */
+  mapsUrl: 'https://maps.google.com/?cid=17146046179967197220',
 
   // Po–Pi 07:00–17:30. So a Ne zatvorené. Obedňajšia prestávka nie je,
   // ale dátový model aj `hours.ts` ju zvládnu, keby ju majiteľ zaviedol.
@@ -141,7 +149,8 @@ export const business: Business = {
   requiredDocuments: TO_CONFIRM,
 
   foundedYear: 2001,
-  foundedYearConfirmed: false,
+  /** Potvrdené majiteľom (dávka 7). Zápis do OR je 15. 10. 2001. */
+  foundedYearConfirmed: true,
 
   siteUrl: resolveSiteUrl(),
 };
@@ -150,11 +159,7 @@ export const business: Business = {
  * Polia, ktoré smú zostať `TO_CONFIRM` bez toho, aby zastavili produkčný build.
  * Web bez nich funguje — príslušný prvok sa jednoducho nevykreslí.
  */
-export const OPTIONAL_FIELDS = [
-  'business.email',
-  'business.geo',
-  'business.requiredDocuments',
-];
+export const OPTIONAL_FIELDS = ['business.email', 'business.requiredDocuments'];
 
 /**
  * Prepínače správania, ktoré nie sú odvoditeľné z dát vyššie.
@@ -168,6 +173,15 @@ export const FEATURES = {
   stickyCallBar: true,
   /** Jemné odhalenie sekcií pri scrollovaní. Bez JS je obsah vždy viditeľný. */
   revealOnScroll: true,
+  /**
+   * Vzťahová vrstva. Obe potvrdil majiteľ (dávka 7): firmu vedú manžel
+   * a manželka, nikto ďalší, a znenie osobného odkazu je schválené.
+   *
+   * `ownerName` zostáva nepotvrdené a **nikde sa nepoužíva** — podpis pod
+   * odkazom meno neobsahuje.
+   */
+  familyBusiness: true,
+  ownerNote: true,
   /** Červený DEV badge pri chýbajúcom telefóne. */
   devPlaceholderBadges: true,
 } as const;

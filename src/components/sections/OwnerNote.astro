@@ -1,0 +1,55 @@
+---
+import Section from '../ui/Section.astro';
+import Eyebrow from '../ui/Eyebrow.astro';
+import { business, FEATURES } from '../../data/business.ts';
+import { content } from '../../data/content.ts';
+
+/**
+ * Osobný odkaz majiteľov. Tretie a posledné miesto vzťahovej vrstvy.
+ *
+ * Znenie je **schválené majiteľmi** — je to ich hlas, nie náš. Neupravovať.
+ * Bez `FEATURES.ownerNote` sa nevykreslí; slová vložené niekomu do úst sa bez
+ * jeho súhlasu nepublikujú.
+ *
+ * Meno v podpise nie je — majitelia ho zatiaľ zverejniť nechcú.
+ */
+const { eyebrow, quote, signature } = content.trust.ownerNote;
+
+const signatureText = signature.replace('{year}', String(business.foundedYear));
+---
+
+{
+  FEATURES.ownerNote && (
+    <Section tone="ink" divider={false}>
+      <div class="flex flex-col gap-10 lg:flex-row">
+        <div class="lg:w-[62%]">
+          <Eyebrow data-reveal>{eyebrow}</Eyebrow>
+
+          {/*
+            Kratší riadok než bežný text (52ch), aby to pôsobilo ako výrok,
+            nie ako odstavec. Žiadna kurzíva a žiadne dekoratívne úvodzovky
+            ako grafika — úvodzovky sú súčasťou textu.
+          */}
+          <blockquote class="font-serif text-h3 owner-quote mt-6" data-reveal>
+            {quote}
+          </blockquote>
+
+          <p class="text-small text-bone-muted mt-6" data-reveal>
+            <span class="rule-gold mb-4 w-10" aria-hidden="true" />
+            {signatureText}
+          </p>
+        </div>
+
+        <div class="lg:w-[38%]">
+          {/* TODO: photo */}
+        </div>
+      </div>
+    </Section>
+  )
+}
+
+<style>
+  .owner-quote {
+    max-width: 52ch;
+  }
+</style>

@@ -26,6 +26,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { business, isConfirmed, streetName } from '../src/data/business.ts';
+import { content } from '../src/data/content.ts';
 
 const RAW = 'src/data/map-raw.json';
 /** Cache kontrolného renderu. Necommituje sa — pozri .gitignore. */
@@ -33,8 +34,12 @@ const RAW_PREVIEW = 'src/data/map-raw.preview.json';
 const OUT = 'src/components/sections/map.generated.svg';
 const PREVIEW = 'src/components/sections/map.preview.svg';
 
-/** Polomer výrezu v metroch. Pri prekročení rozpočtu sa zmenšuje, nie kvalita. */
-const RADIUS_M = 250;
+/**
+ * Polomer výrezu v metroch. Okolie prevádzky je hustejšie zastavané než okolie
+ * stanice, takže 350 aj 250 m prekročilo rozpočet. Pri 180 m sa vojde a stanica
+ * (135 m od prevádzky) je v zábere stále. Zmenšuje sa výrez, nie kvalita.
+ */
+const RADIUS_M = 180;
 
 /** Rozpočet hotového SVG. */
 const MAX_KB = 60;
@@ -43,6 +48,9 @@ const MAX_KB = 60;
 const SIMPLIFY_M = 0.6;
 
 const VIEW = { w: 1200, h: 700 };
+
+/** Počet krokov vlny „mesto sa postaví“. 21 × 12 ms = max 252 ms. */
+const STAGGER_STEPS = 20;
 
 /** Výška extrúzie v px. Stanica a Albion sú vyššie, aby sa dali nájsť očami. */
 const WALL_H = 12;
@@ -254,15 +262,39 @@ function render(data, { anchor }) {
     tags.railway === 'station' ||
     tags.public_transport === 'station';
 
-  const isAnchor = (tags) =>
-    anchor !== null &&
-    tags['addr:housenumber'] === anchor.housenumber &&
-    (tags['addr:street'] ?? '').includes(anchor.street);
+  /**
+   * Budova, v ktorej leží kotva. Číslo domu 41 v OSM zamapované nie je, takže
+   * sa hľadá geometricky — budova, ktorej pôdorys obsahuje potvrdený bod.
+   * Ak taká nie je (bod padne do dvora alebo na chodník), nezvýrazní sa nič
+   * a Albion nesie iba značka. Nič sa nedohaduje.
+   */
+  const anchorView = anchor ? toView(project(anchor)) : null;
+
+  const containsAnchor = (points) => {
+    if (!anchorView) return false;
+    let inside = false;
+    for (let i = 0, j = points.length - 1; i < points.length; j = i, i += 1) {
+      const a = points[i];
+      const b = points[j];
+      const straddles = a.y > anchorView.y !== b.y > anchorView.y;
+      if (
+        straddles &&
+        anchorView.x <
+          ((b.x - a.x) * (anchorView.y - a.y)) / (b.y - a.y) + a.x
+      ) {
+        inside = !inside;
+      }
+    }
+    return inside;
+  };
+
+  let anchorBuilding = null;
 
   const wallsAndRoofs = buildings
-    .map(({ points, tags }) => {
+    .map(({ points, tags }, index) => {
       const landmark = isLandmark(tags);
-      const anchored = isAnchor(tags);
+      const anchored = anchorBuilding === null && containsAnchor(points);
+      if (anchored) anchorBuilding = index;
       const height = landmark || anchored ? WALL_H_LANDMARK : WALL_H;
       const top = points.map((p) => ({ x: p.x, y: p.y - height }));
 
@@ -291,26 +323,67 @@ function render(data, { anchor }) {
         .join('');
 
       const roofClass = anchored ? 'roof roof-anchor' : 'roof';
-      return `<path class="wall" d="${walls}"/><path class="${roofClass}" d="${path(top)}Z"/>`;
+      /*
+        Vlna „mesto sa postaví“ ide odzadu dopredu. Stagger je zastropovaný na
+        21 krokov po 12 ms — pri 162 budovách by inline `transition-delay`
+        na každej z nich stál viac než celá geometria a trval by dve sekundy.
+      */
+      const step = Math.min(
+        STAGGER_STEPS,
+        Math.floor((index / buildings.length) * (STAGGER_STEPS + 1))
+      );
+
+      return (
+        `<g class="b" style="--d:${step}">` +
+        `<path class="wall" d="${walls}"/>` +
+        `<path class="${roofClass}" d="${path(top)}Z"/>` +
+        `</g>`
+      );
     })
     .join('\n');
 
+  /*
+    Ulica prevádzky sa nezvýrazňuje. OSM na mieste potvrdených súradníc vedie
+    ulicu ako „Mieru“, nie „Kpt. Nálepku“ — zvýrazniť ju a napísať k nej našu
+    adresu by znamenalo tvrdiť niečo, čo dáta nepodporujú. Adresa je v texte
+    pod mapou. Pozri docs/OTAZKY.md.
+  */
   const streetPaths = streets
-    .map(({ points, tags }) => {
-      const main = (tags.name ?? '').includes(streetName ?? ' ');
-      return `<path class="${main ? 'street street-main' : 'street'}" d="${path(points)}"/>`;
-    })
+    .map(
+      ({ points }) =>
+        // `pathLength="1"` normalizuje dĺžku, takže sa všetky ulice nakreslia
+        // rovnako rýchlo bez ohľadu na to, aké sú dlhé.
+        `<path class="street" pathLength="1" d="${path(points)}"/>`
+    )
     .join('\n');
 
   const railPaths = rails
     .map(({ points }) => `<path class="rail" d="${path(points)}"/>`)
     .join('\n');
 
-  return { wallsAndRoofs, streetPaths, railPaths, counts: {
-    buildings: buildings.length,
-    streets: streets.length,
-    rails: rails.length,
-  } };
+  // Uzol stanice — z Overpassu, nie odhadom.
+  const stationNode = data.elements.find(
+    (element) =>
+      element.type === 'node' &&
+      /^(station|halt)$/.test(element.tags?.railway ?? '')
+  );
+  const stationView = stationNode
+    ? toView(project({ lat: stationNode.lat, lon: stationNode.lon }))
+    : null;
+
+  return {
+    wallsAndRoofs,
+    streetPaths,
+    railPaths,
+    anchorView,
+    stationView,
+    anchorFound: anchorBuilding !== null,
+    counts: {
+      buildings: buildings.length,
+      streets: streets.length,
+      rails: rails.length,
+    },
+  };
 }
 
 /* -------------------------------------------------------------------------
@@ -351,16 +424,67 @@ if (!refresh && existsSync(cacheFile)) {
   console.log(`Overpass: ${data.elements.length} prvkov`);
 }
 
-const anchor = isConfirmed(business.street)
-  ? {
-      housenumber: business.street.replace(/^.*?(\d+\w?)$/, '$1'),
-      street: streetName ?? '',
-    }
-  : null;
+/*
+  Kotva je potvrdená poloha prevádzky z Google profilu. Pri kontrolnom renderi
+  kotva nie je — vtedy sa nekreslí ani bod, ani trasa. Nikdy sa neodhaduje.
+*/
+const anchor =
+  !previewCenter && isConfirmed(business.geo)
+    ? { lat: business.geo.lat, lon: business.geo.lng }
+    : null;
 
-const { wallsAndRoofs, streetPaths, railPaths, counts } = render(data, { anchor });
+const {
+  wallsAndRoofs,
+  streetPaths,
+  railPaths,
+  anchorView,
+  stationView,
+  anchorFound,
+  counts,
+} = render(data, { anchor });
 
-const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${VIEW.w} ${VIEW.h}" class="map">
+const map = content.location.map;
+
+/**
+ * Trasa stanica → Albion. Je to schematický spojník, nie navigačná trasa —
+ * preto je prerušovaná a preto je pod mapou napísané „orientačná schéma“.
+ * Skutočnú cestu neurčujeme, tú nevieme.
+ */
+const route =
+  anchorView && stationView
+    ? `M${fmt(stationView.x)} ${fmt(stationView.y)}Q${fmt(
+        (stationView.x + anchorView.x) / 2 - 26
+      )} ${fmt((stationView.y + anchorView.y) / 2 + 14)} ${fmt(anchorView.x)} ${fmt(
+        anchorView.y
+      )}`
+    : null;
+
+/*
+  Dashovaná linka sa nedá nakresliť cez `stroke-dashoffset` — ten je už
+  obsadený vzorom čiarok. Kreslí ju preto maska s tou istou cestou; na maske
+  `pathLength="1"` normalizuje dĺžku, takže netreba nič dopočítavať.
+*/
+const routeMarkup = route
+  ? `<defs><mask id="routeMask"><path class="route-mask" pathLength="1" d="${route}" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/></mask></defs>` +
+    `<path class="route" mask="url(#routeMask)" d="${route}"/>`
+  : '';
+
+const label = (point, text, cls, dy) =>
+  point
+    ? `<text class="${cls}" x="${fmt(point.x)}" y="${fmt(point.y + dy)}" text-anchor="middle">${text}</text>`
+    : '';
+
+const here = anchorView
+  ? `<g class="here">
+<circle cx="${fmt(anchorView.x)}" cy="${fmt(anchorView.y)}" r="18" class="halo"/>
+<circle cx="${fmt(anchorView.x)}" cy="${fmt(anchorView.y)}" r="18" class="pulse"/>
+<circle cx="${fmt(anchorView.x)}" cy="${fmt(anchorView.y)}" r="9" class="dot"/>
+</g>`
+  : '';
+
+const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${VIEW.w} ${VIEW.h}" class="map" role="img" aria-labelledby="mapTitle mapDesc">
+<title id="mapTitle">${map.title}</title>
+<desc id="mapDesc">${map.desc.replace('{street}', business.street)}</desc>
 <g class="rails">
 ${railPaths}
 </g>
@@ -370,6 +494,11 @@ ${streetPaths}
 <g class="buildings">
 ${wallsAndRoofs}
 </g>
+${routeMarkup}
+${here}
+${label(stationView, map.station, 'label', -26)}
+${label(anchorView, map.here, 'here-label', -34)}
+<text class="note" x="${VIEW.w - 24}" y="${VIEW.h - 28}" text-anchor="end">${map.note}</text>
 </svg>
 `;
 
@@ -382,9 +511,20 @@ console.log(
     `(budov ${counts.buildings}, ulíc ${counts.streets}, koľají ${counts.rails})`
 );
 
+if (anchor) {
+  console.log(
+    anchorFound
+      ? 'kotva padla do pôdorysu budovy — strecha je zvýraznená zlatou'
+      : 'kotva nepadla do žiadneho pôdorysu — Albion nesie iba značka, nič sa nedohaduje'
+  );
+  if (!stationView) {
+    console.log('⚠ v dátach nie je uzol stanice — trasa sa nekreslí');
+  }
+}
+
 if (kb > MAX_KB) {
   console.log(
-    `\n⚠ NAD ROZPOČET (${MAX_KB} kB). Zmenši RADIUS_M na 250, nie kvalitu.`
+    `\n⚠ NAD ROZPOČET (${MAX_KB} kB). Zmenši RADIUS_M, nie kvalitu.`
   );
   process.exit(1);
 }

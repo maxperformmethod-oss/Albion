@@ -23,7 +23,38 @@ export const content = {
     title:
       'Staničná Záložňa Albion Lučenec | Výkup zlata, šperkov a elektroniky',
     description:
-      'Záložňa Albion v Lučenci pri stanici. Založenie a výkup zlata, šperkov, elektroniky, náradia aj áut. Individuálne ocenenie a osobná dohoda.',
+      'Rodinná záložňa v Lučenci pri stanici, od roku 2001. Založenie a výkup zlata, šperkov, elektroniky, náradia aj áut. Individuálne ocenenie a osobná dohoda.',
+  },
+
+  /**
+   * Vzťahová vrstva — potvrdená majiteľmi (dávka 7). Firmu vedú manžel
+   * a manželka, nikto ďalší, preto celá hovorí **„my"**, nie „majiteľ"
+   * v tretej osobe.
+   *
+   * Sú to **tri prvky a nič viac**: pás pod hero, dva body v „Prečo Albion"
+   * a osobný odkaz. Spolu ~70 slov. Sila je v tom, že to zaznie trikrát
+   * a potom už nie — žiadna sekcia o histórii, časová os ani počítadlo rokov.
+   *
+   * Meno majiteľov sa nezverejňuje: `ownerName` zostáva nepotvrdené a podpis
+   * pod odkazom meno neobsahuje.
+   */
+  trust: {
+    /** `{year}` z business.ts. Vykreslí sa len pri oboch potvrdeniach. */
+    band: 'Rodinná firma. V Lučenci od roku {year}.',
+    /** Bez potvrdenia rodinnej firmy zostane len rok. */
+    bandYearOnly: 'V Lučenci od roku {year}.',
+
+    ownerNote: {
+      eyebrow: 'Slovo majiteľov',
+      /**
+       * Znenie schválené majiteľmi. **Neupravuj ho ani o slovo.**
+       * Slovenské úvodzovky sú súčasťou textu, nie sadzby.
+       */
+      quote:
+        '„Za tie roky sem prišlo veľa ľudí. Jedni si potrebovali požičať do výplaty, druhí predať niečo, čo doma roky ležalo. Nikdy sme sa nepýtali, na čo to potrebujú. Možno aj preto sa vracajú.“',
+      /** Bez mena — majitelia ho zatiaľ zverejniť nechcú. `{year}` z business.ts. */
+      signature: 'manželia, ktorí Albion vedú od roku {year}',
+    },
   },
 
   brand: {
@@ -121,26 +152,26 @@ export const content = {
     id: 'preco-albion',
     h2: 'Prečo ľudia chodia práve k nám',
     /**
-     * Predsadí sa pred text bodu „Dlhoročná miestna firma“, ale LEN ak je
-     * business.foundedYearConfirmed === true. Inak sa nedopĺňa nič.
+     * Body 1 a 2 sú vo vzťahovej vrstve — hovoria „my", nie „majiteľ"
+     * v tretej osobe. Rok je priamo v texte bodu 2, nie ako podmienená veta
+     * navyše; nevkladaj ho druhýkrát.
      */
-    foundedSentence: 'V Lučenci pôsobíme od roku {year}.',
     items: [
       {
-        title: 'Rozhoduje tu majiteľ',
-        text: 'Nečakáte na schválenie z centrály. Dohodu uzatvárate priamo s tým, kto o nej rozhoduje.',
+        title: 'Za pultom stojíme my',
+        text: 'Nemusíme nikam volať a na nič sa pýtať. Čo si s nami dohodnete, to platí.',
       },
       {
-        title: 'Dlhoročná miestna firma',
-        text: 'Albion patrí k najdlhšie fungujúcim záložniam v Lučenci. Nie sme pobočka reťazca — sme miestna firma, ktorá tu chce fungovať aj o desať rokov.',
+        title: 'Rodinná firma, nie pobočka',
+        text: 'Vedieme ju dvaja a je to naša jediná prevádzka. Nie sme článok reťazca, ktorý sa o rok presunie inam. V Lučenci pôsobíme od roku {year}.',
       },
       {
-        title: 'Berieme aj atypické veci',
-        text: 'Od šperkov po autá a stroje. Ak to má hodnotu, vieme sa o tom baviť.',
+        title: 'Ide to rýchlo',
+        text: 'Prídete, pozrieme sa, dohodneme sa. Bez objednávania a bez čakania, kým to niekto niekde schváli.',
       },
       {
         title: 'Diskrétnosť',
-        text: 'Čo sa dohodne u nás, ostáva u nás. Bez zbytočných otázok.',
+        text: 'Čo sa dohodne u nás, ostáva u nás. Nepýtame sa na to, čo sa nás netýka.',
       },
     ],
   },
@@ -164,6 +195,9 @@ export const content = {
       title: 'Schéma okolia prevádzky Albion',
       desc: 'Schéma okolia — prevádzka Albion sa nachádza na ulici {street}, pár krokov od železničnej stanice v Lučenci.',
       walk: 'Pár krokov od železničnej stanice.',
+      /** Povinná atribúcia ODbL. Bez nej sa dáta OSM použiť nesmú. */
+      attribution: 'Mapové podklady © prispievatelia OpenStreetMap',
+      attributionHref: 'https://www.openstreetmap.org/copyright',
     },
   },
 
