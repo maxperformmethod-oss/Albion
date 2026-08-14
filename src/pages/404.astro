@@ -1,0 +1,40 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/ui/Button.astro';
+import { content } from '../data/content.ts';
+import { primaryCta, hasPhone } from '../lib/cta.ts';
+
+const { title, text, cta } = content.notFound;
+---
+
+<BaseLayout title={`${title} — Albion`} noindex schema={false}>
+  <section aria-labelledby="not-found-title" class="bg-ink-900">
+    <div
+      class="container-page flex min-h-[min(100svh,40rem)] flex-col justify-center pt-32 pb-20"
+    >
+      <p class="font-serif text-gold text-h2" aria-hidden="true" data-numeric>404</p>
+
+      <h1 id="not-found-title" class="font-serif text-h2 mt-4 max-w-[18ch]">
+        {title}
+      </h1>
+
+      <p class="text-lead text-bone-muted measure mt-6">{text}</p>
+
+      <div class="mt-10 flex flex-wrap items-center gap-3">
+        <Button variant="ghost" href="/">{cta}</Button>
+
+        {
+          hasPhone && (
+            <Button
+              href={primaryCta.href}
+              icon={primaryCta.icon}
+              label={primaryCta.label}
+            >
+              {primaryCta.text}
+            </Button>
+          )
+        }
+      </div>
+    </div>
+  </section>
+</BaseLayout>
