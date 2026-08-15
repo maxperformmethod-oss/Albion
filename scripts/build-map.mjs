@@ -77,14 +77,21 @@ const MAX_ROUTE_DETOUR = 2.5;
 /** Ako ďaleko od potvrdených súradníc smie skončiť značka. Bolo 40 m. */
 const MAX_MARKER_SHIFT_M = 120;
 
-/** Dodatočný posun značky na sever na výslovný pokyn (dávka 15 §3.1). */
-const MARKER_NORTH_M = 27;
+/**
+ * Posun značky na sever. Dávky 15 a 16 ho zdvihli na 27 m, čo bolo chybné
+ * zadanie — značka aj koniec trasy skončili mimo miesta a zvýraznila sa iná
+ * budova. Vrátené na 0; konštanta zostáva, aby sa dalo porovnať.
+ */
+const MARKER_NORTH_M = 0;
 
 /** Kolmá vzdialenosť značky od osi cesty — teda „cez cestu“. */
 const MARKER_ACROSS_M = 10;
 
-/** Dokedy ešte budova pri značke dostane zlatú strechu. */
-const MAX_ANCHOR_DISTANCE_M = 25;
+/**
+ * Dokedy ešte budova pri značke dostane zlatú strechu. Zväčšené z 25 m —
+ * pri správnej polohe bola budova v tvare L tesne za pôvodným polomerom.
+ */
+const MAX_ANCHOR_DISTANCE_M = 40;
 
 /** Smie byť kotvou objekt otagovaný ako prístrešok? Bolo `false`. */
 const ALLOW_ROOF_ANCHOR = true;
@@ -582,7 +589,6 @@ for (const element of data.elements) {
 */
 const WANTED = [
   { match: /billa/i, rank: 3 },
-  { match: /lek[aá]re[nň]/i, rank: 4 },
   { match: /hacienda/i, rank: 5 },
   { match: /m\s*&\s*m\s*caffe/i, rank: 6 },
 ];
@@ -708,7 +714,82 @@ function bendAt(points, minAngle) {
   return bends.length >= 3 ? bends[2] : null;
 }
 
+/**
+ * Uhly všetkých lomov trasy. Do reportu, nech je vidieť, s čím pravidlo
+ * pracovalo.
+ */
+function bendAngles(points) {
+  const out = [];
+  for (let i = 1; i < points.length - 1; i += 1) {
+    const a = { x: points[i].x - points[i - 1].x, y: points[i].y - points[i - 1].y };
+    const b = { x: points[i + 1].x - points[i].x, y: points[i + 1].y - points[i].y };
+    const angle =
+      (Math.abs(Math.atan2(a.x * b.y - a.y * b.x, a.x * b.x + a.y * b.y)) * 180) /
+      Math.PI;
+    out.push({ index: i, angle, point: points[i], a, b });
+  }
+  return out;
+}
+
+/**
+ * Koniec trasy je vrchol, ktorý sa láme najbližšie k **140°** — ostrý, takmer
+ * vratný zlom, ktorý je v celej trase výnimočný. Pri viacerých kandidátoch
+ * vyhrá ten bližšie k stanici: trasa má končiť pri prevádzke, nie za ňou.
+ *
+ * Pravidlo tretieho lomu (`bendAt`) zostáva v kóde, len je odstavené — nech
+ * sa dá porovnať, keby toto nesedelo.
+ */
+function sharpTurn(points, from, min, max) {
+  const candidates = bendAngles(points).filter(
+    (b) => b.angle >= min && b.angle <= max
+  );
+  if (candidates.length === 0) return null;
+
+  const best = candidates.reduce((a, b) => {
+    const da = Math.abs(a.angle - 140);
+    const db = Math.abs(b.angle - 140);
+    if (Math.abs(da - db) > 5) return da < db ? a : b;
+    const ra = Math.hypot(a.point.x - from.x, a.point.y - from.y);
+    const rb = Math.hypot(b.point.x - from.x, b.point.y - from.y);
+    return ra <= rb ? a : b;
+  });
+  return best;
+}
+
+let routeAngles = [];
 if (routeMetres) {
+  routeAngles = bendAngles(routeMetres).map((b) => Math.round(b.angle));
+
+  const turn =
+    sharpTurn(routeMetres, stationMetres, 120, 160) ??
+    sharpTurn(routeMetres, stationMetres, 110, 170);
+
+  if (turn) {
+    // Trasa sa orezáva vo vrchole — nič za ním sa nekreslí.
+    routeMetres = routeMetres.slice(0, turn.index + 1);
+
+    const norm = (v) => {
+      const l = Math.hypot(v.x, v.y) || 1;
+      return { x: v.x / l, y: v.y / l };
+    };
+    const incoming = norm({ x: -turn.a.x, y: -turn.a.y });
+    const outgoing = norm(turn.b);
+    const inward = norm({ x: incoming.x + outgoing.x, y: incoming.y + outgoing.y });
+
+    markerMetres = {
+      x: turn.point.x - inward.x * MARKER_ACROSS_M,
+      y: turn.point.y - inward.y * MARKER_ACROSS_M,
+    };
+    routeMetres[routeMetres.length - 1] = markerMetres;
+    markerNote = `koniec trasy v lome ${Math.round(turn.angle)}°, značka 10 m kolmo od neho`;
+  } else {
+    markerNote =
+      'žiadny lom v rozsahu 110–170° — platí pravidlo tretieho lomu z dávky 13';
+  }
+}
+
+// Záloha: pravidlo tretieho lomu. Beží, len keď 140° pravidlo nič nenašlo.
+if (routeMetres && !markerNote.startsWith('koniec trasy')) {
   const bend = bendAt(routeMetres, 60) ?? bendAt(routeMetres, 45);
 
   if (bend) {
@@ -765,11 +846,16 @@ if (markerMetres) {
 */
 let anchorIndex = buildings.findIndex((b) => contains(b.metres, markerMetres));
 if (anchorIndex < 0) {
-  let best = MAX_ANCHOR_DISTANCE_M;
+  /*
+    Zo všetkých budov v dosahu vyhrá tá s **najväčšou plochou pôdorysu** —
+    L-tvar vľavo je väčší než okolité prístavby a je to ten správny objekt.
+  */
+  let bestArea = 0;
   buildings.forEach((building, index) => {
     const nearest = nearestOnPolyline(markerMetres, building.metres);
-    if (nearest && nearest.dist < best) {
-      best = nearest.dist;
+    if (!nearest || nearest.dist > MAX_ANCHOR_DISTANCE_M) return;
+    if (building.area > bestArea) {
+      bestArea = building.area;
       anchorIndex = index;
     }
   });
@@ -1033,6 +1119,7 @@ console.log(
     `ulíc ${roads.length}, koľají ${rails.length}, plôch ${areas.length}`
 );
 console.log(markerNote);
+console.log(`uhly lomov trasy (°): ${routeAngles.join(', ')}`);
 console.log(
   `\npomenované objekty v OSM (${allNamed.length}):\n` +
     allNamed.map((a) => `  · ${a.name} — ${a.type}`).join('\n')
