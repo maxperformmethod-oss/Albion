@@ -27,8 +27,14 @@ const { id, h2, lead, items, outro } = content.whatWeAccept;
     Nadpis vpravo a lead vľavo v rovnakej výške si konkurovali a oko nevedelo,
     kde má začať čítať.
   */}
-  <div class="sm:flex sm:justify-end">
-    <div class="sm:w-[46%] sm:text-right">
+  {/*
+    Blok začína na 38 % a je široký 50 %, takže vpravo zostáva ~12 % voľných —
+    nadpis pri samom okraji pôsobil, akoby ho tam odtlačilo, nie akoby tam
+    patril. Text je zarovnaný doľava; zarovnanie doprava pri ostatnom texte
+    doľava bolo to, čo pôsobilo najcudzejšie. Asymetria zostáva.
+  */}
+  <div class="lg:pl-[38%]">
+    <div class="lg:w-[calc(50/62*100%)]">
       <h2 id="what-we-accept-title" class="font-serif text-h2" data-reveal>
         {h2}
       </h2>

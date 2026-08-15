@@ -78,7 +78,7 @@ const MAX_ROUTE_DETOUR = 2.5;
 const MAX_MARKER_SHIFT_M = 120;
 
 /** Dodatočný posun značky na sever na výslovný pokyn (dávka 15 §3.1). */
-const MARKER_NORTH_M = 15;
+const MARKER_NORTH_M = 27;
 
 /** Kolmá vzdialenosť značky od osi cesty — teda „cez cestu“. */
 const MARKER_ACROSS_M = 10;
@@ -567,39 +567,27 @@ for (const element of data.elements) {
   a zobrali pozornosť Albionu. Konkurencia nikdy.
 */
 /*
-  Orientačné body v Lučenci: stanice, supermarket, lekáreň, drogéria, banka,
-  pošta, kostol, škola. Nižšie číslo = dôležitejšie.
+  Popisy okolia.
 
-  Vylúčené natrvalo: **záložne a zastavárne** (konkurencia), taxi služby
-  a malé prevádzky bez rozpoznateľného mena.
+  Zoznam prevádzok pochádza z Google Máp (odčítaný 15. 8. 2026) — sú to fakty
+  o tom, aké firmy tam sídlia. **Súradnice sa však berú výhradne z OSM**:
+  popíše sa len ten názov, ktorý sa v stiahnutých dátach nájde. Čo v OSM nie
+  je, sa vynecháva — polohu neodhadujeme.
+
+  Taxi služby a zdravotnícke ambulancie sa nepopisujú: nie sú to orientačné
+  body a je ich veľa. Záložne a zastavárne sú vylúčené natrvalo.
+
+  Popisy okolia sú najkrehkejšia časť mapy — názvy prevádzok sa menia.
+  Kontrola raz za rok je v docs/LAUNCH_CHECKLIST.md §F.
 */
-const LANDMARK_RANK = {
-  supermarket: 1,
-  pharmacy: 2,
-  bank: 3,
-  post_office: 4,
-  chemist: 5,
-  place_of_worship: 6,
-  school: 7,
-  hospital: 8,
-};
+const WANTED = [
+  { match: /billa/i, rank: 3 },
+  { match: /lek[aá]re[nň]/i, rank: 4 },
+  { match: /hacienda/i, rank: 5 },
+  { match: /m\s*&\s*m\s*caffe/i, rank: 6 },
+];
 
-const EXCLUDED = /pawnbroker|taxi|zálož|zastavár/i;
-
-const kindOf = (tags) => {
-  const all = `${tags.shop ?? ''} ${tags.amenity ?? ''} ${tags.office ?? ''} ${tags.name ?? ''}`;
-  if (EXCLUDED.test(all)) return null;
-  // `convenience` sem nepatri — su to male prevadzky bez rozpoznatelneho mena.
-  if (tags.shop === 'supermarket') return 'supermarket';
-  if (tags.amenity === 'pharmacy') return 'pharmacy';
-  if (tags.shop === 'chemist') return 'chemist';
-  if (tags.amenity === 'bank' || tags.office === 'bank') return 'bank';
-  if (tags.amenity === 'post_office' || tags.office === 'post') return 'post_office';
-  if (tags.amenity === 'place_of_worship') return 'place_of_worship';
-  if (tags.amenity === 'school') return 'school';
-  if (tags.amenity === 'hospital' || tags.amenity === 'clinic') return 'hospital';
-  return null;
-};
+const EXCLUDED = /pawnbroker|taxi|zálož|zastavár|medic|pohotovos/i;
 
 /** Celý nájdený zoznam ide do reportu — nech je vidieť, s čím sa pracuje. */
 const allNamed = [];
@@ -614,8 +602,9 @@ for (const element of data.elements) {
     tags.shop ?? tags.amenity ?? tags.office ?? tags.tourism ?? tags.railway ?? '?';
   if (!allNamed.some((a) => a.name === name)) allNamed.push({ name, type });
 
-  const kind = kindOf(tags);
-  if (!kind) continue;
+  if (EXCLUDED.test(`${name} ${type}`)) continue;
+  const wanted = WANTED.find((w) => w.match.test(name));
+  if (!wanted) continue;
 
   const point =
     element.type === 'node'
@@ -626,7 +615,7 @@ for (const element of data.elements) {
   if (!point) continue;
   if (landmarks.some((l) => l.name === name)) continue;
 
-  landmarks.push({ name, point, rank: LANDMARK_RANK[kind], kind });
+  landmarks.push({ name, point, rank: wanted.rank, kind: type });
 }
 
 landmarks.sort((a, b) => a.rank - b.rank);
@@ -758,6 +747,12 @@ if (routeMetres) {
 */
 if (markerMetres) {
   markerMetres = { x: markerMetres.x, y: markerMetres.y - MARKER_NORTH_M };
+
+  /*
+    Koniec trasy ide so značkou. Trasa aj bod musia končiť v tom istom mieste —
+    presne tá nezhoda, ktorá predtým rozišla bod a zvýraznenú budovu.
+  */
+  if (routeMetres) routeMetres[routeMetres.length - 1] = markerMetres;
 }
 
 /* --- zvýraznená budova ---------------------------------------------------- */
