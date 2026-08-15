@@ -78,6 +78,24 @@ s adresou a tlačidlo do Google Máp.
 
 ## Nové otvorené body
 
+
+### ⚠ Tri otázky k novým službám (dávka 18)
+
+1. **Platí, že za výkup zákazník zvyčajne dostane viac než pri zálohe?**
+   Ak nie, akým slovom to popísať? Veta je pripravená za `FEATURES.hooks`
+   a bez potvrdenia sa nevykresľuje — blok „Založiť alebo predať?" funguje
+   aj bez nej.
+2. **Vykupujete alebo predávate investičné zlato** — tehličky, mince
+   s certifikátom? Ak áno, doplní sa do podriadku položky „Zlato a šperky"
+   ako `…, prstene, investičné zlato.` Zatiaľ tam zámerne nie je: je to iná
+   služba než výkup šperkov a nevieme, či ju Albion robí.
+3. **Predávate zlato a šperky pravidelne, alebo len občas podľa toho, čo je
+   na sklade?** Ak len občas, preformulujeme, aby to nebudilo očakávanie
+   predajne. Súčasné znenie hovorí „ponuka sa mení", takže nič nesľubuje.
+
+Nové reťazce (podriadky položiek, blok „Založiť alebo predať?", blok
+„Predaj") idú do maďarskej aj anglickej korektúry spolu so zvyškom.
+
 ### ⚠ Maďarčinu a angličtinu má prečítať rodený hovorca
 
 Preklady som pripravil ja, nie som rodený hovorca. V maďarčine je rozdiel

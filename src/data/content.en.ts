@@ -6,7 +6,7 @@
  * skladajú sa z `business.ts`.
  */
 
-import type { NavItem, Step } from './content.sk.ts';
+import type { Item, NavItem, Step } from './content.sk.ts';
 
 export const content = {
   meta: {
@@ -71,17 +71,39 @@ export const content = {
     h2: 'What you can pawn or sell with us',
     lead: 'These are the things people bring us most often. The list is not closed.',
     items: [
-      'Gold and jewellery',
-      'Watches',
-      'Phones and electronics',
-      'Computers and laptops',
-      'Tools and machinery',
-      'Cars and vehicles',
-      'Collectibles and higher-value items',
-      'Other items of value',
-    ],
+      { title: 'Gold and jewellery', detail: 'Scrap gold, damaged and unworn jewellery, chains, rings.' },
+      { title: 'Watches', detail: 'Branded and older mechanical ones. Non-working too.' },
+      { title: 'Phones and electronics', detail: 'Phones, tablets, speakers, headphones, games consoles.' },
+      { title: 'Computers and laptops', detail: 'Laptops, monitors, graphics cards.' },
+      { title: 'Tools and machinery', detail: 'Cordless tools, grinders, welders, garden machinery.' },
+      { title: 'Cars and vehicles', detail: 'Cars, motorcycles, trailers.' },
+      { title: 'Collectibles and higher-value items', detail: 'Coins, silver, medals, musical instruments.' },
+      { title: 'Other items of value' },
+    ] as Item[],
     outro:
       'If you do not see your item here, that is not a no. It just means we need to look at it.',
+  },
+
+  pawnOrSell: {
+    eyebrow: 'Two options',
+    h2: 'Pawn or sell?',
+    pawn: {
+      title: 'Pawn loan',
+      text: 'You get the money straight away and the item stays yours. Return the sum and you take the item back.',
+    },
+    sell: {
+      title: 'Outright purchase',
+      text: 'You sell us the item for good.',
+      hook: 'An outright purchase usually pays more than a pawn loan.',
+    },
+    note: 'Which one is better for you, we will tell you with the item in front of us.',
+  },
+
+  selling: {
+    eyebrow: 'For sale',
+    h2: 'We also sell gold and jewellery',
+    text: 'Pieces from purchases, so without a jeweller\'s markup. What we have changes with what comes in — it is worth dropping by.',
+    cta: 'Call and ask what we have',
   },
 
   valuation: {

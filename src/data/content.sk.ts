@@ -13,6 +13,12 @@ export interface NavItem {
   href: string;
 }
 
+export interface Item {
+  title: string;
+  /** Jeden riadok konkrétnych vecí. Posledná položka ho nemá. */
+  detail?: string;
+}
+
 export interface Step {
   title: string;
   text: string;
@@ -122,17 +128,61 @@ export const content = {
     id: 'sluzby',
     h2: 'Čo u nás môžete založiť alebo predať',
     lead: 'Toto sú veci, s ktorými k nám ľudia chodia najčastejšie. Zoznam nie je uzavretý.',
+    /**
+     * Položky majú názov a jednoriadkový podriadok s konkrétnymi vecami.
+     * Konkrétnosť je celý zmysel — „elektronika“ nikomu nepovie, či zoberieme
+     * jeho slúchadlá.
+     *
+     * Posledná položka podriadok **nemá**: konkrétny zoznam pod „iné veci
+     * s hodnotou“ by protirečil vete, že zoznam nie je uzavretý.
+     */
     items: [
-      'Zlato a šperky',
-      'Hodinky',
-      'Mobily a elektronika',
-      'Počítače a notebooky',
-      'Náradie a stroje',
-      'Autá a vozidlá',
-      'Zberateľské a cennejšie predmety',
-      'Iné veci s hodnotou',
-    ],
+      { title: 'Zlato a šperky', detail: 'Zlomkové zlato, poškodené aj nenosené šperky, retiazky, prstene.' },
+      { title: 'Hodinky', detail: 'Značkové aj staršie mechanické. Aj nefunkčné.' },
+      { title: 'Mobily a elektronika', detail: 'Telefóny, tablety, reproduktory, slúchadlá, herné konzoly.' },
+      { title: 'Počítače a notebooky', detail: 'Notebooky, monitory, grafické karty.' },
+      { title: 'Náradie a stroje', detail: 'Aku náradie, brúsky, zváračky, záhradná technika.' },
+      { title: 'Autá a vozidlá', detail: 'Osobné autá, motocykle, prívesy.' },
+      { title: 'Zberateľské a cennejšie predmety', detail: 'Mince, striebro, medaily, hudobné nástroje.' },
+      { title: 'Iné veci s hodnotou' },
+    ] as Item[],
     outro: 'Ak tu svoju vec nevidíte, neznamená to nie. Znamená to, že sa na ňu treba pozrieť.',
+  },
+
+  /**
+   * Rozdiel medzi zálohou a výkupom. Je to jediná vec, ktorú zákazník naozaj
+   * nevie a nikto v okolí mu ju nevysvetlí — preto stojí samostatne.
+   *
+   * Veta o vyššej sume za výkup je za `FEATURES.hooks`: musí byť pravdivá
+   * a majiteľ ju zatiaľ nepotvrdil.
+   */
+  pawnOrSell: {
+    eyebrow: 'Dve možnosti',
+    h2: 'Založiť alebo predať?',
+    pawn: {
+      title: 'Záloha',
+      text: 'Peniaze dostanete hneď a vec zostáva vaša. Keď sumu vrátite, vec si zoberiete späť.',
+    },
+    sell: {
+      title: 'Výkup',
+      text: 'Vec nám predáte natrvalo.',
+      hook: 'Za výkup zvyčajne dostanete viac než pri zálohe.',
+    },
+    note: 'Ktorá možnosť sa vám oplatí viac, povieme priamo pri veci.',
+  },
+
+  /**
+   * Predaj. Sekundárna činnosť, preto je blok vizuálne najtichší na stránke.
+   * Žiadny katalóg, fotky ani ceny — `FEATURES.showcaseEnabled` zostáva `false`.
+   *
+   * „Bez marže klenotníctva“ nie je tvrdenie o tom, akí sme dobrí, ale vecný
+   * dôvod, ktorý si zákazník overí sám. Presvedčí viac než superlatív.
+   */
+  selling: {
+    eyebrow: 'Predaj',
+    h2: 'Zlato a šperky aj predávame',
+    text: 'Kusy z výkupu, preto bez marže klenotníctva. Ponuka sa mení podľa toho, čo práve máme — oplatí sa prísť pozrieť.',
+    cta: 'Zavolať a opýtať sa, čo máme',
   },
 
   valuation: {

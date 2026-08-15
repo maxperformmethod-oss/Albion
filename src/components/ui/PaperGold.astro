@@ -127,7 +127,7 @@ const { word, wordSide = 'right' } = Astro.props;
     oko to nezachytí vedome, len plocha prestane byť mŕtva.
 
     Počíta sa cez IntersectionObserver + requestAnimationFrame, nie cez
-    neškrtený scroll listener, a mení sa výhradne .
+    neškrtený scroll listener, a mení sa výhradne `translate3d`.
   */
   const layers = document.querySelectorAll<HTMLElement>('[data-paper-gold]');
   const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

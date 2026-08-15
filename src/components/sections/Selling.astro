@@ -1,0 +1,45 @@
+---
+import Section from '../ui/Section.astro';
+import Button from '../ui/Button.astro';
+import Eyebrow from '../ui/Eyebrow.astro';
+import { getContent } from '../../data/i18n.ts';
+import { buildCta, hasPhone } from '../../lib/cta.ts';
+
+const content = getContent(Astro.currentLocale);
+const { primaryCta } = buildCta(content);
+
+/**
+ * Predaj. Celá stránka hovorí o tom, čo od zákazníka berieme — Albion však aj
+ * predáva, a bola to diera, nie doplnok.
+ *
+ * Blok je **zámerne vizuálne najtichší na stránke**: je to sekundárna činnosť
+ * a nesmie prekryť záložné služby. Žiadny katalóg, žiadne fotky tovaru,
+ * žiadne ceny — `FEATURES.showcaseEnabled` zostáva `false`.
+ *
+ * „Bez marže klenotníctva“ nie je tvrdenie o tom, akí sme dobrí, ale vecný
+ * dôvod, ktorý si zákazník overí sám. Presvedčí viac než superlatív —
+ * a „najférovejšie ceny“ by bol nepodložený superlatív s porovnaním.
+ */
+const { eyebrow, h2, text, cta } = content.selling;
+---
+
+<Section tone="paper" labelledby="selling-title">
+  <div class="measure">
+    <Eyebrow data-reveal>{eyebrow}</Eyebrow>
+
+    <h2 id="selling-title" class="font-serif text-h3 mt-4" data-reveal>{h2}</h2>
+
+    <p class="text-ink-muted mt-3 max-w-[52ch]" data-reveal>{text}</p>
+
+    {
+      hasPhone && (
+        <div class="mt-6" data-reveal>
+          {/* Vedie na `tel:`, nie na kotvu — je to otázka, nie prehliadanie. */}
+          <Button variant="link" tone="light" href={primaryCta.href} phone={primaryCta.phone}>
+            {cta}
+          </Button>
+        </div>
+      )
+    }
+  </div>
+</Section>

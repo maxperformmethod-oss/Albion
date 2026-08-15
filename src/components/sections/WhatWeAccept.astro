@@ -66,7 +66,15 @@ const { id, h2, lead, items, outro } = content.whatWeAccept;
           <span class="item-index" aria-hidden="true" data-numeric>
             {String(index + 1).padStart(2, '0')}
           </span>
-          <span class="item-text font-serif text-h3 mt-2 block">{item}</span>
+          <span class="item-text font-serif text-h3 mt-2 block">{item.title}</span>
+
+          {/* Konkrétne veci pod názvom — „elektronika“ nikomu nepovie, či
+              zoberieme jeho slúchadlá. Pri hoveri sa nemení. */}
+          {item.detail && (
+            <span class="text-small text-ink-muted mt-1.5 block leading-[1.5]">
+              {item.detail}
+            </span>
+          )}
         </li>
       ))
     }

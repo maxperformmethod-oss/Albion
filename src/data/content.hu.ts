@@ -12,7 +12,7 @@
  * a s obálkou. Adresa sa preto skladá z `business.ts`, nie odtiaľto.
  */
 
-import type { NavItem, Step } from './content.sk.ts';
+import type { Item, NavItem, Step } from './content.sk.ts';
 
 export const content = {
   meta: {
@@ -77,17 +77,39 @@ export const content = {
     h2: 'Mit zálogosíthat el vagy adhat el nálunk',
     lead: 'Ezekkel a dolgokkal jönnek hozzánk a leggyakrabban. A lista nem zárt.',
     items: [
-      'Arany és ékszer',
-      'Órák',
-      'Mobil és elektronika',
-      'Számítógépek és laptopok',
-      'Szerszámok és gépek',
-      'Autók és járművek',
-      'Gyűjtői és értékesebb tárgyak',
-      'Egyéb értékes dolgok',
-    ],
+      { title: 'Arany és ékszer', detail: 'Tört arany, sérült és nem hordott ékszerek, láncok, gyűrűk.' },
+      { title: 'Órák', detail: 'Márkás és régebbi mechanikus órák. Nem működő is.' },
+      { title: 'Mobil és elektronika', detail: 'Telefonok, tabletek, hangszórók, fejhallgatók, játékkonzolok.' },
+      { title: 'Számítógépek és laptopok', detail: 'Laptopok, monitorok, videokártyák.' },
+      { title: 'Szerszámok és gépek', detail: 'Akkus szerszám, csiszolók, hegesztők, kerti technika.' },
+      { title: 'Autók és járművek', detail: 'Személyautók, motorok, utánfutók.' },
+      { title: 'Gyűjtői és értékesebb tárgyak', detail: 'Érmék, ezüst, érdemérmek, hangszerek.' },
+      { title: 'Egyéb értékes dolgok' },
+    ] as Item[],
     outro:
       'Ha nem látja itt a tárgyát, az nem nemet jelent. Csak azt, hogy meg kell néznünk.',
+  },
+
+  pawnOrSell: {
+    eyebrow: 'Két lehetőség',
+    h2: 'Zálogba adni vagy eladni?',
+    pawn: {
+      title: 'Zálog',
+      text: 'A pénzt rögtön megkapja, a tárgy pedig az öné marad. Ha az összeget visszahozza, a tárgyat visszaviheti.',
+    },
+    sell: {
+      title: 'Felvásárlás',
+      text: 'A tárgyat véglegesen eladja nekünk.',
+      hook: 'Felvásárlásnál általában többet kap, mint zálognál.',
+    },
+    note: 'Hogy melyik éri meg jobban, a tárgy fölött megmondjuk.',
+  },
+
+  selling: {
+    eyebrow: 'Eladás',
+    h2: 'Aranyat és ékszert el is adunk',
+    text: 'Felvásárlásból származó darabok, ezért ékszerbolti árrés nélkül. A kínálat aszerint változik, mi van éppen nálunk — érdemes benézni.',
+    cta: 'Hívjon és kérdezze meg, mink van',
   },
 
   valuation: {

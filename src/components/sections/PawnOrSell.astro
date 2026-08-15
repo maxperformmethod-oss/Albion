@@ -1,0 +1,75 @@
+---
+import Section from '../ui/Section.astro';
+import Eyebrow from '../ui/Eyebrow.astro';
+import { FEATURES } from '../../data/business.ts';
+import { getContent } from '../../data/i18n.ts';
+
+const content = getContent(Astro.currentLocale);
+
+/**
+ * Rozdiel medzi zálohou a výkupom.
+ *
+ * Je to jediná vec, ktorú zákazník naozaj nevie a nikto v okolí mu ju
+ * nevysvetlí — preto stojí samostatne a nie ako odsek v inej sekcii.
+ * Celý blok je pod 60 slov; je to vysvetlenie, nie kapitola.
+ *
+ * Veta o vyššej sume za výkup je za `FEATURES.hooks`. Musí byť pravdivá
+ * a majiteľ ju zatiaľ nepotvrdil — bez nej blok funguje rovnako.
+ */
+const { eyebrow, h2, pawn, sell, note } = content.pawnOrSell;
+---
+
+<Section tone="ink-soft" labelledby="pawn-or-sell-title">
+  <Eyebrow data-reveal>{eyebrow}</Eyebrow>
+
+  <h2 id="pawn-or-sell-title" class="font-serif text-h2 mt-6 max-w-[20ch]" data-reveal>
+    {h2}
+  </h2>
+
+  <div class="pair mt-10">
+    <div data-reveal>
+      <h3 class="font-serif text-h3">{pawn.title}</h3>
+      <p class="text-bone-muted mt-3 max-w-[44ch]">{pawn.text}</p>
+    </div>
+
+    <div data-reveal>
+      <h3 class="font-serif text-h3">{sell.title}</h3>
+      <p class="text-bone-muted mt-3 max-w-[44ch]">
+        {sell.text}
+        {FEATURES.hooks && ` ${sell.hook}`}
+      </p>
+    </div>
+  </div>
+
+  <p class="text-bone-muted text-small mt-8" data-reveal>{note}</p>
+</Section>
+
+<style>
+  .pair {
+    display: grid;
+    gap: 2.5rem;
+  }
+
+  /*
+    Zvislá vlasová linka medzi stĺpcami. Pod 768 px sú stĺpce pod sebou,
+    takže sa linka otočí do vodorovnej — inak by delila nesprávnym smerom.
+  */
+  .pair > div + div {
+    border-top: 1px solid color-mix(in srgb, var(--color-gold) 28%, transparent);
+    padding-top: 2.5rem;
+  }
+
+  @media (width >= 48rem) {
+    .pair {
+      grid-template-columns: 1fr 1fr;
+      gap: 3.5rem;
+    }
+
+    .pair > div + div {
+      border-top: 0;
+      padding-top: 0;
+      border-left: 1px solid color-mix(in srgb, var(--color-gold) 28%, transparent);
+      padding-left: 3.5rem;
+    }
+  }
+</style>
