@@ -295,6 +295,11 @@ const street = isConfirmed(business.street) ? business.street : null;
     font-size: 16px;
   }
 
+  /* Orientačné body sú o dva stupne menšie než stanice. */
+  [data-map] :global(.label-sm) {
+    font-size: 15px;
+  }
+
   [data-map] :global(.here-label) {
     fill: var(--color-bone);
     font-family: var(--font-serif);

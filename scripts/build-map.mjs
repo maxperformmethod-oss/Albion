@@ -146,6 +146,8 @@ async function fetchGeometry(center) {
   way["landuse"~"^(grass|forest|meadow|industrial|railway)$"]${near};
   way["amenity"="parking"]${near};
   way["natural"="water"]${near};
+  nwr["shop"="supermarket"]${near};
+  nwr["amenity"~"^(hospital|school|place_of_worship)$"]${near};
 );
 out geom tags;`;
 
@@ -550,6 +552,48 @@ for (const element of data.elements) {
   if (surface) areas.push({ metres: simplify(rawMetres, SIMPLIFY_FAR_M), surface });
 }
 
+/*
+  Popisy orientačných bodov. Len z OSM `name` — čo si prečítam na cudzej mape,
+  nie je overený údaj a nemá sa čo objaviť v našej. Ak objekt meno nemá,
+  nevymýšľa sa.
+
+  Maximálne štyri okrem Albionu; viac je zoznam firiem, nie orientácia.
+  Prevádzky typu pizzeria, taxi či lekáreň sa nepopisujú — zaplnili by mapu
+  a zobrali pozornosť Albionu. Konkurencia nikdy.
+*/
+const LANDMARK_RANK = { supermarket: 1, hospital: 2, school: 3, place_of_worship: 4 };
+
+const landmarks = [];
+for (const element of data.elements) {
+  const tags = element.tags ?? {};
+  const name = tags.name;
+  if (!name || tags.shop === 'pawnbroker') continue;
+
+  const kind =
+    tags.shop === 'supermarket'
+      ? 'supermarket'
+      : tags.amenity === 'hospital'
+        ? 'hospital'
+        : tags.amenity === 'school'
+          ? 'school'
+          : tags.amenity === 'place_of_worship'
+            ? 'place_of_worship'
+            : null;
+  if (!kind) continue;
+
+  const point =
+    element.type === 'node'
+      ? toMetres({ lat: element.lat, lon: element.lon })
+      : element.geometry
+        ? centroidOf(element.geometry.map(toMetres))
+        : null;
+  if (!point) continue;
+  if (landmarks.some((l) => l.name === name)) continue;
+
+  landmarks.push({ name, point, rank: LANDMARK_RANK[kind] });
+}
+
+landmarks.sort((a, b) => a.rank - b.rank);
 const stationMetres = stationRaw ? toMetres(stationRaw) : null;
 const busMetres = busRaw ? toMetres(busRaw) : null;
 
@@ -596,34 +640,6 @@ if (roads.length > 0) {
 }
 
 /* --- budova Albionu ------------------------------------------------------ */
-
-let anchorIndex = buildings.findIndex((b) => contains(b.metres, markerMetres));
-if (anchorIndex < 0) {
-  // Ak bod nepadne do pôdorysu, zoberie ho najbližšia budova do 25 m.
-  let best = MAX_ANCHOR_DISTANCE_M;
-  buildings.forEach((building, index) => {
-    const nearest = nearestOnPolyline(markerMetres, building.metres);
-    if (nearest && nearest.dist < best) {
-      best = nearest.dist;
-      anchorIndex = index;
-    }
-  });
-}
-if (anchorIndex >= 0) {
-  buildings[anchorIndex].isAnchor = true;
-  buildings[anchorIndex].near = true;
-  buildings[anchorIndex].height = Math.max(buildings[anchorIndex].height, 11) * 1.15;
-}
-
-// Budovy do 30 m okolo Albionu chytajú to isté svetlo.
-for (const building of buildings) {
-  if (building.isAnchor) continue;
-  const d = Math.hypot(
-    building.centroid.x - markerMetres.x,
-    building.centroid.y - markerMetres.y
-  );
-  building.lifted = d <= 30;
-}
 
 /* --- trasa --------------------------------------------------------------- */
 
@@ -698,6 +714,40 @@ if (routeMetres) {
   }
 } else {
   markerNote = 'trasa sa nevykreslila — značka zostáva na priemete';
+}
+
+/* --- zvýraznená budova ---------------------------------------------------- */
+
+/*
+  Budova sa určuje **výhradne zo značky**, a to až keď je značka finálna.
+  Predtým to boli dva nezávislé výpočty a zlatý obrys skončil na inej budove,
+  než kde stál bod. Ak značka nemá budovu do 25 m, nezvýrazní sa nič —
+  samotný bod stačí.
+*/
+let anchorIndex = buildings.findIndex((b) => contains(b.metres, markerMetres));
+if (anchorIndex < 0) {
+  let best = MAX_ANCHOR_DISTANCE_M;
+  buildings.forEach((building, index) => {
+    const nearest = nearestOnPolyline(markerMetres, building.metres);
+    if (nearest && nearest.dist < best) {
+      best = nearest.dist;
+      anchorIndex = index;
+    }
+  });
+}
+if (anchorIndex >= 0) {
+  buildings[anchorIndex].isAnchor = true;
+  buildings[anchorIndex].near = true;
+  buildings[anchorIndex].height = Math.max(buildings[anchorIndex].height, 11) * 1.15;
+}
+
+for (const building of buildings) {
+  if (building.isAnchor) continue;
+  const d = Math.hypot(
+    building.centroid.x - markerMetres.x,
+    building.centroid.y - markerMetres.y
+  );
+  building.lifted = d <= 30;
 }
 
 /* --- poradie kreslenia --------------------------------------------------- */
@@ -831,6 +881,27 @@ const roadMarkup = roads
   .join('\n');
 
 const markerView = toView(markerMetres);
+
+/*
+  Popis sa vykreslí, len ak sa doň zmestí a nekoliduje s dôležitejším.
+  Prekrývajúce sa popisy sa nepresúvajú do nezmyselných pozícií — vynechá sa
+  ten menej dôležitý.
+*/
+const landmarkLabels = [];
+{
+  const taken = [stationMetres, busMetres, markerMetres]
+    .filter(Boolean)
+    .map(toView);
+  for (const landmark of landmarks) {
+    const view = toView(landmark.point);
+    if (view.x < 90 || view.x > VIEW.w - 90 || view.y < 60 || view.y > VIEW.h - 70) continue;
+    if (taken.some((t) => Math.hypot(t.x - view.x, t.y - view.y) < 110)) continue;
+    taken.push(view);
+    landmarkLabels.push(landmark);
+    if (landmarkLabels.length === 4) break;
+  }
+}
+
 const stationView = stationMetres ? toView(stationMetres) : null;
 const busView = busMetres ? toView(busMetres) : null;
 const glowRadius = 30 * projection.scale;
@@ -889,6 +960,7 @@ for (const locale of LOCALE_ORDER) {
 
   ${label(stationView, map.station, 'label', -30)}
   ${label(busView, map.busStation, 'label', 40)}
+${landmarkLabels.map((l) => label(toView(l.point), l.name, 'label label-sm', -24)).join('\n')}
   ${label(markerView, map.here, 'here-label', -38)}
 
   <g class="chrome">

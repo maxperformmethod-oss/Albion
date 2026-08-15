@@ -303,3 +303,35 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Mriežka vo svetlých sekciách
+
+   Linka nad položkou sa pri vstupe sekcie nakreslí zľava doprava — rovnaký
+   pohyb ako na predeloch sekcií, len v malom. `scaleX` a nič iné.
+--------------------------------------------------------------------------- */
+
+@utility grid-line {
+  position: relative;
+}
+
+[data-rule-cell]::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  background-color: var(--color-hairline-light);
+  transform-origin: left center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .js [data-rule-cell]::before {
+    transform: scaleX(0);
+    transition: transform 420ms var(--ease-out-quint);
+  }
+
+  .js [data-rule-cell].is-revealed::before {
+    transform: scaleX(1);
+  }
+}

@@ -32,6 +32,17 @@ export const LOCALES = {
 } as const;
 
 /** Poradie v prepínači. Nemenné — SK je domáci jazyk, potom HU, potom EN. */
+/**
+ * Podoba prepínača. Prepnutie je jeden riadok, bez zásahu do komponentov.
+ *
+ * Poznámka, ktorá tu ostáva zapísaná: vlajka označuje **štát, nie jazyk**.
+ * Maďarsky hovoriaci zákazník v Lučenci je občan Slovenska. Rozhodnutie
+ * použiť vlajky je majiteľovo a rešpektujeme ho — kód vie oboje.
+ */
+export const LOCALE_SWITCHER = {
+  style: 'flags' as 'flags' | 'text',
+};
+
 export const LOCALE_ORDER: Locale[] = ['sk', 'hu', 'en'];
 
 export const ENABLED_LOCALES = LOCALE_ORDER.filter((code) => LOCALES[code].enabled);

@@ -15,12 +15,12 @@ const requiredDocuments = isConfirmed(business.requiredDocuments)
 ---
 
 <Section
-  tone="paper"
+  tone="paper-2"
   id={id}
   labelledby="how-it-works-title"
   class="overflow-hidden"
 >
-  <PaperGold slot="backdrop" />
+  <PaperGold slot="backdrop" word="DOHODA" />
 
   <h2
     id="how-it-works-title"
@@ -45,7 +45,7 @@ const requiredDocuments = isConfirmed(business.requiredDocuments)
   <ol class="mt-12 grid grid-cols-1 gap-x-12 gap-y-10 md:grid-cols-3">
     {
       steps.map((step, index) => (
-        <li class="border-hairline-light relative border-t pt-6" data-reveal>
+        <li class="grid-line relative pt-6" data-reveal data-rule-cell>
           <span class="step-index font-serif text-display" aria-hidden="true">
             {index + 1}
           </span>

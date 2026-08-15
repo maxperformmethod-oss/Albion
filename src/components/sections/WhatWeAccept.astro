@@ -15,7 +15,7 @@ const { id, h2, lead, items, outro } = content.whatWeAccept;
   divider={false}
   class="overflow-hidden"
 >
-  <PaperGold slot="backdrop" />
+  <PaperGold slot="backdrop" word="ZLATO" />
 
   {/*
     Nadpis vpravo, obsah vľavo. Každá sekcia má inú kompozíciu — po treťom
@@ -47,7 +47,7 @@ const { id, h2, lead, items, outro } = content.whatWeAccept;
   <ul class="mt-12 grid grid-cols-1 gap-x-12 sm:grid-cols-2 lg:grid-cols-3">
     {
       items.map((item, index) => (
-        <li class="border-hairline-light border-t py-5" data-reveal>
+        <li class="grid-line py-5" data-reveal data-rule-cell>
           <span
             class="font-sans text-eyebrow text-gold-ink block tracking-[0.14em]"
             aria-hidden="true"

@@ -10,7 +10,7 @@
  * pozicovaný backdrop prekryl text.
  */
 interface Props {
-  tone?: 'ink' | 'ink-soft' | 'paper';
+  tone?: 'ink' | 'ink-soft' | 'paper' | 'paper-2';
   id?: string;
   labelledby?: string;
   class?: string;
@@ -38,6 +38,9 @@ const tones = {
   ink: 'bg-ink-900 text-bone',
   'ink-soft': 'bg-ink-800 text-bone',
   paper: 'bg-paper text-ink-text',
+  /* Dve svetlé sekcie za sebou nesmú mať rovnaký podklad — inak scroll
+     pôsobí ako jedna dlhá plocha. */
+  'paper-2': 'bg-paper-2 text-ink-text',
 } as const;
 ---
 
@@ -47,7 +50,7 @@ const tones = {
   class:list={[
     'py-section relative',
     tones[tone],
-    tone === 'paper' && 'tone-paper',
+    tone.startsWith('paper') && 'tone-paper',
     className,
   ]}
 >
