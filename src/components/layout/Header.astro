@@ -2,8 +2,12 @@
 import Logo from '../brand/Logo.astro';
 import Button from '../ui/Button.astro';
 import Icon from '../ui/Icon.astro';
-import { content } from '../../data/content.ts';
-import { primaryCta, hasPhone } from '../../lib/cta.ts';
+import LocaleSwitcher from './LocaleSwitcher.astro';
+import { getContent } from '../../data/i18n.ts';
+import { hasPhone, buildCta } from '../../lib/cta.ts';
+
+const content = getContent(Astro.currentLocale);
+const { primaryCta } = buildCta(content);
 
 /**
  * Mobilné menu je zámerne v tomto súbore, nie ako vlastný komponent:
@@ -43,6 +47,9 @@ const ctaClass = primaryCta.icon ? undefined : 'max-[479px]:hidden';
     </nav>
 
     <div class="flex items-center gap-2">
+      {/* Pred tlačidlom Zavolať — jazyk je voľba, nie akcia. */}
+      <div class="hidden md:block"><LocaleSwitcher /></div>
+
       {
         showDevBadge && (
           <span class="rounded-sm bg-red-600 px-2 py-1 text-[0.6875rem] font-bold tracking-wide text-white">
@@ -107,6 +114,8 @@ const ctaClass = primaryCta.icon ? undefined : 'max-[479px]:hidden';
   </nav>
 
   <div class="container-page mt-8 pb-10">
+    <LocaleSwitcher variant="menu" />
+
     <Button
       href={primaryCta.href}
       icon={primaryCta.icon}

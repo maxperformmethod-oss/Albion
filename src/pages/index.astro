@@ -1,6 +1,5 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import SectionBridge from '../components/ui/SectionBridge.astro';
 import Hero from '../components/sections/Hero.astro';
 import TrustBand from '../components/sections/TrustBand.astro';
 import WhatWeAccept from '../components/sections/WhatWeAccept.astro';
@@ -12,22 +11,19 @@ import LocationMap from '../components/sections/LocationMap.astro';
 import Contact from '../components/sections/Contact.astro';
 
 /*
-  Poradie podkladov: ink → ink-800 (pás) → paper → ink → paper → ink-800 →
-  ink → ink → ink. Most ide len tam, kde sa podklad naozaj mení; medzi dvoma
-  tmavými sekciami by bol zbytočný a rozbil by rytmus.
+  Medzi sekciami je ostrá hrana a na predele vlasová zlatá linka — kreslí ju
+  `Section.astro`. Gradientové prechody tu boli dve dávky a stále čítali ako
+  chyba renderovania, nie ako zámer; rozmazaný pás medzi dvoma farbami nikdy
+  nebude vyzerať draho.
 */
 ---
 
 <BaseLayout stickyCallBar preloadHero>
   <Hero />
   <TrustBand />
-  <SectionBridge direction="down" dark="ink-800" />
   <WhatWeAccept />
-  <SectionBridge direction="up" />
   <Valuation />
-  <SectionBridge direction="down" />
   <HowItWorks />
-  <SectionBridge direction="up" dark="ink-800" />
   <WhyAlbion />
   <OwnerNote />
   <LocationMap />

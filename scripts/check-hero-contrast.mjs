@@ -25,12 +25,12 @@ const BOX = { w: 1440, h: 704 };
 const TEXT_BAND = { x0: 0, x1: 0.6, y0: 0, y1: 1 };
 
 /** Podklad masky — musí sedieť s `--color-ink-900`. */
-const OVERLAY = [20, 23, 27];
+const OVERLAY = [26, 29, 34];
 
 const TOKENS = {
-  bone: '#F2EFE9',
-  'bone-muted': '#B4AFA6',
-  gold: '#C3A87C',
+  bone: '#F3F0EA',
+  'bone-muted': '#B8B3A9',
+  gold: '#C9B085',
 };
 
 const TARGET = { bone: 12, 'bone-muted': 4.5, gold: 4.5 };
@@ -79,8 +79,8 @@ const angledProgress = (x, y, deg) => {
 
 const MASK_ANGLED = [
   [0, 0.96],
-  [0.42, 0.92],
-  [1, 0.66],
+  [0.42, 0.94],
+  [1, 0.73],
 ];
 
 const MASK_BOTTOM = [

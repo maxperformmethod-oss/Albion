@@ -1,0 +1,48 @@
+---
+import SectionTexture from './SectionTexture.astro';
+
+/**
+ * Veľmi tlmené zlaté teplo v pravom hornom rohu svetlej sekcie.
+ *
+ * Cieľ je, aby si to vedome nevšimol a len ti tá plocha prišla teplejšia.
+ * Preto krytie 0,07, `multiply` a maska bez viditeľnej hrany — ak by to čo
+ * i len trochu pôsobilo ako škvrna, treba znížiť krytie, nie zväčšiť efekt.
+ *
+ * Je len na dvoch sekciách („Čo u nás môžete založiť alebo predať“ a „Ako to
+ * funguje“) a na právnych stránkach nie je vôbec.
+ *
+ * Kontrast `--color-ink-text` v mieste, kde je zlato najsilnejšie, je meraný —
+ * pozri `docs/REPORT_faza18.md`. Text má vždy prednosť pred textúrou.
+ */
+---
+
+<div class="paper-gold" aria-hidden="true">
+  <SectionTexture texture="gold-light" sizes="(min-width: 640px) 55vw, 80vw" />
+</div>
+
+<style>
+  .paper-gold {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 55%;
+    height: 100%;
+    opacity: 0.07;
+    mix-blend-mode: multiply;
+    pointer-events: none;
+    /* Bez `-webkit-` sa maska na starších iOS neuplatní a vznikne ostrý blok. */
+    -webkit-mask-image: radial-gradient(
+      ellipse at top right,
+      black 0%,
+      transparent 70%
+    );
+    mask-image: radial-gradient(ellipse at top right, black 0%, transparent 70%);
+  }
+
+  .paper-gold :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: top right;
+  }
+</style>

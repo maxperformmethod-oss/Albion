@@ -1,8 +1,11 @@
 ---
 import Logo from '../brand/Logo.astro';
 import { addressWithPostalCode, business, isConfirmed } from '../../data/business.ts';
-import { content } from '../../data/content.ts';
-import { phoneDisplayLong, phoneHref, callAriaLabelLong } from '../../lib/cta.ts';
+import { getContent } from '../../data/i18n.ts';
+import { phoneDisplayLong, phoneHref, buildCta } from '../../lib/cta.ts';
+
+const content = getContent(Astro.currentLocale);
+const { callAriaLabelLong } = buildCta(content);
 
 const year = new Date().getFullYear();
 

@@ -5,7 +5,7 @@ import {
   TO_CONFIRM,
 } from '../data/business.ts';
 import type { OpeningInterval, Weekday } from '../data/business.ts';
-import { content } from '../data/content.ts';
+import { content } from '../data/content.sk.ts';
 
 /**
  * JSON-LD `PawnShop`. BRIEF §12.

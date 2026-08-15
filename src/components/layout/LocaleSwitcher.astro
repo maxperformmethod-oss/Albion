@@ -1,0 +1,69 @@
+---
+import { ENABLED_LOCALES, LOCALES, ROUTES, getLocale, routeKeyOf } from '../../data/i18n.ts';
+
+/**
+ * Prepínač jazykov — `SK · HU · EN`.
+ *
+ * **Žiadne vlajky.** V tomto regióne je vlajka ako symbol jazyka nešťastná:
+ * maďarsky hovoriaci zákazník je občan Slovenska a vlajka to vzťahuje
+ * k štátu, nie k reči.
+ *
+ * Prepnutie vedie na tú istú stránku v druhom jazyku, nie na domovskú.
+ */
+interface Props {
+  /** `header` je v riadku s navigáciou, `menu` v mobilnom menu. */
+  variant?: 'header' | 'menu';
+}
+
+const { variant = 'header' } = Astro.props;
+
+const current = getLocale(Astro.currentLocale);
+const routeKey = routeKeyOf(Astro.url.pathname);
+---
+
+<nav
+  aria-label={LOCALES[current].label}
+  class:list={['locale-switcher', variant === 'menu' && 'locale-switcher--menu']}
+>
+  {
+    ENABLED_LOCALES.map((code, index) => (
+      <>
+        {index > 0 && <span aria-hidden="true" class="text-bone-muted/50">·</span>}
+        <a
+          href={ROUTES[routeKey][code]}
+          hreflang={LOCALES[code].htmlLang}
+          lang={LOCALES[code].htmlLang}
+          aria-current={code === current ? 'true' : undefined}
+          class:list={[
+            'transition-fast inline-flex min-h-12 min-w-12 items-center justify-center px-1',
+            code === current ? 'text-bone' : 'text-bone-muted hover:text-gold',
+          ]}
+        >
+          {LOCALES[code].short}
+        </a>
+      </>
+    ))
+  }
+</nav>
+
+<style>
+  /* Tap target 48 × 48 px aj pri dvoch znakoch — rieši to `min-h/min-w` vyššie. */
+  .locale-switcher {
+    display: flex;
+    align-items: center;
+    gap: 0.125rem;
+    font-family: var(--font-sans);
+    font-size: var(--text-small);
+    letter-spacing: 0.06em;
+  }
+
+  /*
+    V mobilnom menu je prepínač v jednom riadku s bodkami, nie pod sebou —
+    tri položky pod sebou by z neho spravili druhú navigáciu.
+  */
+  .locale-switcher--menu {
+    border-top: 1px solid var(--color-hairline-dark);
+    padding-top: 0.5rem;
+    margin-top: 0.5rem;
+  }
+</style>

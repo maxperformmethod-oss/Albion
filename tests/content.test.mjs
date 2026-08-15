@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { content } from '../src/data/content.ts';
+import { content } from '../src/data/content.sk.ts';
 import { business, isConfirmed } from '../src/data/business.ts';
 
 test('riadky H1 zložené dokopy dávajú schválenú vetu', () => {

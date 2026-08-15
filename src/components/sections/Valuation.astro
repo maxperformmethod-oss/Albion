@@ -3,8 +3,11 @@ import Section from '../ui/Section.astro';
 import SectionTexture from '../ui/SectionTexture.astro';
 import Button from '../ui/Button.astro';
 import Eyebrow from '../ui/Eyebrow.astro';
-import { content } from '../../data/content.ts';
-import { primaryCta, hasPhone } from '../../lib/cta.ts';
+import { getContent } from '../../data/i18n.ts';
+import { hasPhone, buildCta } from '../../lib/cta.ts';
+
+const content = getContent(Astro.currentLocale);
+const { primaryCta } = buildCta(content);
 
 const { id, eyebrow, h2, paragraphs, cta } = content.valuation;
 
@@ -26,7 +29,7 @@ const ctaText = hasPhone ? cta : primaryCta.text;
     nevykresľuje vôbec — na úzkom displeji by z neho ostal len pruh.
   */}
   <div class="valuation-panel" slot="backdrop">
-    <SectionTexture texture="panel" sizes="(min-width: 1024px) 42vw, 0px" />
+    <SectionTexture texture="gold" sizes="(min-width: 1024px) 42vw, 0px" />
   </div>
 
   <div class="measure relative z-10 lg:max-w-[58%]">
@@ -67,8 +70,9 @@ const ctaText = hasPhone ? cta : primaryCta.text;
       right: 0;
       width: 42%;
       /* Mäkký okraj, aby panel nemal viditeľnú zvislú hranu. */
+      -webkit-mask-image: linear-gradient(to left, black 40%, transparent);
       mask-image: linear-gradient(to left, black 40%, transparent);
-      opacity: 0.72;
+      opacity: 0.85;
       pointer-events: none;
     }
 

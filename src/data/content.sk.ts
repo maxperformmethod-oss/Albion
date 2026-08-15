@@ -98,7 +98,7 @@ export const content = {
     lead: 'Albion v Lučenci. Zlato, šperky, hodinky, elektronika, náradie, autá aj atypické veci. Každú vec oceníme individuálne a povieme vám to na rovinu.',
     ctaPrimary: 'Zavolať',
     ctaSecondary: 'Chcem oceniť vec',
-    micro: 'Osobne · Diskrétne · Bez čakania na schválenie z centrály',
+    micro: 'Osobne · Diskrétne · Bez objednania',
   },
 
   whatWeAccept: {
@@ -115,16 +115,16 @@ export const content = {
       'Zberateľské a cennejšie predmety',
       'Iné veci s hodnotou',
     ],
-    outro: 'Nenašli ste svoju vec? To ešte nič neznamená — ozvite sa.',
+    outro: 'Ak tu svoju vec nevidíte, neznamená to nie. Znamená to, že sa na ňu treba pozrieť.',
   },
 
   valuation: {
     id: 'ocenenie',
     eyebrow: 'Individuálny prístup',
-    h2: 'Má to hodnotu? Ozvite sa.',
+    h2: 'Zvláštna vec ešte neznamená problém.',
     paragraphs: [
-      'Nie sme reťazec s pevným cenníkom a zoznamom povolených kategórií. Pri každej veci sa pozrieme na jej reálnu hodnotu a stav. Vieme sa baviť aj o veciach vyššej hodnoty a o prípadoch, ktoré inde odmietnu na prvý pohľad.',
-      'Rozhoduje tu človek, ktorý za to aj zodpovedá. Preto sa vieme dohodnúť rýchlejšie a férovejšie.',
+      'Reťazce majú cenník a zoznam povolených kategórií. My máme oči a odchodené roky. Pri každej veci sa pozeráme na to, čo naozaj je a v akom je stave — nie na to, či sa zmestí do kolónky.',
+      'Preto sa vieme baviť aj o strojoch, o aute, o veciach vyššej hodnoty, aj o niečom, čo ste zdedili a netušíte, čo s tým.',
     ],
     cta: 'Zavolať a opýtať sa',
   },
@@ -143,7 +143,7 @@ export const content = {
       },
       {
         title: 'Dohodneme sa',
-        text: 'Ak vám to sedí, vybavíme to na mieste. Ak nie, nič sa nedeje a nič neplatíte.',
+        text: 'Ak vám to sedí, vybavíme to na mieste. Ak nie, poďakujeme sa a rozídeme sa v dobrom.',
       },
     ] as Step[],
   },
@@ -214,7 +214,7 @@ export const content = {
       jedinú reálnu obavu — že návšteva k niečomu zaväzuje.
     */
     h2: 'Poďme sa o tom porozprávať.',
-    lead: 'Zavolajte alebo jednoducho prídite. Pozrieme sa na vec, povieme vám sumu a rozhodnete sa vy. Opýtať sa nič nestojí.',
+    lead: 'Zavolajte alebo jednoducho prídite. Vec si pozrieme pri vás a sumu sa dozviete hneď, nie o dva dni.',
     labels: {
       phone: 'Telefón',
       address: 'Adresa',

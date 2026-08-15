@@ -78,6 +78,15 @@ s adresou a tlačidlo do Google Máp.
 
 ## Nové otvorené body
 
+### ⚠ Maďarčinu a angličtinu má prečítať rodený hovorca
+
+Preklady som pripravil ja, nie som rodený hovorca. V maďarčine je rozdiel
+medzi „správne" a „znie to ako od suseda" veľký — najmä pri odkaze majiteľov,
+ktorý má znieť ako ich hlas. Stačí, aby niekto povedal, čo znie kostrbato.
+
+Ak majiteľka alebo majiteľ hovoria po maďarsky, sú najlepší korektor.
+
+
 
 ### ⚠ Presná súradnica vchodu — prvá vec, ktorá odblokuje polohu na mape
 

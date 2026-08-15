@@ -66,37 +66,38 @@
   /*
     Paleta je zámerne mäkšia než v BRIEF.md §4 — pôvodná bola príliš tvrdá
     (takmer absolútna čierna, zlato ťahalo do horčicovej). Zmena je z
-    docs/PROMPT_FINAL3.md §2, kontrasty premerané v docs/REPORT_faza9_art.md.
+    docs/PROMPT_FINAL5.md §2, kontrasty premerané v docs/REPORT_faza18.md.
   */
 
   /* Dark base — svetlejšie a teplejšie */
-  --color-ink-900: #14171b;
-  --color-ink-800: #1b1f23;
-  --color-ink-700: #242830;
+  --color-ink-900: #1a1d22;
+  --color-ink-800: #22262c;
+  --color-ink-700: #2c3138;
 
   /* Light base — teplejšie, menej biele */
-  --color-paper: #f2eee6;
-  --color-paper-2: #e7e1d6;
+  --color-paper: #f3efe7;
+  --color-paper-2: #e8e2d7;
 
   /* Text */
-  --color-bone: #f2efe9; /* 15,66:1 na ink-900 */
-  --color-bone-muted: #b4afa6; /* 8,24:1 na ink-900 */
-  --color-ink-text: #191c20; /* 14,77:1 na paper — mäkšia čierna, nie uhlíková */
-  --color-ink-muted: #5a5f65; /* 5,57:1 na paper */
+  --color-bone: #f3f0ea; /* 14,86:1 na ink-900 */
+  --color-bone-muted: #b8b3a9; /* 8,09:1 na ink-900 */
+  --color-ink-text: #191c20; /* 14,91:1 na paper — mäkšia čierna, nie uhlíková */
+  --color-ink-muted: #585d63; /* 5,79:1 na paper */
 
   /* Accent — menej sýte zlato, viac šampanské.
-     gold NIKDY ako text na svetlom podklade (1,97:1). Na svetlom je gold-ink. */
-  --color-gold: #c3a87c; /* 7,89:1 na ink-900 · 7,27:1 na ink-800 */
-  --color-gold-hover: #d6c09b;
-  --color-gold-ink: #7a6438; /* 4,89:1 na paper */
+     gold NIKDY ako text na svetlom podklade (1,83:1). Na svetlom je gold-ink. */
+  --color-gold: #c9b085; /* 8,07:1 na ink-900 · 7,26:1 na ink-800 */
+  --color-gold-hover: #dcc7a3;
+  --color-gold-ink: #7a6438; /* 4,94:1 na paper */
 
   /* Dekoratívne vlasové linky — zámerne rgba, aby fungovali nad ink-900 aj ink-800 */
-  --color-hairline-dark: rgba(242, 239, 233, 0.14);
-  --color-hairline-light: rgba(25, 28, 32, 0.12);
+  --color-hairline-dark: rgba(243, 240, 234, 0.14);
+  /* Teplý odtieň zlata namiesto sivej — rozdiel je nenápadný a zásadný. */
+  --color-hairline-light: rgba(122, 100, 56, 0.18);
 
   /* Hranice interaktívnych prvkov — WCAG 1.4.11, min 3:1 */
-  --color-border-interactive-dark: #6f6b63; /* 3,39:1 na ink-900 · 3,13:1 na ink-800 */
-  --color-border-interactive-light: #827d74; /* 3,53:1 na paper */
+  --color-border-interactive-dark: #77736a; /* 3,58:1 na ink-900 · 3,22:1 na ink-800 */
+  --color-border-interactive-light: #827d74; /* 3,57:1 na paper */
 
   /* Type */
   --font-serif: 'Source Serif 4 Variable', Georgia, 'Times New Roman', serif;

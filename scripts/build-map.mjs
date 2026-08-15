@@ -32,11 +32,15 @@ import sharp from 'sharp';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { business, isConfirmed } from '../src/data/business.ts';
-import { content } from '../src/data/content.ts';
+import { LOCALE_ORDER, getContent } from '../src/data/i18n.ts';
 import { createProjection, LIGHT } from './map-projection.mjs';
 
 const RAW = 'src/data/map-raw.json';
-const OUT_SVG = 'src/components/sections/map.generated.svg';
+/**
+ * Vrstva B sa generuje pre každý jazyk zvlášť — popisy v nej sú `<text>`,
+ * teda súčasť SVG. Do HTML sa vždy vloží len tá jedna správna.
+ */
+const OUT_SVG = (locale) => `src/components/sections/map.generated.${locale}.svg`;
 const OUT_IMAGES = 'public/images';
 
 /** Polomer výrezu v metroch. */
@@ -56,12 +60,25 @@ const SIMPLIFY_FAR_M = 1.4;
 const MARKER_OFFSET_M = 8;
 const MAX_ROUTE_DETOUR = 2.5;
 
-/**
- * Ako ďaleko od potvrdených súradníc smie skončiť značka posunutá heuristikou.
- * Google značka je ťažisko parcely — na mestskom pozemku nemôžu byť dvere
- * ďalej než pár desiatok metrov od neho. Čokoľvek viac je nález mimo.
- */
-const MAX_MARKER_SHIFT_M = 40;
+/*
+  Poistky na posun značky. Sú parametrizované zámerne — nemažú sa, menia sa
+  hodnoty.
+
+  Obe sú **na výslovný pokyn majiteľa** uvoľnené (dávka 12 §2): prevádzka je
+  podľa neho hneď cez cestu za autobusovou stanicou. Objekt, ktorý tam
+  heuristika našla, je v OSM otagovaný ako `building=roof`, lenže dáta sú
+  v tejto časti Lučenca zjavne neúplné — to isté sme videli pri názve ulice.
+  Majiteľ pozná svoju prevádzku lepšie než OSM tagy.
+
+  Keď príde súradnica vchodu (docs/OTAZKY.md), obe poistky aj celá heuristika
+  idú preč a použije sa priamo.
+*/
+
+/** Ako ďaleko od potvrdených súradníc smie skončiť značka. Bolo 40 m. */
+const MAX_MARKER_SHIFT_M = 120;
+
+/** Smie byť kotvou objekt otagovaný ako prístrešok? Bolo `false`. */
+const ALLOW_ROOF_ANCHOR = true;
 
 /** Počet krokov vlny „mesto sa postaví“. */
 const STAGGER_STEPS = 24;
@@ -71,29 +88,29 @@ const STAGGER_STEPS = 24;
  * takže tu musia byť literály. Musia sedieť s `src/styles/global.css`.
  */
 const C = {
-  ink900: '#14171b',
-  ink800: '#1b1f23',
-  ink700: '#242830',
-  gold: '#c3a87c',
-  boneMuted: '#b4afa6',
-  bone: '#f2efe9',
+  ink900: '#1a1d22',
+  ink800: '#22262c',
+  ink700: '#2c3138',
+  gold: '#c9b085',
+  boneMuted: '#b8b3a9',
+  bone: '#f3f0ea',
 };
 
 /** Tri hodnoty na troch plochách — to je to, čo oko číta ako hmotu. */
 const SHADE = {
-  roof: '#2b3039',
-  roofEdge: '#39404b',
-  wallLit: '#232833',
-  wallDark: '#181c24',
-  roofNear: '#31374180',
+  roof: '#333944',
+  roofEdge: '#424a57',
+  wallLit: '#2a303b',
+  wallDark: '#1e222b',
+  roofNear: '#3a414d80',
 };
 
 const GROUND = {
   base: C.ink900,
-  rail: '#171a20',
-  green: '#1a2020',
-  paved: '#1d2127',
-  water: '#152028',
+  rail: '#1d2026',
+  green: '#202626',
+  paved: '#23272d',
+  water: '#1b262e',
 };
 
 const USER_AGENT = `albion-web/1.0 (${business.siteUrl})`;
@@ -610,11 +627,7 @@ if (cornerResult && cornerResult.corner) {
   */
   const corner = cornerResult.corner;
   const opposite = buildings
-    /*
-      `building=roof` je prístrešok, nie dom — pri autobusovej stanici je to
-      práve tá strieška nad nástupišťom. Prevádzka v nej nesídli.
-    */
-    .filter((b) => !b.isLandmark && b.tags.building !== 'roof')
+    .filter((b) => !b.isLandmark && (ALLOW_ROOF_ANCHOR || b.tags.building !== 'roof'))
     .map((b) => ({ building: b, nearest: nearestOnPolyline(corner, b.metres) }))
     .filter(({ building, nearest }) => {
       if (!nearest || nearest.dist > 40) return false;
@@ -830,7 +843,6 @@ const small = await raster(760, 50, 'map-760');
    7. Vrstva B — inline SVG
 ------------------------------------------------------------------------- */
 
-const map = content.location.map;
 
 const nearMarkup = near
   .map((building, index) => {
@@ -882,65 +894,72 @@ const scaleY = VIEW.h - 60;
 const northX = 64;
 const northY = 48;
 
-const layerB = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${VIEW.w} ${VIEW.h}" class="map" role="img" aria-labelledby="mapTitle mapDesc">
-<title id="mapTitle">${map.title}</title>
-<desc id="mapDesc">${map.desc.replace('{street}', business.street)}</desc>
-<defs>
-<radialGradient id="albionGlow">
-<stop offset="0%" stop-color="${C.gold}" stop-opacity="0.22"/>
-<stop offset="100%" stop-color="${C.gold}" stop-opacity="0"/>
-</radialGradient>
-<filter id="nearShadow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3"/></filter>
-${routePath ? `<mask id="routeMask"><path class="route-mask" pathLength="1" d="${routePath}" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/></mask>` : ''}
-</defs>
+let svgKbMax = 0;
+for (const locale of LOCALE_ORDER) {
+  const map = getContent(locale).location.map;
 
-<g class="roads">
-${roadMarkup}
-</g>
+  const layerB = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${VIEW.w} ${VIEW.h}" class="map" role="img" aria-labelledby="mapTitle mapDesc">
+  <title id="mapTitle">${map.title}</title>
+  <desc id="mapDesc">${map.desc.replace('{street}', business.street)}</desc>
+  <defs>
+  <radialGradient id="albionGlow">
+  <stop offset="0%" stop-color="${C.gold}" stop-opacity="0.22"/>
+  <stop offset="100%" stop-color="${C.gold}" stop-opacity="0"/>
+  </radialGradient>
+  <filter id="nearShadow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3"/></filter>
+  ${routePath ? `<mask id="routeMask"><path class="route-mask" pathLength="1" d="${routePath}" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/></mask>` : ''}
+  </defs>
 
-<ellipse class="glow" cx="${fmt(markerView.x)}" cy="${fmt(markerView.y)}" rx="${fmt(glowRadius)}" ry="${fmt(glowRadius * 0.5)}" fill="url(#albionGlow)"/>
+  <g class="roads">
+  ${roadMarkup}
+  </g>
 
-<g class="shadows" filter="url(#nearShadow)">${nearShadows}</g>
+  <ellipse class="glow" cx="${fmt(markerView.x)}" cy="${fmt(markerView.y)}" rx="${fmt(glowRadius)}" ry="${fmt(glowRadius * 0.5)}" fill="url(#albionGlow)"/>
 
-<g class="buildings">
-${nearMarkup}
-</g>
+  <g class="shadows" filter="url(#nearShadow)">${nearShadows}</g>
 
-${routePath ? `<path class="route" mask="url(#routeMask)" d="${routePath}"/>` : ''}
+  <g class="buildings">
+  ${nearMarkup}
+  </g>
 
-<g class="here">
-<circle cx="${fmt(markerView.x)}" cy="${fmt(markerView.y)}" r="18" class="halo"/>
-<circle cx="${fmt(markerView.x)}" cy="${fmt(markerView.y)}" r="18" class="pulse"/>
-<circle cx="${fmt(markerView.x)}" cy="${fmt(markerView.y)}" r="9" class="dot"/>
-</g>
+  ${routePath ? `<path class="route" mask="url(#routeMask)" d="${routePath}"/>` : ''}
 
-${label(stationView, map.station, 'label', -30)}
-${label(busView, map.busStation, 'label', 40)}
-${label(markerView, map.here, 'here-label', -38)}
+  <g class="here">
+  <circle cx="${fmt(markerView.x)}" cy="${fmt(markerView.y)}" r="18" class="halo"/>
+  <circle cx="${fmt(markerView.x)}" cy="${fmt(markerView.y)}" r="18" class="pulse"/>
+  <circle cx="${fmt(markerView.x)}" cy="${fmt(markerView.y)}" r="9" class="dot"/>
+  </g>
 
-<g class="chrome">
-<path d="M${fmt(scaleX)} ${scaleY}h${fmt(scaleBar)}M${fmt(scaleX)} ${scaleY - 4}v8M${fmt(scaleX + scaleBar)} ${scaleY - 4}v8"/>
-<text class="chrome-text" x="${fmt(scaleX + scaleBar / 2)}" y="${scaleY - 10}" text-anchor="middle">${map.scale}</text>
-<path d="M${northX} ${northY + 16}L${northX + 14} ${northY + 8}"/>
-<path d="M${northX + 14} ${northY + 8}l-5 -1 1 5Z" class="chrome-fill"/>
-<text class="chrome-text" x="${northX - 4}" y="${northY + 22}" text-anchor="end">${map.north}</text>
-</g>
+  ${label(stationView, map.station, 'label', -30)}
+  ${label(busView, map.busStation, 'label', 40)}
+  ${label(markerView, map.here, 'here-label', -38)}
 
-<text class="note" x="24" y="${VIEW.h - 24}" text-anchor="start">${map.note}</text>
-</svg>
-`;
+  <g class="chrome">
+  <path d="M${fmt(scaleX)} ${scaleY}h${fmt(scaleBar)}M${fmt(scaleX)} ${scaleY - 4}v8M${fmt(scaleX + scaleBar)} ${scaleY - 4}v8"/>
+  <text class="chrome-text" x="${fmt(scaleX + scaleBar / 2)}" y="${scaleY - 10}" text-anchor="middle">${map.scale}</text>
+  <path d="M${northX} ${northY + 16}L${northX + 14} ${northY + 8}"/>
+  <path d="M${northX + 14} ${northY + 8}l-5 -1 1 5Z" class="chrome-fill"/>
+  <text class="chrome-text" x="${northX - 4}" y="${northY + 22}" text-anchor="end">${map.north}</text>
+  </g>
 
-await writeFile(OUT_SVG, layerB);
+  <text class="note" x="24" y="${VIEW.h - 24}" text-anchor="start">${map.note}</text>
+  </svg>
+  `;
+
+  await writeFile(OUT_SVG(locale), layerB);
+  svgKbMax = Math.max(svgKbMax, Buffer.byteLength(layerB) / 1024);
+}
+
 
 /* -------------------------------------------------------------------------
    8. Výpis
 ------------------------------------------------------------------------- */
 
-const svgKb = Buffer.byteLength(layerB) / 1024;
+const svgKb = svgKbMax;
 
 console.log(`\nvrstva A  map-1600.avif  ${big.avif.toFixed(1)} kB  (webp ${big.webp.toFixed(1)} kB)`);
 console.log(`vrstva A  map-760.avif   ${small.avif.toFixed(1)} kB  (webp ${small.webp.toFixed(1)} kB)`);
-console.log(`vrstva B  ${OUT_SVG}  ${svgKb.toFixed(1)} kB`);
+console.log(`vrstva B  map.generated.<jazyk>.svg  ${svgKb.toFixed(1)} kB (najväčšia verzia)`);
 console.log(
   `\nbudov ${buildings.length} (v strede ${near.length}, zapečených ${far.length}), ` +
     `ulíc ${roads.length}, koľají ${rails.length}, plôch ${areas.length}`

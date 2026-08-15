@@ -31,9 +31,13 @@ const MAX_MEAN_LUMINANCE = 0.12;
 
 // Brightness je per zdroj — mobilný obraz prišiel svetlejší ako desktopový
 // a dekoratívne textúry musia ísť ešte nižšie, lebo ležia pod textom.
-const grade = (src, brightness) =>
+//
+// Zlatá textúra je výnimka: nestmavuje sa na úroveň ostatných, lebo by
+// z nej zostal hnedý fľak. Kontrast textu nad ňou rieši maska, nie
+// stmavenie obrazu.
+const grade = (src, brightness, saturation = 0.75) =>
   sharp(src)
-    .modulate({ brightness, saturation: 0.75 })
+    .modulate({ brightness, saturation })
     .linear(0.92, -10)
     .gamma(1.05);
 
@@ -85,6 +89,33 @@ const sets = [
       { w: 900, avif: 40, webp: 62, name: 'tex-contact-900', budget: 30 },
     ],
   },
+
+  /*
+    Zlatý satén do sekcie „Individuálne ocenenie“. Z dvoch variantov je toto
+    ten, v ktorom svetlo plynie mäkšie a nevzniká ostrý pruh.
+  */
+  {
+    src: `${RAW}/tex-gold-a.png`,
+    brightness: 0.78,
+    saturation: 0.9,
+    maxLuminance: 0.2,
+    variants: [
+      { w: 1100, avif: 44, webp: 66, name: 'tex-gold-1100', budget: 45 },
+      { w: 700, avif: 46, webp: 68, name: 'tex-gold-700', budget: 28 },
+    ],
+  },
+
+  /*
+    Druhý variant ide na svetlé sekcie ako veľmi tlmená vrstva (krytie 0,07,
+    `multiply`). Nestmavuje sa — cez multiply by z neho bol tieň, nie teplo.
+  */
+  {
+    src: `${RAW}/tex-gold-b.png`,
+    brightness: 1,
+    saturation: 0.85,
+    maxLuminance: 1,
+    variants: [{ w: 900, avif: 40, webp: 62, name: 'tex-gold-light', budget: 20 }],
+  },
 ];
 
 const missing = sets.filter((set) => !existsSync(set.src));
@@ -105,8 +136,8 @@ let totalAvifKb = 0;
  * `sharp(...).stats()` číta zdrojový súbor, nie výsledok pipeline — merať sa
  * teda musí až na prekódovanom buffri, inak stmavenie kontrolu vôbec neovplyvní.
  */
-async function meanLuminance(src, brightness) {
-  const processed = await grade(src, brightness)
+async function meanLuminance(src, brightness, saturation) {
+  const processed = await grade(src, brightness, saturation)
     .resize({ width: 400 })
     .png()
     .toBuffer();
@@ -115,8 +146,8 @@ async function meanLuminance(src, brightness) {
 }
 
 for (const set of sets) {
-  const mean = await meanLuminance(set.src, set.brightness);
-  const bright = mean > MAX_MEAN_LUMINANCE;
+  const mean = await meanLuminance(set.src, set.brightness, set.saturation);
+  const bright = mean > (set.maxLuminance ?? MAX_MEAN_LUMINANCE);
   if (bright) tooBright += 1;
   console.log(
     `${set.src}  priemerná luminancia ${mean.toFixed(3)}  ${bright ? '⚠ PRÍLIŠ SVETLÉ' : 'OK'}`
@@ -125,7 +156,7 @@ for (const set of sets) {
   for (const variant of set.variants) {
     for (const format of ['avif', 'webp']) {
       const file = `${OUT}/${variant.name}.${format}`;
-      const info = await grade(set.src, set.brightness)
+      const info = await grade(set.src, set.brightness, set.saturation)
         .resize({ width: variant.w })
         [format]({ quality: variant[format], effort: 6 })
         .toFile(file);

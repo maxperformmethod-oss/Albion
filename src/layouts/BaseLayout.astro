@@ -3,7 +3,13 @@ import '../styles/global.css';
 import Header from '../components/layout/Header.astro';
 import Footer from '../components/layout/Footer.astro';
 import StickyCallBar from '../components/layout/StickyCallBar.astro';
-import { content } from '../data/content.ts';
+import {
+  LOCALES,
+  alternatesFor,
+  getContent,
+  getLocale,
+  routeKeyOf,
+} from '../data/i18n.ts';
 import { FEATURES } from '../data/business.ts';
 import { buildPawnShopSchema } from '../lib/schema.ts';
 
@@ -22,6 +28,9 @@ interface Props {
   preloadHero?: boolean;
 }
 
+const locale = getLocale(Astro.currentLocale);
+const content = getContent(Astro.currentLocale);
+
 const {
   title = content.meta.title,
   description = content.meta.description,
@@ -31,7 +40,22 @@ const {
   preloadHero = false,
 } = Astro.props;
 
-const jsonLd = schema ? buildPawnShopSchema() : undefined;
+/*
+  JSON-LD je len na slovenskej verzii. `name` a `address` sú vo všetkých
+  jazykoch rovnaké, takže tri kópie tej istej entity by boli len šum.
+*/
+const jsonLd = schema && locale === 'sk' ? buildPawnShopSchema() : undefined;
+
+/*
+  `hreflang` na každej stránke, `x-default` ukazuje na slovenčinu.
+  Alternatívy vedú na **tú istú stránku** v druhom jazyku, nie na domovskú.
+*/
+const alternates = alternatesFor(routeKeyOf(Astro.url.pathname)).map(
+  (alternate) => ({
+    hreflang: alternate.hreflang,
+    href: new URL(alternate.path, Astro.site).href,
+  })
+);
 
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const ogImage = new URL('/og.png', Astro.site).href;
@@ -40,19 +64,25 @@ const showStickyBar = stickyCallBar && FEATURES.stickyCallBar;
 ---
 
 <!doctype html>
-<html lang="sk">
+<html lang={LOCALES[locale].htmlLang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#14171B" />
+    <meta name="theme-color" content="#1A1D22" />
 
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     {noindex && <meta name="robots" content="noindex, follow" />}
 
+    {
+      alternates.map((alternate) => (
+        <link rel="alternate" hreflang={alternate.hreflang} href={alternate.href} />
+      ))
+    }
+
     <meta property="og:type" content="website" />
-    <meta property="og:locale" content="sk_SK" />
+    <meta property="og:locale" content={LOCALES[locale].ogLocale} />
     <meta property="og:site_name" content="Albion" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
@@ -160,9 +190,15 @@ const showStickyBar = stickyCallBar && FEATURES.stickyCallBar;
         document.querySelectorAll<HTMLElement>('[data-reveal]')
       );
 
-      /** Stagger max 6 × 40 ms — celá sekcia je hotová do 240 ms. */
-      const STAGGER = 40;
-      const MAX_STEPS = 6;
+      /*
+        Stagger max 6 × 40 ms — celá sekcia je hotová do 240 ms.
+
+        Pod 768 px je polovičný a naraz sa animuje menej prvkov: mobilné GPU
+        zvládnu menej súčasne a dlhší nábeh tam pôsobí ako čakanie.
+      */
+      const isNarrow = window.matchMedia('(width < 48rem)').matches;
+      const STAGGER = isNarrow ? 20 : 40;
+      const MAX_STEPS = isNarrow ? 4 : 6;
 
       const revealAll = () => {
         revealed.forEach((element) => element.classList.add('is-revealed'));

@@ -1,11 +1,22 @@
 ---
 import Section from '../ui/Section.astro';
-import { content } from '../../data/content.ts';
+import PaperGold from '../ui/PaperGold.astro';
+import { getContent } from '../../data/i18n.ts';
+
+const content = getContent(Astro.currentLocale);
 
 const { id, h2, lead, items, outro } = content.whatWeAccept;
 ---
 
-<Section tone="paper" id={id} labelledby="what-we-accept-title">
+<Section
+  tone="paper"
+  id={id}
+  labelledby="what-we-accept-title"
+  divider={false}
+  class="overflow-hidden"
+>
+  <PaperGold slot="backdrop" />
+
   <h2 id="what-we-accept-title" class="font-serif text-h2 max-w-[20ch]" data-reveal>
     {h2}
   </h2>
@@ -17,14 +28,22 @@ const { id, h2, lead, items, outro } = content.whatWeAccept;
     riadky a mriežka pôsobila ako zoznam v pätičke. Pri troch sa každá položka
     zmestí na jeden riadok v `--text-h3` a mriežka využije celú šírku kontajnera.
   */}
+  {/*
+    Index nad položkou. Zoznam sa tým číta ako katalóg, nie ako odrážky —
+    je to jeden z mála prvkov, ktorý na svetlej ploche unesie zlatú.
+  */}
   <ul class="mt-12 grid grid-cols-1 gap-x-12 sm:grid-cols-2 lg:grid-cols-3">
     {
-      items.map((item) => (
-        <li
-          class="border-hairline-light font-serif text-h3 border-t py-5"
-          data-reveal
-        >
-          {item}
+      items.map((item, index) => (
+        <li class="border-hairline-light border-t py-5" data-reveal>
+          <span
+            class="font-sans text-eyebrow text-gold-ink block tracking-[0.14em]"
+            aria-hidden="true"
+            data-numeric
+          >
+            {String(index + 1).padStart(2, '0')}
+          </span>
+          <span class="font-serif text-h3 mt-2 block">{item}</span>
         </li>
       ))
     }

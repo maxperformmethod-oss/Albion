@@ -1,10 +1,18 @@
 ---
 import Section from '../ui/Section.astro';
 import Button from '../ui/Button.astro';
-import mapSvg from './map.generated.svg?raw';
+import mapSk from './map.generated.sk.svg?raw';
+import mapHu from './map.generated.hu.svg?raw';
+import mapEn from './map.generated.en.svg?raw';
 import { business, isConfirmed } from '../../data/business.ts';
-import { content } from '../../data/content.ts';
+import { getContent, getLocale } from '../../data/i18n.ts';
 import { mapsUrl } from '../../lib/cta.ts';
+
+const content = getContent(Astro.currentLocale);
+
+// Popisy sú súčasťou SVG, preto je vrstva B pre každý jazyk vlastná.
+const MAPS = { sk: mapSk, hu: mapHu, en: mapEn };
+const mapSvg = MAPS[getLocale(Astro.currentLocale)];
 
 /**
  * „Kde nás nájdete“ — vlastná axonometrická mapa zo skutočných dát OSM.
@@ -145,6 +153,12 @@ const street = isConfirmed(business.street) ? business.street : null;
   */
   .map-frame > picture,
   [data-map] :global(.map) {
+    -webkit-mask-image: radial-gradient(
+      ellipse 78% 82% at 50% 50%,
+      black 42%,
+      rgb(0 0 0 / 0.55) 74%,
+      transparent 100%
+    );
     mask-image: radial-gradient(
       ellipse 78% 82% at 50% 50%,
       black 42%,
@@ -156,22 +170,22 @@ const street = isConfirmed(business.street) ? business.street : null;
   /* --- hmota: tri hodnoty na troch plochách ------------------------------ */
 
   [data-map] :global(.wd) {
-    fill: #181c24;
+    fill: #1e222b;
   }
 
   [data-map] :global(.wl) {
-    fill: #232833;
+    fill: #2a303b;
   }
 
   [data-map] :global(.rf) {
-    fill: #2b3039;
-    stroke: #39404b;
+    fill: #333944;
+    stroke: #424a57;
     stroke-width: 0.6;
   }
 
   /* Budovy okolo Albionu chytajú to isté svetlo. */
   [data-map] :global(.b-n .rf) {
-    fill: #313741;
+    fill: #3a414d;
   }
 
   /* Albion: zlatá strecha a zlatý rim light na hranách. */
@@ -196,7 +210,7 @@ const street = isConfirmed(business.street) ? business.street : null;
 
   [data-map] :global(.rc) {
     fill: none;
-    stroke: #101318;
+    stroke: #14171c;
     stroke-linecap: round;
     stroke-linejoin: round;
   }
@@ -328,9 +342,24 @@ const street = isConfirmed(business.street) ? business.street : null;
       transform: translateY(14px);
     }
 
-    :global(.js) [data-map] :global(.shadows),
     :global(.js) [data-map] :global(.route-mask) {
       opacity: 0;
+    }
+
+    /*
+      Rozostrenie na animovanom prvku je na iOS Safari prekreslenie celej
+      vrstvy v každom snímku. Tiene sa preto fadeujú len od 768 px vyššie;
+      na mobile sú rovno na mieste a nikto to nepostrehne.
+    */
+    @media (width >= 48rem) {
+      :global(.js) [data-map] :global(.shadows) {
+        opacity: 0;
+      }
+
+      :global(.js) [data-map].is-drawn :global(.shadows) {
+        opacity: 0.35;
+        transition: opacity 300ms var(--ease-out-quint) 940ms;
+      }
     }
 
     :global(.js) [data-map] :global(.here) {
@@ -360,12 +389,6 @@ const street = isConfirmed(business.street) ? business.street : null;
       transition-delay: calc(700ms + var(--d, 0) * 8ms);
     }
 
-    /* Tiene nabiehajú 120 ms po svojich budovách. */
-    :global(.js) [data-map].is-drawn :global(.shadows) {
-      opacity: 0.35;
-      transition: opacity 300ms var(--ease-out-quint) 940ms;
-    }
-
     :global(.js) [data-map].is-drawn :global(.route-mask) {
       opacity: 1;
       stroke-dashoffset: 0;
@@ -388,6 +411,41 @@ const street = isConfirmed(business.street) ? business.street : null;
       transform-box: fill-box;
       transform-origin: center;
       animation: map-pulse 400ms var(--ease-out-quint) 1820ms 1 forwards;
+    }
+
+    /*
+      Pod 768 px je celá sekvencia kratšia (1,4 s namiesto 2,2 s) a stagger
+      polovičný. Na malej ploche pôsobí dlhá animácia ako čakanie a mobilné
+      GPU zvládnu naraz menej prvkov.
+    */
+    @media (width < 48rem) {
+      :global(.js) [data-map].is-drawn :global(.rr) {
+        transition-duration: 380ms;
+        transition-delay: 160ms;
+      }
+
+      :global(.js) [data-map].is-drawn :global(.b) {
+        transition-duration: 220ms, 280ms;
+        transition-delay: calc(440ms + var(--d, 0) * 4ms);
+      }
+
+      :global(.js) [data-map].is-drawn :global(.route-mask) {
+        transition:
+          opacity 1ms 940ms,
+          stroke-dashoffset 320ms var(--ease-out-quint) 940ms;
+      }
+
+      :global(.js) [data-map].is-drawn :global(.glow) {
+        transition-delay: 1000ms;
+      }
+
+      :global(.js) [data-map].is-drawn :global(.here) {
+        transition-delay: 1140ms;
+      }
+
+      :global(.js) [data-map].is-drawn :global(.pulse) {
+        animation-delay: 1160ms;
+      }
     }
 
     @keyframes map-pulse {

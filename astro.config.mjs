@@ -10,6 +10,12 @@ const site = process.env.PUBLIC_SITE_URL ?? 'https://albion-bf4w.vercel.app';
 export default defineConfig({
   site,
   output: 'static',
+  // Slovenčina je predvolená a beží bez prefixu, HU a EN majú vlastný.
+  i18n: {
+    defaultLocale: 'sk',
+    locales: ['sk', 'hu', 'en'],
+    routing: { prefixDefaultLocale: false },
+  },
   trailingSlash: 'never',
   integrations: [sitemap()],
   vite: {

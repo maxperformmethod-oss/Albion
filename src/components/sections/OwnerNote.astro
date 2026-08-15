@@ -2,7 +2,9 @@
 import Section from '../ui/Section.astro';
 import Eyebrow from '../ui/Eyebrow.astro';
 import { business, FEATURES } from '../../data/business.ts';
-import { content } from '../../data/content.ts';
+import { getContent } from '../../data/i18n.ts';
+
+const content = getContent(Astro.currentLocale);
 
 /**
  * Osobný odkaz majiteľov. Tretie a posledné miesto vzťahovej vrstvy.
@@ -20,7 +22,7 @@ const signatureText = signature.replace('{year}', String(business.foundedYear));
 
 {
   FEATURES.ownerNote && (
-    <Section tone="ink" divider={false}>
+    <Section tone="ink">
       <div class="flex flex-col gap-10 lg:flex-row">
         <div class="lg:w-[62%]">
           <Eyebrow data-reveal>{eyebrow}</Eyebrow>

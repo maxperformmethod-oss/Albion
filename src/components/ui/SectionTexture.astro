@@ -15,7 +15,7 @@
  * — je to LCP prvok. Tieto tri sú `lazy` a nesmú súťažiť o prvú dávku requestov.
  */
 interface Props {
-  texture: 'panel' | 'wide' | 'contact';
+  texture: 'panel' | 'wide' | 'contact' | 'gold' | 'gold-light';
   /** `sizes` musí sedieť so skutočnou šírkou prvku, inak sa stiahne väčší variant. */
   sizes: string;
   class?: string;
@@ -39,6 +39,21 @@ const TEXTURES = {
     variants: ['tex-contact-900 900w', 'tex-contact-1376 1376w'],
     width: 1376,
     height: 768,
+  },
+  /**
+   * Zlatý satén — jediné miesto, kde je zlato ako plocha. Sekcia
+   * „Individuálne ocenenie“. Jeho sila je v tom, že je jeden.
+   */
+  gold: {
+    variants: ['tex-gold-700 700w', 'tex-gold-1100 1100w'],
+    width: 1100,
+    height: 614,
+  },
+  /** Druhý zlatý variant ako veľmi tlmené teplo v pravom hornom rohu. */
+  'gold-light': {
+    variants: ['tex-gold-light 900w'],
+    width: 900,
+    height: 502,
   },
 } as const;
 

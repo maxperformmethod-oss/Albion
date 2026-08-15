@@ -2,8 +2,11 @@
 import Button from '../ui/Button.astro';
 import Eyebrow from '../ui/Eyebrow.astro';
 import { addressLine, business } from '../../data/business.ts';
-import { content } from '../../data/content.ts';
-import { primaryCta, hasPhone } from '../../lib/cta.ts';
+import { getContent } from '../../data/i18n.ts';
+import { hasPhone, buildCta } from '../../lib/cta.ts';
+
+const content = getContent(Astro.currentLocale);
+const { primaryCta } = buildCta(content);
 
 /**
  * Hero nepoužíva Section.astro — má vlastný vertikálny rytmus (prekrýva ho
@@ -150,11 +153,11 @@ const eyebrow = content.hero.eyebrow
     background:
       linear-gradient(
         100deg,
-        rgb(20 23 27 / 0.96) 0%,
-        rgb(20 23 27 / 0.92) 42%,
-        rgb(20 23 27 / 0.66) 100%
+        rgb(26 29 34 / 0.96) 0%,
+        rgb(26 29 34 / 0.94) 42%,
+        rgb(26 29 34 / 0.73) 100%
       ),
-      linear-gradient(to top, rgb(20 23 27 / 0.95) 0%, rgb(20 23 27 / 0) 45%);
+      linear-gradient(to top, rgb(26 29 34 / 0.95) 0%, rgb(26 29 34 / 0) 45%);
   }
 
   /* Jediný výnimočný pohyb na celom webe: riadkový reveal H1. */

@@ -1,11 +1,14 @@
 import { business, isConfirmed } from '../data/business.ts';
-import { content } from '../data/content.ts';
+import type { Content } from '../data/i18n.ts';
 
 /**
  * Jediné miesto, kde sa rozhoduje, ako vyzerá primárne CTA.
  *
  * BRIEF §8: ak telefón chýba, primárne CTA sa NESKRÝVA — zmení sa na
  * „Chcem oceniť vec“ s kotvou na #kontakt. Web nikdy neostane bez primárnej akcie.
+ *
+ * Údaje o čísle sú spoločné pre všetky jazykové verzie (musia sedieť s Google
+ * profilom), znenie tlačidla nie — preto je `buildCta` funkciou textov.
  */
 
 /** Krátky tvar — hlavička, sticky bar, aria-label. */
@@ -24,19 +27,8 @@ export const phoneHref = isConfirmed(business.phone)
 
 export const hasPhone = phoneHref !== null;
 
-/**
- * WCAG 2.5.3 (Label in Name): prístupný názov musí obsahovať viditeľný text.
- * Tam, kde je viditeľné samotné číslo, musí byť v labeli to isté číslo —
- * inak sa hlasové ovládanie a čítačka rozchádzajú s tým, čo užívateľ vidí.
- */
-export const callAriaLabel = phoneDisplay
-  ? content.a11y.callAriaLabel.replace('{phone}', phoneDisplay)
-  : undefined;
-
-/** Pre odkazy, kde je viditeľným textom medzinárodný tvar čísla. */
-export const callAriaLabelLong = phoneDisplayLong
-  ? content.a11y.callAriaLabel.replace('{phone}', phoneDisplayLong)
-  : undefined;
+/** Terciárne CTA — mapa. Ak URL nie je potvrdená, odkaz sa nevykreslí vôbec. */
+export const mapsUrl = isConfirmed(business.mapsUrl) ? business.mapsUrl : null;
 
 export interface Cta {
   href: string;
@@ -51,16 +43,30 @@ export interface Cta {
   label?: string;
 }
 
-/** Primárne CTA v hlavičke, hero, sekcii ocenenia, kontakte a sticky bare. */
-export const primaryCta: Cta = phoneHref
-  ? {
-      href: phoneHref,
-      text: content.header.call,
-      icon: 'phone',
-      phone: phoneDisplay ?? undefined,
-      label: callAriaLabel,
-    }
-  : { href: '#kontakt', text: content.hero.ctaSecondary };
+/**
+ * WCAG 2.5.3 (Label in Name): prístupný názov musí obsahovať viditeľný text.
+ * Tam, kde je viditeľné samotné číslo, musí byť v labeli to isté číslo —
+ * inak sa hlasové ovládanie a čítačka rozchádzajú s tým, čo užívateľ vidí.
+ */
+export function buildCta(content: Content) {
+  const callAriaLabel = phoneDisplay
+    ? content.a11y.callAriaLabel.replace('{phone}', phoneDisplay)
+    : undefined;
 
-/** Terciárne CTA — mapa. Ak URL nie je potvrdená, odkaz sa nevykreslí vôbec. */
-export const mapsUrl = isConfirmed(business.mapsUrl) ? business.mapsUrl : null;
+  /** Pre odkazy, kde je viditeľným textom medzinárodný tvar čísla. */
+  const callAriaLabelLong = phoneDisplayLong
+    ? content.a11y.callAriaLabel.replace('{phone}', phoneDisplayLong)
+    : undefined;
+
+  const primaryCta: Cta = phoneHref
+    ? {
+        href: phoneHref,
+        text: content.header.call,
+        icon: 'phone',
+        phone: phoneDisplay ?? undefined,
+        label: callAriaLabel,
+      }
+    : { href: '#kontakt', text: content.hero.ctaSecondary };
+
+  return { primaryCta, callAriaLabel, callAriaLabelLong };
+}

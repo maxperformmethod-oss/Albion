@@ -1,7 +1,10 @@
 ---
 import Icon from '../ui/Icon.astro';
-import { content } from '../../data/content.ts';
-import { primaryCta, mapsUrl } from '../../lib/cta.ts';
+import { getContent } from '../../data/i18n.ts';
+import { mapsUrl, buildCta } from '../../lib/cta.ts';
+
+const content = getContent(Astro.currentLocale);
+const { primaryCta } = buildCta(content);
 
 /**
  * Mobilná lišta (< 768 px). Objaví sa až po odscrollovaní hero — sentinel
