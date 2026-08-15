@@ -77,6 +77,9 @@ const MAX_ROUTE_DETOUR = 2.5;
 /** Ako ďaleko od potvrdených súradníc smie skončiť značka. Bolo 40 m. */
 const MAX_MARKER_SHIFT_M = 120;
 
+/** Dodatočný posun značky na sever na výslovný pokyn (dávka 15 §3.1). */
+const MARKER_NORTH_M = 15;
+
 /** Kolmá vzdialenosť značky od osi cesty — teda „cez cestu“. */
 const MARKER_ACROSS_M = 10;
 
@@ -146,8 +149,10 @@ async function fetchGeometry(center) {
   way["landuse"~"^(grass|forest|meadow|industrial|railway)$"]${near};
   way["amenity"="parking"]${near};
   way["natural"="water"]${near};
-  nwr["shop"="supermarket"]${near};
-  nwr["amenity"~"^(hospital|school|place_of_worship)$"]${near};
+  nwr["name"]["shop"]${near};
+  nwr["name"]["amenity"]${near};
+  nwr["name"]["office"]${near};
+  nwr["name"]["tourism"]${near};
 );
 out geom tags;`;
 
@@ -561,24 +566,55 @@ for (const element of data.elements) {
   Prevádzky typu pizzeria, taxi či lekáreň sa nepopisujú — zaplnili by mapu
   a zobrali pozornosť Albionu. Konkurencia nikdy.
 */
-const LANDMARK_RANK = { supermarket: 1, hospital: 2, school: 3, place_of_worship: 4 };
+/*
+  Orientačné body v Lučenci: stanice, supermarket, lekáreň, drogéria, banka,
+  pošta, kostol, škola. Nižšie číslo = dôležitejšie.
+
+  Vylúčené natrvalo: **záložne a zastavárne** (konkurencia), taxi služby
+  a malé prevádzky bez rozpoznateľného mena.
+*/
+const LANDMARK_RANK = {
+  supermarket: 1,
+  pharmacy: 2,
+  bank: 3,
+  post_office: 4,
+  chemist: 5,
+  place_of_worship: 6,
+  school: 7,
+  hospital: 8,
+};
+
+const EXCLUDED = /pawnbroker|taxi|zálož|zastavár/i;
+
+const kindOf = (tags) => {
+  const all = `${tags.shop ?? ''} ${tags.amenity ?? ''} ${tags.office ?? ''} ${tags.name ?? ''}`;
+  if (EXCLUDED.test(all)) return null;
+  // `convenience` sem nepatri — su to male prevadzky bez rozpoznatelneho mena.
+  if (tags.shop === 'supermarket') return 'supermarket';
+  if (tags.amenity === 'pharmacy') return 'pharmacy';
+  if (tags.shop === 'chemist') return 'chemist';
+  if (tags.amenity === 'bank' || tags.office === 'bank') return 'bank';
+  if (tags.amenity === 'post_office' || tags.office === 'post') return 'post_office';
+  if (tags.amenity === 'place_of_worship') return 'place_of_worship';
+  if (tags.amenity === 'school') return 'school';
+  if (tags.amenity === 'hospital' || tags.amenity === 'clinic') return 'hospital';
+  return null;
+};
+
+/** Celý nájdený zoznam ide do reportu — nech je vidieť, s čím sa pracuje. */
+const allNamed = [];
 
 const landmarks = [];
 for (const element of data.elements) {
   const tags = element.tags ?? {};
   const name = tags.name;
-  if (!name || tags.shop === 'pawnbroker') continue;
+  if (!name) continue;
 
-  const kind =
-    tags.shop === 'supermarket'
-      ? 'supermarket'
-      : tags.amenity === 'hospital'
-        ? 'hospital'
-        : tags.amenity === 'school'
-          ? 'school'
-          : tags.amenity === 'place_of_worship'
-            ? 'place_of_worship'
-            : null;
+  const type =
+    tags.shop ?? tags.amenity ?? tags.office ?? tags.tourism ?? tags.railway ?? '?';
+  if (!allNamed.some((a) => a.name === name)) allNamed.push({ name, type });
+
+  const kind = kindOf(tags);
   if (!kind) continue;
 
   const point =
@@ -590,7 +626,7 @@ for (const element of data.elements) {
   if (!point) continue;
   if (landmarks.some((l) => l.name === name)) continue;
 
-  landmarks.push({ name, point, rank: LANDMARK_RANK[kind] });
+  landmarks.push({ name, point, rank: LANDMARK_RANK[kind], kind });
 }
 
 landmarks.sort((a, b) => a.rank - b.rank);
@@ -714,6 +750,14 @@ if (routeMetres) {
   }
 } else {
   markerNote = 'trasa sa nevykreslila — značka zostáva na priemete';
+}
+
+/*
+  Posun značky o 15 m na sever. V izometrii to je vizuálne hore-doprava.
+  Priradenie budovy beží až po ňom — poloha a zvýraznenie sú jeden výpočet.
+*/
+if (markerMetres) {
+  markerMetres = { x: markerMetres.x, y: markerMetres.y - MARKER_NORTH_M };
 }
 
 /* --- zvýraznená budova ---------------------------------------------------- */
@@ -898,7 +942,7 @@ const landmarkLabels = [];
     if (taken.some((t) => Math.hypot(t.x - view.x, t.y - view.y) < 110)) continue;
     taken.push(view);
     landmarkLabels.push(landmark);
-    if (landmarkLabels.length === 4) break;
+    if (landmarkLabels.length === 6) break;
   }
 }
 
@@ -994,6 +1038,14 @@ console.log(
     `ulíc ${roads.length}, koľají ${rails.length}, plôch ${areas.length}`
 );
 console.log(markerNote);
+console.log(
+  `\npomenované objekty v OSM (${allNamed.length}):\n` +
+    allNamed.map((a) => `  · ${a.name} — ${a.type}`).join('\n')
+);
+console.log(
+  `\npopisy na mape (${landmarkLabels.length}): ` +
+    landmarkLabels.map((l) => `${l.name} (${l.kind})`).join(' · ')
+);
 console.log(
   `značka: ${fmt(markerMetres.x)}, ${fmt(markerMetres.y)} m od stredu · ` +
     `od autobusovej stanice ${

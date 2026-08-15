@@ -4,9 +4,15 @@ import SectionTexture from './SectionTexture.astro';
 interface Props {
   /** Jedno slovo v pozadí. Dekorácia, nie obsah. */
   word?: string;
+  /**
+   * Cez ktorý bočný okraj slovo prečnieva. Zvisle musí byť **celé vnútri**
+   * sekcie — orezané vodorovnou hranou sa nečíta ako zámer, ale ako chyba
+   * renderovania.
+   */
+  wordSide?: 'left' | 'right';
 }
 
-const { word } = Astro.props;
+const { word, wordSide = 'right' } = Astro.props;
 
 /**
  * Veľmi tlmené zlaté teplo v pravom hornom rohu svetlej sekcie.
@@ -23,10 +29,15 @@ const { word } = Astro.props;
  */
 ---
 
-{word && <span class="ghost-word" aria-hidden="true">{word}</span>}
+{word && <span class:list={['ghost-word', `ghost-${wordSide}`]} aria-hidden="true">{word}</span>}
 
 <div class="paper-gold" data-paper-gold aria-hidden="true">
   <SectionTexture texture="gold-light" sizes="(min-width: 640px) 55vw, 80vw" />
+</div>
+
+{/* Druhý, slabší zdroj tepla — plocha tak nepôsobí jednostranne. */}
+<div class="paper-gold paper-gold--second" data-paper-gold aria-hidden="true">
+  <SectionTexture texture="gold-light" sizes="(min-width: 640px) 45vw, 70vw" />
 </div>
 
 <style>
@@ -36,8 +47,8 @@ const { word } = Astro.props;
   */
   .ghost-word {
     position: absolute;
-    bottom: -0.18em;
-    left: -0.04em;
+    /* Základňa písma 64 px nad spodným okrajom sekcie — nikdy neorezaná. */
+    bottom: 64px;
     font-family: var(--font-serif);
     font-weight: 600;
     font-size: clamp(8rem, 22vw, 18rem);
@@ -51,6 +62,14 @@ const { word } = Astro.props;
     white-space: nowrap;
   }
 
+  .ghost-right {
+    right: -0.08em;
+  }
+
+  .ghost-left {
+    left: -0.08em;
+  }
+
   .paper-gold {
     position: absolute;
     top: 0;
@@ -58,7 +77,8 @@ const { word } = Astro.props;
     width: 55%;
     height: 100%;
     /* 0,05 namiesto 0,07: na paper-2 klesol kontrast ink-text na 11,41:1. */
-    opacity: 0.04;
+    /* 0,03: pri zvislom prechode v ploche klesol kontrast na 11,97:1. */
+    opacity: 0.03;
     mix-blend-mode: multiply;
     pointer-events: none;
     /* Bez `-webkit-` sa maska na starších iOS neuplatní a vznikne ostrý blok. */
@@ -71,6 +91,26 @@ const { word } = Astro.props;
     /* §4.2 — pomalý posun svetla naviazaný na scroll. Len `translate3d`. */
     transform: translate3d(0, var(--paper-shift, 0px), 0);
     will-change: auto;
+  }
+
+  .paper-gold--second {
+    top: auto;
+    right: auto;
+    bottom: 0;
+    left: 0;
+    width: 45%;
+    opacity: 0.02;
+    -webkit-mask-image: radial-gradient(
+      ellipse at bottom left,
+      black 0%,
+      transparent 70%
+    );
+    mask-image: radial-gradient(ellipse at bottom left, black 0%, transparent 70%);
+  }
+
+  .paper-gold--second :global(img) {
+    object-position: bottom left;
+    transform: scaleX(-1);
   }
 
   .paper-gold :global(img) {

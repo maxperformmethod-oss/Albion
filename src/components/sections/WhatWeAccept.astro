@@ -21,19 +21,28 @@ const { id, h2, lead, items, outro } = content.whatWeAccept;
     Nadpis vpravo, obsah vľavo. Každá sekcia má inú kompozíciu — po treťom
     opakovaní tej istej stavby oko prestane vnímať a stránka splynie do šablóny.
   */}
-  <div class="lg:flex lg:items-start lg:justify-between lg:gap-16">
-    <p class="text-lead text-ink-muted mt-6 max-w-[44ch] lg:order-1 lg:mt-2 lg:w-[40%]" data-reveal>
-      {lead}
-    </p>
+  {/*
+    Nadpis aj lead sú v pravom stĺpci a oba zarovnané doprava; ľavá polovica
+    hore zostáva prázdna zámerne — to je ten priestor, ktorý pôsobí draho.
+    Nadpis vpravo a lead vľavo v rovnakej výške si konkurovali a oko nevedelo,
+    kde má začať čítať.
+  */}
+  <div class="sm:flex sm:justify-end">
+    <div class="sm:w-[46%] sm:text-right">
+      <h2 id="what-we-accept-title" class="font-serif text-h2" data-reveal>
+        {h2}
+      </h2>
 
-    <h2
-      id="what-we-accept-title"
-      class="font-serif text-h2 max-w-[20ch] lg:order-2 lg:w-[56%] lg:text-right"
-      data-reveal
-    >
-      {h2}
-    </h2>
+      <p class="text-lead text-ink-muted mt-6" data-reveal>{lead}</p>
+    </div>
   </div>
+
+  <span
+    aria-hidden="true"
+    class="rule-gold mt-12 w-full"
+    data-rule
+    data-reveal
+  ></span>
 
   {/*
     Tri stĺpce, nie štyri: v štyroch úzkych stĺpcoch sa názvy lámali na drobné
@@ -44,18 +53,14 @@ const { id, h2, lead, items, outro } = content.whatWeAccept;
     Index nad položkou. Zoznam sa tým číta ako katalóg, nie ako odrážky —
     je to jeden z mála prvkov, ktorý na svetlej ploche unesie zlatú.
   */}
-  <ul class="mt-12 grid grid-cols-1 gap-x-12 sm:grid-cols-2 lg:grid-cols-3">
+  <ul class="mt-10 grid grid-cols-1 gap-x-10 sm:grid-cols-2 lg:grid-cols-4">
     {
       items.map((item, index) => (
         <li class="grid-line py-5" data-reveal data-rule-cell>
-          <span
-            class="font-sans text-eyebrow text-gold-ink block tracking-[0.14em]"
-            aria-hidden="true"
-            data-numeric
-          >
+          <span class="item-index" aria-hidden="true" data-numeric>
             {String(index + 1).padStart(2, '0')}
           </span>
-          <span class="font-serif text-h3 mt-2 block">{item}</span>
+          <span class="item-text font-serif text-h3 mt-2 block">{item}</span>
         </li>
       ))
     }
@@ -63,3 +68,41 @@ const { id, h2, lead, items, outro } = content.whatWeAccept;
 
   <p class="text-ink-muted measure mt-10" data-reveal>{outro}</p>
 </Section>
+
+<style>
+  /*
+    Čísla sú jediné číslice na svetlej ploche a nesú rytmus, takže sú o dva
+    stupne väčšie než eyebrow a rozpustenejšie.
+  */
+  .item-index {
+    display: block;
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    letter-spacing: 0.08em;
+    color: var(--color-gold-ink);
+    transition: color var(--duration-fast) var(--ease-out-quint);
+  }
+
+  .item-text {
+    transition: transform var(--duration-fast) var(--ease-out-quint);
+  }
+
+  /*
+    Reakcia na prejdenie myšou: linka zozlatne, číslo zosilnie, text sa pohne
+    o 2 px. Nič viac — žiadne pozadie, tieň ani zväčšenie. Na dotyku sa
+    neaplikuje vôbec.
+  */
+  @media (hover: hover) {
+    li:hover .item-index {
+      color: color-mix(in srgb, var(--color-gold-ink) 100%, black 12%);
+    }
+
+    li:hover .item-text {
+      transform: translateX(2px);
+    }
+
+    li:hover::before {
+      background-color: var(--color-gold);
+    }
+  }
+</style>
