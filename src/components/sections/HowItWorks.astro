@@ -1,7 +1,7 @@
 ---
 import Section from '../ui/Section.astro';
 import PaperGold from '../ui/PaperGold.astro';
-import { business, isConfirmed } from '../../data/business.ts';
+import { business, isConfirmed, FEATURES } from '../../data/business.ts';
 import { getContent } from '../../data/i18n.ts';
 
 const content = getContent(Astro.currentLocale);
@@ -22,7 +22,21 @@ const requiredDocuments = isConfirmed(business.requiredDocuments)
 >
   <PaperGold slot="backdrop" />
 
-  <h2 id="how-it-works-title" class="font-serif text-h2" data-reveal>{h2}</h2>
+  <h2
+    id="how-it-works-title"
+    class="font-serif text-h2 mx-auto max-w-[24ch] text-center"
+    data-reveal
+  >
+    {h2}
+  </h2>
+
+  {
+    FEATURES.hooks && (
+      <p class="text-lead text-ink-text mx-auto mt-6 max-w-[44ch] text-center" data-reveal>
+        {content.hooks.howItWorks}
+      </p>
+    )
+  }
 
   {/*
     Číslo kroku je veľké a leží za textom, nie nad ním. Nesie rytmus sekcie

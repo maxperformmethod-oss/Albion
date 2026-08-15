@@ -77,6 +77,12 @@ const MAX_ROUTE_DETOUR = 2.5;
 /** Ako ďaleko od potvrdených súradníc smie skončiť značka. Bolo 40 m. */
 const MAX_MARKER_SHIFT_M = 120;
 
+/** Kolmá vzdialenosť značky od osi cesty — teda „cez cestu“. */
+const MARKER_ACROSS_M = 10;
+
+/** Dokedy ešte budova pri značke dostane zlatú strechu. */
+const MAX_ANCHOR_DISTANCE_M = 25;
+
 /** Smie byť kotvou objekt otagovaný ako prístrešok? Bolo `false`. */
 const ALLOW_ROOF_ANCHOR = true;
 
@@ -549,127 +555,18 @@ const busMetres = busRaw ? toMetres(busRaw) : null;
 
 /* --- §1 poloha značky ---------------------------------------------------- */
 
-/**
- * Majiteľ upresnil: prevádzka je hneď cez cestu za autobusovou stanicou,
- * v mieste, kde sa cesta trikrát láme o 90°. Hľadám presne to — úsek cesty
- * medzi autobusovou stanicou a protiľahlým blokom s dvoma až tromi po sebe
- * idúcimi zmenami smeru o 75–105°.
- *
- * Ak taký úsek nenájdem alebo je kandidátov viac, **nič neposúvam**. Štvrtý
- * odhad je horší než tretí — vtedy sa čaká na súradnicu vchodu z `OTAZKY.md`.
- */
-function findCorner() {
-  if (!busMetres) return null;
 
-  const candidates = [];
-
-  for (const road of roads) {
-    const points = road.rawMetres;
-    if (points.length < 4) continue;
-
-    // Cesta musí ísť popri autobusovej stanici.
-    const nearBus = nearestOnPolyline(busMetres, points);
-    if (!nearBus || nearBus.dist > 45) continue;
-
-    for (let i = 1; i < points.length - 1; i += 1) {
-      const before = { x: points[i].x - points[i - 1].x, y: points[i].y - points[i - 1].y };
-      const after = { x: points[i + 1].x - points[i].x, y: points[i + 1].y - points[i].y };
-      const angle =
-        (Math.abs(
-          Math.atan2(
-            before.x * after.y - before.y * after.x,
-            before.x * after.x + before.y * after.y
-          )
-        ) *
-          180) /
-        Math.PI;
-      if (angle < 75 || angle > 105) continue;
-
-      // Zlomy sa musia zbiehať — tri lomy na 40 m, nie tri po celej ulici.
-      candidates.push({ road, index: i, point: points[i], angle });
-    }
-  }
-
-  if (candidates.length === 0) return null;
-
-  const groups = [];
-  for (const candidate of candidates) {
-    const group = groups.find(
-      (g) =>
-        g.road === candidate.road &&
-        Math.hypot(
-          g.points[g.points.length - 1].x - candidate.point.x,
-          g.points[g.points.length - 1].y - candidate.point.y
-        ) < 45
-    );
-    if (group) group.points.push(candidate.point);
-    else groups.push({ road: candidate.road, points: [candidate.point] });
-  }
-
-  const matching = groups.filter((g) => g.points.length >= 2 && g.points.length <= 3);
-  if (matching.length !== 1) {
-    return { ambiguous: true, count: matching.length, groups: groups.length };
-  }
-
-  return { corner: centroidOf(matching[0].points), road: matching[0].road };
-}
-
-const cornerResult = findCorner();
 
 let markerMetres = anchorMetres;
 let projectionMetres = null;
 let markerNote = '';
 
-if (cornerResult && cornerResult.corner) {
-  /*
-    Bod patrí na fasádu budovy oproti autobusovej stanici — teda na hranu
-    pôdorysu privrátenú k ceste, nie do ťažiska parcely.
-  */
-  const corner = cornerResult.corner;
-  const opposite = buildings
-    .filter((b) => !b.isLandmark && (ALLOW_ROOF_ANCHOR || b.tags.building !== 'roof'))
-    .map((b) => ({ building: b, nearest: nearestOnPolyline(corner, b.metres) }))
-    .filter(({ building, nearest }) => {
-      if (!nearest || nearest.dist > 40) return false;
-      // Budova musí ležať na opačnej strane cesty než autobusová stanica.
-      const toBuilding = {
-        x: building.centroid.x - corner.x,
-        y: building.centroid.y - corner.y,
-      };
-      const toBus = { x: busMetres.x - corner.x, y: busMetres.y - corner.y };
-      return toBuilding.x * toBus.x + toBuilding.y * toBus.y < 0;
-    })
-    .sort((a, b) => a.nearest.dist - b.nearest.dist)[0];
-
-  const shift = opposite
-    ? Math.hypot(
-        opposite.nearest.point.x - anchorMetres.x,
-        opposite.nearest.point.y - anchorMetres.y
-      )
-    : Infinity;
-
-  if (opposite && shift <= MAX_MARKER_SHIFT_M) {
-    projectionMetres = corner;
-    markerMetres = opposite.nearest.point;
-    markerNote = `značka na fasáde oproti autobusovej stanici (lom cesty, ${fmt(shift)} m od potvrdenej značky)`;
-  } else if (opposite) {
-    markerNote =
-      `lom cesty nájdený, ale fasáda oproti nemu je ${fmt(shift)} m od potvrdenej ` +
-      `značky (limit ${MAX_MARKER_SHIFT_M} m) — nič sa neposúva`;
-  } else {
-    markerNote = 'lom cesty nájdený, ale oproti nemu nie je budova — nič sa neposúva';
-  }
-} else if (cornerResult && cornerResult.ambiguous) {
-  markerNote = `kandidátov na lom cesty: ${cornerResult.count} — nejednoznačné, nič sa neposúva`;
-} else {
-  markerNote = 'lom cesty sa nenašiel — nič sa neposúva';
-}
-
 /*
-  Ak sa značka neposunula podľa lomu, platí pravidlo z dávky 10: kolmý priemet
-  na cestu smerom k stanici a 8 m späť k budove.
+  Základ: kolmý priemet potvrdených súradníc na cestu smerom k stanici.
+  Slúži ako koncový bod pre prvý výpočet trasy — samotnú polohu značky určí
+  až tretí lom tejto trasy (nižšie).
 */
-if (markerMetres === anchorMetres && roads.length > 0) {
+if (roads.length > 0) {
   const toStation = stationMetres
     ? { x: stationMetres.x - anchorMetres.x, y: stationMetres.y - anchorMetres.y }
     : null;
@@ -702,7 +599,8 @@ if (markerMetres === anchorMetres && roads.length > 0) {
 
 let anchorIndex = buildings.findIndex((b) => contains(b.metres, markerMetres));
 if (anchorIndex < 0) {
-  let best = Infinity;
+  // Ak bod nepadne do pôdorysu, zoberie ho najbližšia budova do 25 m.
+  let best = MAX_ANCHOR_DISTANCE_M;
   buildings.forEach((building, index) => {
     const nearest = nearestOnPolyline(markerMetres, building.metres);
     if (nearest && nearest.dist < best) {
@@ -741,6 +639,65 @@ if (stationMetres && projectionMetres && roads.length > 0) {
     routeMetres = [stationMetres, ...found.points, projectionMetres, markerMetres];
     routeLength = found.length;
   }
+}
+
+/* --- §1 poloha z tretieho lomu trasy ------------------------------------- */
+
+/**
+ * Majiteľ to popísal jednoznačne: prevádzka je tam, kde sa trasa láme
+ * **tretíkrát**, priamo cez cestu. To sa dá vypočítať, nie odhadnúť.
+ *
+ * Významný lom = zmena smeru o 60° a viac; drobné zakrivenia ciest sa
+ * ignorujú. Ak trasa tri také lomy nemá, prah klesne na 45°. Ak ani tak,
+ * značka zostane tam, kde bola, a je to v reporte.
+ *
+ * Bod ide na vonkajšiu stranu zákruty, kolmo ~10 m od osi — teda cez cestu,
+ * nie do jej stredu.
+ */
+function bendAt(points, minAngle) {
+  const bends = [];
+  for (let i = 1; i < points.length - 1; i += 1) {
+    const a = { x: points[i].x - points[i - 1].x, y: points[i].y - points[i - 1].y };
+    const b = { x: points[i + 1].x - points[i].x, y: points[i + 1].y - points[i].y };
+    const angle =
+      (Math.abs(Math.atan2(a.x * b.y - a.y * b.x, a.x * b.x + a.y * b.y)) * 180) /
+      Math.PI;
+    if (angle >= minAngle) bends.push({ point: points[i], a, b });
+  }
+  return bends.length >= 3 ? bends[2] : null;
+}
+
+if (routeMetres) {
+  const bend = bendAt(routeMetres, 60) ?? bendAt(routeMetres, 45);
+
+  if (bend) {
+    const norm = (v) => {
+      const l = Math.hypot(v.x, v.y) || 1;
+      return { x: v.x / l, y: v.y / l };
+    };
+    const incoming = norm({ x: -bend.a.x, y: -bend.a.y });
+    const outgoing = norm(bend.b);
+    // Vnútro zákruty je súčet oboch ramien; prevádzka je na opačnej strane.
+    const inward = norm({ x: incoming.x + outgoing.x, y: incoming.y + outgoing.y });
+    markerMetres = {
+      x: bend.point.x - inward.x * MARKER_ACROSS_M,
+      y: bend.point.y - inward.y * MARKER_ACROSS_M,
+    };
+    projectionMetres = bend.point;
+    markerNote = `značka z tretieho lomu trasy, ${fmt(
+      Math.hypot(markerMetres.x - anchorMetres.x, markerMetres.y - anchorMetres.y)
+    )} m od potvrdenej značky`;
+
+    const again = shortestPath(roads, stationMetres, projectionMetres);
+    if (again) {
+      routeMetres = [stationMetres, ...again.points, projectionMetres, markerMetres];
+      routeLength = again.length;
+    }
+  } else {
+    markerNote = 'trasa nemá tri lomy ani pri 45° — značka zostáva na priemete';
+  }
+} else {
+  markerNote = 'trasa sa nevykreslila — značka zostáva na priemete';
 }
 
 /* --- poradie kreslenia --------------------------------------------------- */

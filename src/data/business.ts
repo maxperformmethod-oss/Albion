@@ -182,6 +182,12 @@ export const FEATURES = {
    */
   familyBusiness: true,
   ownerNote: true,
+  /**
+   * Tri kratšie háčiky (ocenenie zadarmo, vybavenie na počkanie, pozvanie
+   * do Kontaktu). Sú to sľuby, ktoré musí niekto dodržať pri pulte, takže
+   * ostávajú vypnuté, kým ich majiteľ nepotvrdí — pozri docs/OTAZKY.md.
+   */
+  hooks: false,
   /** Červený DEV badge pri chýbajúcom telefóne. */
   devPlaceholderBadges: true,
 } as const;

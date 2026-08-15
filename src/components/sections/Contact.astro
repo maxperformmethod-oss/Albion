@@ -1,7 +1,7 @@
 ---
 import Section from '../ui/Section.astro';
 import SectionTexture from '../ui/SectionTexture.astro';
-import { addressWithPostalCode, business, isConfirmed } from '../../data/business.ts';
+import { addressWithPostalCode, business, isConfirmed, FEATURES } from '../../data/business.ts';
 import { getContent } from '../../data/i18n.ts';
 import { formatDays } from '../../lib/hours.ts';
 import { phoneDisplayLong, phoneHref, buildCta } from '../../lib/cta.ts';
@@ -40,7 +40,15 @@ const showDevBadge = import.meta.env.DEV && !phoneHref;
     <p class="text-lead text-bone-muted mt-6" data-reveal>{lead}</p>
   </div>
 
-  <dl class="mt-12 grid grid-cols-1 gap-x-12 gap-y-10 sm:grid-cols-2">
+  {
+    FEATURES.hooks && (
+      <p class="text-lead text-bone mt-8 max-w-[44ch]" data-reveal>
+        {content.hooks.contact}
+      </p>
+    )
+  }
+
+  <dl class="mt-12 grid grid-cols-1 gap-x-16 gap-y-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
     {
       phoneHref && (
         <div class="border-hairline-dark border-t pt-6" data-reveal>
@@ -51,7 +59,7 @@ const showDevBadge = import.meta.env.DEV && !phoneHref;
             <a
               href={phoneHref}
               aria-label={callAriaLabelLong}
-              class="font-serif text-h3 hover:text-gold transition-fast"
+              class="font-serif text-h2 hover:text-gold transition-fast block leading-tight whitespace-nowrap"
               data-numeric
             >
               {phoneDisplayLong}

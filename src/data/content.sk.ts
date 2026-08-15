@@ -99,6 +99,23 @@ export const content = {
     ctaPrimary: 'Zavolať',
     ctaSecondary: 'Chcem oceniť vec',
     micro: 'Osobne · Diskrétne · Bez objednania',
+    /**
+     * Hlavný háčik. Ide naživo — je to **sľub o správaní, nie tvrdenie o trhu**,
+     * takže ho nikto nemôže vyvrátiť a nespadá pod nepodložené superlatívy.
+     * Nadväzuje na „Záložňa, kde sa vieme dohodnúť“ a uzatvára tú myšlienku.
+     */
+    hook: 'Ak vám inde dajú viac, povedzte nám to. Vieme sa dohodnúť.',
+  },
+
+  /**
+   * Tri kratšie háčiky. **Nepublikujú sa, kým ich majiteľ nepotvrdí** —
+   * visia na `FEATURES.hooks`. Háčik smie byť odvážny, ale musí byť
+   * splniteľný pri pulte; inak stratíme zákazníka natrvalo.
+   */
+  hooks: {
+    valuation: 'Ocenenie na počkanie. Zadarmo a nezáväzne.',
+    howItWorks: 'Väčšinu vecí vybavíme, kým na ne čakáte.',
+    contact: 'Zavolajte a opýtajte sa. Aj keď si nie ste istí, či to má cenu.',
   },
 
   whatWeAccept: {

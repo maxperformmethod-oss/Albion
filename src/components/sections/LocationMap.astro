@@ -262,6 +262,11 @@ const street = isConfirmed(business.street) ? business.street : null;
     opacity: 0;
   }
 
+  [data-map] :global(.glow) {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
   /* --- popisy ------------------------------------------------------------ */
 
   /*
@@ -446,6 +451,76 @@ const street = isConfirmed(business.street) ? business.street : null;
       :global(.js) [data-map].is-drawn :global(.pulse) {
         animation-delay: 1160ms;
       }
+    }
+
+    /*
+      Po dokreslení prejde po trase raz svetlejší zlatý tón — je to ten moment,
+      ktorý oku povie „takto sa tam dostaneš“. Jeden prechod, nie slučka.
+    */
+    :global(.js) [data-map].is-drawn :global(.route) {
+      animation: route-sheen 900ms var(--ease-out-quint) 2000ms 1 both;
+    }
+
+    @keyframes route-sheen {
+      0% {
+        stroke: var(--color-gold);
+      }
+      45% {
+        stroke: var(--color-gold-hover);
+      }
+      100% {
+        stroke: var(--color-gold);
+      }
+    }
+
+    /* Budova Albionu: po dosadnutí jednorazovo zosilnie žiara a vráti sa. */
+    :global(.js) [data-map].is-drawn :global(.glow) {
+      animation: glow-pulse 700ms var(--ease-out-quint) 2200ms 1 both;
+    }
+
+    @keyframes glow-pulse {
+      0% {
+        opacity: 1;
+      }
+      40% {
+        opacity: 1;
+        transform: scale(1.4);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    /*
+      Popisy nabehnú až na konci, po 60 ms za sebou:
+      Železničná stanica → Autobusová stanica → Albion.
+    */
+    :global(.js) [data-map] :global(.label),
+    :global(.js) [data-map] :global(.here-label) {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+
+    :global(.js) [data-map].is-drawn :global(.label),
+    :global(.js) [data-map].is-drawn :global(.here-label) {
+      opacity: 1;
+      transform: none;
+      transition:
+        opacity 300ms var(--ease-out-quint),
+        transform 300ms var(--ease-out-quint);
+    }
+
+    :global(.js) [data-map].is-drawn :global(.label) {
+      transition-delay: 1900ms;
+    }
+
+    :global(.js) [data-map].is-drawn :global(.label) + :global(.label) {
+      transition-delay: 1960ms;
+    }
+
+    :global(.js) [data-map].is-drawn :global(.here-label) {
+      transition-delay: 2020ms;
     }
 
     @keyframes map-pulse {

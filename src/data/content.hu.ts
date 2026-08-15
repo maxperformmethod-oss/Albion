@@ -63,6 +63,13 @@ export const content = {
     ctaPrimary: 'Hívjon',
     ctaSecondary: 'Felbecsültetném',
     micro: 'Személyesen · Diszkréten · Bejelentkezés nélkül',
+    hook: 'Ha máshol többet adnak, mondja meg nekünk. Meg tudunk egyezni.',
+  },
+
+  hooks: {
+    valuation: 'Értékbecslés helyben. Ingyen és kötelezettség nélkül.',
+    howItWorks: 'A legtöbb dolgot elintézzük, amíg megvárja.',
+    contact: 'Hívjon és kérdezzen. Akkor is, ha nem biztos benne, hogy megéri.',
   },
 
   whatWeAccept: {

@@ -23,8 +23,8 @@ const signatureText = signature.replace('{year}', String(business.foundedYear));
 {
   FEATURES.ownerNote && (
     <Section tone="ink">
-      <div class="flex flex-col gap-10 lg:flex-row">
-        <div class="lg:w-[62%]">
+      <div class="mx-auto max-w-[52ch] py-8 text-center">
+        <div>
           <Eyebrow data-reveal>{eyebrow}</Eyebrow>
 
           {/*
@@ -37,14 +37,11 @@ const signatureText = signature.replace('{year}', String(business.foundedYear));
           </blockquote>
 
           <p class="text-small text-bone-muted mt-6" data-reveal>
-            <span class="rule-gold mb-4 w-10" aria-hidden="true" />
+            <span class="rule-gold mx-auto mb-4 w-10" aria-hidden="true" />
             {signatureText}
           </p>
         </div>
 
-        <div class="lg:w-[38%]">
-          {/* TODO: photo */}
-        </div>
       </div>
     </Section>
   )

@@ -17,11 +17,23 @@ const { id, h2, lead, items, outro } = content.whatWeAccept;
 >
   <PaperGold slot="backdrop" />
 
-  <h2 id="what-we-accept-title" class="font-serif text-h2 max-w-[20ch]" data-reveal>
-    {h2}
-  </h2>
+  {/*
+    Nadpis vpravo, obsah vľavo. Každá sekcia má inú kompozíciu — po treťom
+    opakovaní tej istej stavby oko prestane vnímať a stránka splynie do šablóny.
+  */}
+  <div class="lg:flex lg:items-start lg:justify-between lg:gap-16">
+    <p class="text-lead text-ink-muted mt-6 max-w-[44ch] lg:order-1 lg:mt-2 lg:w-[40%]" data-reveal>
+      {lead}
+    </p>
 
-  <p class="text-lead text-ink-muted measure mt-6" data-reveal>{lead}</p>
+    <h2
+      id="what-we-accept-title"
+      class="font-serif text-h2 max-w-[20ch] lg:order-2 lg:w-[56%] lg:text-right"
+      data-reveal
+    >
+      {h2}
+    </h2>
+  </div>
 
   {/*
     Tri stĺpce, nie štyri: v štyroch úzkych stĺpcoch sa názvy lámali na drobné

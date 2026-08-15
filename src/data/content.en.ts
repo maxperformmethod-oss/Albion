@@ -57,6 +57,13 @@ export const content = {
     ctaPrimary: 'Call us',
     ctaSecondary: 'Get an item valued',
     micro: 'In person · Discreet · No appointment needed',
+    hook: 'If someone offers you more, tell us. We can work something out.',
+  },
+
+  hooks: {
+    valuation: 'Valued while you wait. Free and with no obligation.',
+    howItWorks: 'Most things we settle while you wait.',
+    contact: 'Call and ask. Even if you are not sure it is worth anything.',
   },
 
   whatWeAccept: {

@@ -34,18 +34,32 @@ const withYear = (text: string) =>
     <SectionTexture texture="wide" sizes="100vw" />
   </div>
 
-  <h2 id="why-albion-title" class="font-serif text-h2" data-reveal>{h2}</h2>
+  {/*
+    Nadpis ostáva na mieste, kým body idú popri ňom. Je to jediné miesto na
+    stránke, kde návštevník rozhoduje, či ostane — stojí za to, aby mu otázka
+    zostala pred očami. Pod 1024 px sticky nedáva zmysel, tam sa všetko
+    skladá pod seba.
+  */}
+  <div class="lg:flex lg:items-start lg:gap-16">
+    <h2
+      id="why-albion-title"
+      class="font-serif text-h2 why-sticky max-w-[16ch] lg:w-[34%]"
+      data-reveal
+    >
+      {h2}
+    </h2>
 
-  <ul class="mt-12 grid grid-cols-1 gap-x-12 gap-y-10 md:grid-cols-2">
+    <ul class="mt-12 grid grid-cols-1 gap-y-12 lg:mt-0 lg:w-[58%]">
     {
       items.map((item) => (
         <li class="border-hairline-dark border-t pt-6" data-reveal>
           <h3 class="font-serif text-h3">{item.title}</h3>
           <p class="text-bone-muted mt-3">{withYear(item.text)}</p>
         </li>
-      ))
-    }
-  </ul>
+        ))
+      }
+    </ul>
+  </div>
 </Section>
 
 <style>
@@ -55,6 +69,13 @@ const withYear = (text: string) =>
     opacity: 0.1;
     filter: grayscale(0.4);
     pointer-events: none;
+  }
+
+  @media (width >= 64rem) {
+    .why-sticky {
+      position: sticky;
+      top: 7rem;
+    }
   }
 
   .why-texture :global(img) {
