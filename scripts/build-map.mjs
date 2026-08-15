@@ -589,7 +589,6 @@ for (const element of data.elements) {
 */
 const WANTED = [
   { match: /billa/i, rank: 3 },
-  { match: /hacienda/i, rank: 5 },
   { match: /m\s*&\s*m\s*caffe/i, rank: 6 },
 ];
 
@@ -1044,8 +1043,8 @@ const scaleX = VIEW.w - 40 - scaleBar;
 const scaleY = VIEW.h - 60;
 
 /** Severka: sever je v tomto skosení vpravo hore. */
-const northX = 64;
-const northY = 48;
+const northX = 72;
+const northY = 52;
 
 let svgKbMax = 0;
 for (const locale of LOCALE_ORDER) {
@@ -1091,9 +1090,9 @@ ${landmarkLabels.map((l) => label(toView(l.point), l.name, 'label label-sm', -24
   <g class="chrome">
   <path d="M${fmt(scaleX)} ${scaleY}h${fmt(scaleBar)}M${fmt(scaleX)} ${scaleY - 4}v8M${fmt(scaleX + scaleBar)} ${scaleY - 4}v8"/>
   <text class="chrome-text" x="${fmt(scaleX + scaleBar / 2)}" y="${scaleY - 10}" text-anchor="middle">${map.scale}</text>
-  <path d="M${northX} ${northY + 16}L${northX + 14} ${northY + 8}"/>
-  <path d="M${northX + 14} ${northY + 8}l-5 -1 1 5Z" class="chrome-fill"/>
-  <text class="chrome-text" x="${northX - 4}" y="${northY + 22}" text-anchor="end">${map.north}</text>
+  <path class="north-axis" d="M${northX} ${northY + 30}L${northX + 26} ${northY + 15}"/>
+  <path class="chrome-fill" d="M${northX + 26} ${northY + 15}l-10 -1.5 2.5 9Z"/>
+  <text class="chrome-text north-label" x="${northX + 30}" y="${northY + 10}">${map.north}</text>
   </g>
 
   <text class="note" x="24" y="${VIEW.h - 24}" text-anchor="start">${map.note}</text>

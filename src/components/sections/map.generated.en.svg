@@ -154,15 +154,14 @@
   <text class="label" x="1029.7" y="90.1" text-anchor="middle">Railway station</text>
   <text class="label" x="542.4" y="538.7" text-anchor="middle">Bus station</text>
 <text class="label label-sm" x="660.1" y="403.7" text-anchor="middle">Billa</text>
-<text class="label label-sm" x="464.7" y="271.8" text-anchor="middle">Pizzéria Hacienda</text>
   <text class="here-label" x="746.8" y="228.3" text-anchor="middle">Albion</text>
 
   <g class="chrome">
   <path d="M1006.7 640h153.3M1006.7 636v8M1160 636v8"/>
   <text class="chrome-text" x="1083.3" y="630" text-anchor="middle">50 m</text>
-  <path d="M64 64L78 56"/>
-  <path d="M78 56l-5 -1 1 5Z" class="chrome-fill"/>
-  <text class="chrome-text" x="60" y="70" text-anchor="end">N</text>
+  <path class="north-axis" d="M72 82L98 67"/>
+  <path class="chrome-fill" d="M98 67l-10 -1.5 2.5 9Z"/>
+  <text class="chrome-text north-label" x="102" y="62">N</text>
   </g>
 
   <text class="note" x="24" y="676" text-anchor="start">Orientation sketch</text>
