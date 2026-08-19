@@ -16,7 +16,7 @@ const content = getContent(Astro.currentLocale);
  * Veta o vyššej sume za výkup je za `FEATURES.hooks`. Musí byť pravdivá
  * a majiteľ ju zatiaľ nepotvrdil — bez nej blok funguje rovnako.
  */
-const { eyebrow, h2, pawn, sell, note } = content.pawnOrSell;
+const { eyebrow, h2, pawn, sell, note, notExchange } = content.pawnOrSell;
 ---
 
 <Section tone="ink-soft" labelledby="pawn-or-sell-title">
@@ -42,6 +42,13 @@ const { eyebrow, h2, pawn, sell, note } = content.pawnOrSell;
   </div>
 
   <p class="text-bone-muted text-small mt-8" data-reveal>{note}</p>
+
+  {/*
+    Vecné vymedzenie voči zmenárni. Stojí až tu, pod oboma možnosťami —
+    je to miesto, kde si zákazník ujasňuje, čo firma robí. Do hero,
+    nadpisov ani meta popisu nepatrí.
+  */}
+  <p class="text-bone-muted text-small mt-2" data-reveal>{notExchange}</p>
 </Section>
 
 <style>

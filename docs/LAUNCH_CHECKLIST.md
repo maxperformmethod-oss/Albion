@@ -58,8 +58,16 @@ Fotka č. 6 má na stránke pripravené miesto vedľa ich odkazu — teraz je ta
 | D2 | Skontrolovať otváracie hodiny v profile | Musia sedieť s webom |
 | D3 | Pridať fotky do profilu | Tie isté, čo pôjdu na web |
 | D4 | **Poprosiť stálych zákazníkov o recenzie** | Profil má 3,0 z **dvoch** hodnotení. To odrádza viac než žiadne hodnotenie. Poprosiť, nie kupovať, nevymýšľať. |
+| D5 | **Skontrolovať kategórie v Google profile** | Ak je medzi vedľajšími kategóriami „Zmenáreň" alebo „Currency exchange service", odstrániť. Hlavná musí zostať „Záložňa / Pawn shop". Najpravdepodobnejší zdroj zámeny, oprava trvá pol minúty. |
+| D6 | **Vygoogliť vlastný názov** a zapísať katalógy, kde je firma vedená ako zmenáreň | Hľadať „Staničná Záložňa Albion", „Albion Lučenec", „ALBION P.M.". Najčastejšie: `lucenec.sk`, `virtualne.sk`, `tatradata.sk`, `azet.sk`, `zoznam.sk`. |
+| D7 | **Poslať žiadosť o opravu** každému katalógu z D6 | Väčšina má formulár na nahlásenie chyby alebo kontaktný e-mail. Stačí jedna veta: *firma prevádzkuje záložňu, nie zmenáreň, prosíme o preradenie do správnej kategórie.* |
 
 D4 pohne lokálnymi pozíciami viac než zvyšok tohto zoznamu dokopy.
+
+D5–D7 riešia zámenu so zmenárňou **pri zdroji**. Na webe je k tomu jedna vecná
+veta v bloku „Založiť alebo predať?", ale tá sama o sebe nestačí: web navštívi
+ten, kto firmu už našiel — katalógy formujú to, čo si o nej myslí ten, kto ju
+ešte nepozná.
 
 ---
 

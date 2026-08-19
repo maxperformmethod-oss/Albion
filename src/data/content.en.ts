@@ -97,6 +97,8 @@ export const content = {
       hook: 'An outright purchase usually pays more than a pawn loan.',
     },
     note: 'Which one is better for you, we will tell you with the item in front of us.',
+    /** See the note in content.sk.ts. */
+    notExchange: 'We are not a currency exchange — we do not exchange money.',
   },
 
   selling: {
@@ -188,6 +190,9 @@ export const content = {
       hours: 'Opening hours',
       email: 'E-mail',
     },
+    /** See the note in content.sk.ts. */
+    phoneNote:
+      'If we do not pick up, we are serving someone at the counter. Try again shortly or come in.',
     openNow: 'Open now',
     closedNow: 'Currently closed',
     onBreak: 'Lunch break · we open at {time}',

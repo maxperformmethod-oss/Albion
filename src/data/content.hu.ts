@@ -103,6 +103,8 @@ export const content = {
       hook: 'Felvásárlásnál általában többet kap, mint zálognál.',
     },
     note: 'Hogy melyik éri meg jobban, a tárgy fölött megmondjuk.',
+    /** Pozri poznámku v content.sk.ts. */
+    notExchange: 'Pénzváltó nem vagyunk — pénzt nem váltunk.',
   },
 
   selling: {
@@ -194,6 +196,9 @@ export const content = {
       hours: 'Nyitvatartás',
       email: 'E-mail',
     },
+    /** Pozri poznámku v content.sk.ts. */
+    phoneNote:
+      'Ha nem vesszük fel, éppen kiszolgálunk valakit a pultnál. Próbálja meg kicsit később, vagy jöjjön be.',
     openNow: 'Most nyitva',
     closedNow: 'Jelenleg zárva',
     onBreak: 'Ebédszünet · {time} órakor nyitunk',

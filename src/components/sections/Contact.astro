@@ -64,6 +64,22 @@ const showDevBadge = import.meta.env.DEV && !phoneHref;
             >
               {phoneDisplayLong}
             </a>
+
+            {/*
+              Vykreslí sa až vtedy, keď je otvorené — mimo hodín nedáva
+              zmysel a mätie. Stav počíta ten istý klientsky skript ako
+              indikátor nižšie, preto je poznámka viazaná na potvrdené
+              otváracie hodiny.
+            */}
+            {openingHours && (
+              <p
+                data-phone-note
+                hidden
+                class="text-bone-muted text-small mt-3 max-w-[42ch]"
+              >
+                {content.contact.phoneNote}
+              </p>
+            )}
           </dd>
         </div>
       )
@@ -207,6 +223,11 @@ const showDevBadge = import.meta.env.DEV && !phoneHref;
                   ?.replace('{when}', status.when)
                   .replace('{time}', status.time)
               : text.closedNow;
+
+      const phoneNote = document.querySelector<HTMLElement>(
+        '[data-phone-note]'
+      );
+      if (phoneNote) phoneNote.hidden = status.state !== 'open';
 
       if (label) {
         indicator.textContent = label;

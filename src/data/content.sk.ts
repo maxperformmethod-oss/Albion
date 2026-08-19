@@ -169,6 +169,12 @@ export const content = {
       hook: 'Za výkup zvyčajne dostanete viac než pri zálohe.',
     },
     note: 'Ktorá možnosť sa vám oplatí viac, povieme priamo pri veci.',
+    /**
+     * Ľudia si Albion mýlia so zmenárňou. Vecné vymedzenie patrí sem, kde si
+     * zákazník ujasňuje, čo firma robí — nie do hero, nadpisov ani meta popisu.
+     * Negatívne vymedzenie nesmie byť to prvé, čo o firme povieme.
+     */
+    notExchange: 'Zmenáreň nie sme — peniaze nevymieňame.',
   },
 
   /**
@@ -288,6 +294,14 @@ export const content = {
       hours: 'Otváracie hodiny',
       email: 'E-mail',
     },
+    /**
+     * Pod telefónnym číslom, len počas otváracích hodín. Rieši reálnu
+     * frustráciu: kto sa nedovolá, myslí si, že firma nefunguje.
+     * Zámerne len na tomto jedinom mieste — inak by z informácie bolo
+     * ospravedlnenie.
+     */
+    phoneNote:
+      'Ak nedvíhame, obsluhujeme niekoho pri pulte. Skúste o chvíľu alebo príďte.',
     openNow: 'Otvorené teraz',
     closedNow: 'Momentálne zatvorené',
     /** `{time}` = čas, kedy sa po prestávke otvára. */
