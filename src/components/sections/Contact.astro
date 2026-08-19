@@ -1,6 +1,7 @@
 ---
 import Section from '../ui/Section.astro';
 import SectionTexture from '../ui/SectionTexture.astro';
+import OpenState from '../ui/OpenState.astro';
 import { addressWithPostalCode, business, isConfirmed, FEATURES } from '../../data/business.ts';
 import { getContent } from '../../data/i18n.ts';
 import { formatDays } from '../../lib/hours.ts';
@@ -67,16 +68,11 @@ const showDevBadge = import.meta.env.DEV && !phoneHref;
 
             {/*
               Vykreslí sa až vtedy, keď je otvorené — mimo hodín nedáva
-              zmysel a mätie. Stav počíta ten istý klientsky skript ako
-              indikátor nižšie, preto je poznámka viazaná na potvrdené
-              otváracie hodiny.
+              zmysel a mätie. Stav zapisuje OpenState na <html>, takže tu
+              stačí CSS a žiadny ďalší skript. Bez JS sa nezobrazí.
             */}
             {openingHours && (
-              <p
-                data-phone-note
-                hidden
-                class="text-bone-muted text-small mt-3 max-w-[42ch]"
-              >
+              <p class="phone-note text-bone-muted text-small mt-3 max-w-[42ch]">
                 {content.contact.phoneNote}
               </p>
             )}
@@ -123,13 +119,7 @@ const showDevBadge = import.meta.env.DEV && !phoneHref;
                 </li>
               ))}
             </ul>
-            <span
-              data-open-indicator
-              data-hours={JSON.stringify(openingHours)}
-              data-text={JSON.stringify(content.contact)}
-              hidden
-              class="text-small mt-4 inline-flex items-center gap-2"
-            />
+            <OpenState class="text-small mt-4" />
           </dd>
         </div>
       )
@@ -175,72 +165,12 @@ const showDevBadge = import.meta.env.DEV && !phoneHref;
     object-position: center bottom;
   }
 
-  [data-open-indicator]::before {
-    content: '';
-    display: inline-block;
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 50%;
-    background-color: currentColor;
+  /* Poznámka pri telefóne dáva zmysel len počas otváracích hodín. */
+  .phone-note {
+    display: none;
   }
 
-  [data-open-indicator][data-state='open'] {
-    color: var(--color-gold);
-  }
-
-  [data-open-indicator][data-state='break'],
-  [data-open-indicator][data-state='closed'] {
-    color: var(--color-bone-muted);
+  :global(html[data-open-state='open']) .phone-note {
+    display: block;
   }
 </style>
-
-<script>
-  import { getOpenState } from '../../lib/hours.ts';
-  import type { OpeningInterval } from '../../data/business.ts';
-
-  // Stav sa počíta na klientovi — statický build by ho zamrazil v čase buildu.
-  const indicator = document.querySelector<HTMLElement>('[data-open-indicator]');
-
-  if (indicator) {
-    try {
-      const intervals = JSON.parse(
-        indicator.dataset.hours ?? '[]'
-      ) as OpeningInterval[];
-      const text = JSON.parse(indicator.dataset.text ?? '{}') as Record<
-        string,
-        string
-      >;
-
-      const status = getOpenState(intervals);
-
-      const label =
-        status.state === 'open'
-          ? text.openNow
-          : status.state === 'break'
-            ? text.onBreak?.replace('{time}', status.time)
-            : status.state === 'closed'
-              ? text.closedUntil
-                  ?.replace('{when}', status.when)
-                  .replace('{time}', status.time)
-              : text.closedNow;
-
-      const phoneNote = document.querySelector<HTMLElement>(
-        '[data-phone-note]'
-      );
-      if (phoneNote) phoneNote.hidden = status.state !== 'open';
-
-      if (label) {
-        indicator.textContent = label;
-        indicator.dataset.state =
-          status.state === 'open'
-            ? 'open'
-            : status.state === 'break'
-              ? 'break'
-              : 'closed';
-        indicator.hidden = false;
-      }
-    } catch {
-      // Radšej nič, ako nesprávny stav.
-    }
-  }
-</script>

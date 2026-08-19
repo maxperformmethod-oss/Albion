@@ -16,7 +16,7 @@
 import sharp from 'sharp';
 import { existsSync } from 'node:fs';
 
-const SRC = 'public/images/hero-1920.webp';
+const SRC = 'public/images/hero-1280.webp';
 
 /** Referenčný desktop. Hero je `min-h-[min(100svh,44rem)]` → 44rem = 704 px. */
 const BOX = { w: 1440, h: 704 };
@@ -79,12 +79,12 @@ const angledProgress = (x, y, deg) => {
 
 const MASK_ANGLED = [
   [0, 0.96],
-  [0.42, 0.94],
-  [1, 0.73],
+  [0.62, 0.9],
+  [1, 0.32],
 ];
 
 const MASK_BOTTOM = [
-  [0, 0.95],
+  [0, 0.72],
   [0.45, 0],
 ];
 

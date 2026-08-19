@@ -35,28 +35,54 @@ const MAX_MEAN_LUMINANCE = 0.12;
 // Zlatá textúra je výnimka: nestmavuje sa na úroveň ostatných, lebo by
 // z nej zostal hnedý fľak. Kontrast textu nad ňou rieši maska, nie
 // stmavenie obrazu.
-const grade = (src, brightness, saturation = 0.75) =>
-  sharp(src)
+const grade = (src, brightness, saturation = 0.75, crop = null) => {
+  const pipeline = sharp(src);
+  // Výrez musí ísť pred škálovaním, inak by sa orezávala už zmenšená kópia.
+  if (crop) pipeline.extract(crop);
+  return pipeline
     .modulate({ brightness, saturation })
     .linear(0.92, -10)
     .gamma(1.05);
+};
 
 const sets = [
+  /*
+    Hero: skutočná fotka vchodu. Nahradila abstraktnú textúru — zákazník,
+    ktorý prevádzku hľadá prvýkrát, vidí, čo má na ulici hľadať.
+
+    Zdroj je snímka z telefónu 1290×2796 s čiernymi pruhmi hore (0–250)
+    a dole (2544–2795). Užitočná plocha je teda y 251–2543 a výrezy sa
+    počítajú z nej. Dôležité pásmo — dvere, markíza s nápisom, banner
+    „PENIAZE IHNEĎ“ a žltá tabuľa — leží medzi y 1180 a 2000.
+
+    Grading je iný než pri textúre (docs/PROMPT_FINAL19.md §1): fotka sa
+    nesmie stmaviť na nečitateľnosť, preto vyššia `brightness` a vlastný
+    strop luminancie (0,26 oproti 0,12 pri textúre — fotka má oblohu a svetlú
+    fasádu). Čitateľnosť textu nad ňou rieši maska v `Hero.astro`,
+    nie stmavenie obrazu.
+  */
   {
-    src: `${RAW}/hero-raw.png`,
-    brightness: 0.85,
+    src: `${RAW}/hero-entrance.png`,
+    brightness: 0.84,
+    saturation: 0.88,
+    maxLuminance: 0.26,
+    // 16:9 cez celú šírku fotky, vystredené na dvere a markízu.
+    crop: { left: 0, top: 1080, width: 1290, height: 726 },
     variants: [
-      { w: 1920, avif: 40, webp: 66, name: 'hero-1920', budget: 140 },
-      { w: 1280, avif: 42, webp: 68, name: 'hero-1280', budget: 90 },
-      { w: 760, avif: 45, webp: 70, name: 'hero-760', budget: 60 },
+      { w: 1280, avif: 46, webp: 70, name: 'hero-1280', budget: 140 },
+      { w: 760, avif: 48, webp: 72, name: 'hero-760', budget: 60 },
     ],
   },
   {
-    src: `${RAW}/hero-raw-mobile.png`,
-    brightness: 0.7,
+    src: `${RAW}/hero-entrance.png`,
+    brightness: 0.84,
+    saturation: 0.88,
+    maxLuminance: 0.26,
+    // 4:5 pre mobil — vyrezané na vchod, nie zo širokouhlej kompozície.
+    crop: { left: 0, top: 931, width: 1290, height: 1612 },
     variants: [
-      { w: 760, avif: 45, webp: 70, name: 'hero-m-760', budget: 55 },
-      { w: 480, avif: 48, webp: 72, name: 'hero-m-480', budget: 30 },
+      { w: 760, avif: 48, webp: 72, name: 'hero-m-760', budget: 90 },
+      { w: 480, avif: 50, webp: 74, name: 'hero-m-480', budget: 45 },
     ],
   },
 
@@ -118,10 +144,10 @@ const sets = [
   },
 ];
 
-const missing = sets.filter((set) => !existsSync(set.src));
+const missing = [...new Set(sets.map((set) => set.src))].filter((src) => !existsSync(src));
 if (missing.length > 0) {
   console.log(
-    `preskočené — chýbajú zdroje: ${missing.map((s) => s.src).join(', ')}`
+    `preskočené — chýbajú zdroje: ${missing.join(', ')}`
   );
   process.exit(0);
 }
@@ -136,8 +162,8 @@ let totalAvifKb = 0;
  * `sharp(...).stats()` číta zdrojový súbor, nie výsledok pipeline — merať sa
  * teda musí až na prekódovanom buffri, inak stmavenie kontrolu vôbec neovplyvní.
  */
-async function meanLuminance(src, brightness, saturation) {
-  const processed = await grade(src, brightness, saturation)
+async function meanLuminance(src, brightness, saturation, crop) {
+  const processed = await grade(src, brightness, saturation, crop)
     .resize({ width: 400 })
     .png()
     .toBuffer();
@@ -146,7 +172,7 @@ async function meanLuminance(src, brightness, saturation) {
 }
 
 for (const set of sets) {
-  const mean = await meanLuminance(set.src, set.brightness, set.saturation);
+  const mean = await meanLuminance(set.src, set.brightness, set.saturation, set.crop);
   const bright = mean > (set.maxLuminance ?? MAX_MEAN_LUMINANCE);
   if (bright) tooBright += 1;
   console.log(
@@ -156,7 +182,7 @@ for (const set of sets) {
   for (const variant of set.variants) {
     for (const format of ['avif', 'webp']) {
       const file = `${OUT}/${variant.name}.${format}`;
-      const info = await grade(set.src, set.brightness, set.saturation)
+      const info = await grade(set.src, set.brightness, set.saturation, set.crop)
         .resize({ width: variant.w })
         [format]({ quality: variant[format], effort: 6 })
         .toFile(file);

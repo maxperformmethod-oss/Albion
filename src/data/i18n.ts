@@ -8,9 +8,11 @@
  * hovoriacou komunitou a časť zákazníkov maďarsky reálne hľadá. Angličtina
  * je slabší prípad, ale ide naživo na výslovné rozhodnutie.
  *
- * V prepínači sú **len texty `SK · HU · EN`, nikdy vlajky.** V tomto regióne
- * je vlajka ako symbol jazyka nešťastná — maďarsky hovoriaci zákazník je
- * občan Slovenska a vlajka to vzťahuje k štátu, nie k reči.
+ * V prepínači sú **vlajky plus kód jazyka** (`LOCALE_SWITCHER.style = "flags"`).
+ * Je to vedomé rozhodnutie majiteľa z dávky 14, ktorý pozná Lučenec lepšie
+ * než my. Alternatíva `style: "text"` (len `SK · HU · EN`) je pripravená
+ * a prepne sa jedným riadkom — dôvod, prečo bola pôvodne odporúčaná, je
+ * pri samotnej konštante nižšie.
  *
  * Čo sa neprekladá: názov prevádzky, obchodné meno, adresa v úradnom tvare,
  * telefón, IČO. Tie sú v `business.ts` a sú pre všetky verzie rovnaké — musia

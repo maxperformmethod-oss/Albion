@@ -59,8 +59,12 @@ export const content = {
     eyebrow: '{address} — {landmark}',
     h1: 'Zálogház, ahol meg tudunk egyezni.',
     h1Lines: ['Zálogház, ahol meg', 'tudunk egyezni.'],
-    lead: 'Albion Losoncon. Arany, ékszer, óra, elektronika, szerszám, autó és rendhagyó dolgok. Minden tárgyat egyedileg értékelünk, és őszintén megmondjuk, mennyit ér.',
+    lead: 'Arany, ékszer, elektronika, szerszám, autó és rendhagyó dolgok. Ön előtt értékeljük fel, az összeget pedig őszintén megmondjuk.',
+    /** Pozri poznámku v content.sk.ts. */
+    imageAlt: 'A Staničná Záložňa Albion bejárata, {street}, Losonc',
     ctaPrimary: 'Hívjon',
+    /** Odkaz na vlastnú schému okolia, nie na Google — najprv nech vidí, kde to je. */
+    showOnMap: 'Mutatom a térképen',
     ctaSecondary: 'Felbecsültetném',
     micro: 'Személyesen · Diszkréten · Bejelentkezés nélkül',
     hook: 'Ha máshol többet adnak, mondja meg nekünk. Meg tudunk egyezni.',
@@ -119,8 +123,7 @@ export const content = {
     eyebrow: 'Egyedi hozzáállás',
     h2: 'A szokatlan tárgy még nem probléma.',
     paragraphs: [
-      'A láncoknak árlistájuk és engedélyezett kategóriáik vannak. Nekünk szemünk van és ledolgozott éveink. Minden tárgynál azt nézzük, mi az valójában és milyen állapotban van — nem azt, hogy belefér-e egy rubrikába.',
-      'Ezért tudunk beszélni gépekről, autóról, nagyobb értékű dolgokról, és arról is, amit örökölt és fogalma sincs, mit kezdjen vele.',
+      'A láncoknak árlistájuk és engedélyezett kategóriáik vannak. Mi azt nézzük, mi a tárgy valójában és milyen állapotban van — ezért tudunk beszélni gépekről, autóról vagy arról is, amit örökölt és fogalma sincs, mit kezdjen vele.',
     ],
     cta: 'Hívjon és kérdezzen',
   },

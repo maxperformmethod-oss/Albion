@@ -101,8 +101,17 @@ export const content = {
      * Spojené medzerou sa musia rovnať `h1` — stráži to unit test.
      */
     h1Lines: ['Záložňa, kde sa', 'vieme dohodnúť.'],
-    lead: 'Albion v Lučenci. Zlato, šperky, hodinky, elektronika, náradie, autá aj atypické veci. Každú vec oceníme individuálne a povieme vám to na rovinu.',
+    lead: 'Zlato, šperky, elektronika, náradie, autá aj atypické veci. Oceníme ich pri vás a sumu povieme na rovinu.',
+    /**
+     * Fotka vchodu nesie informáciu, nie dekoráciu — preto popisný `alt`
+     * a žiadne `aria-hidden`. Adresa je tu zámerne v úradnom tvare: pre
+     * čítačku je to jediné miesto v hero, kde zaznie celá. Ulica sa dopĺňa
+     * z business.ts cez `{street}` — v textoch nesmie byť natvrdo.
+     */
+    imageAlt: 'Vchod do Staničnej Záložne Albion na {street} v Lučenci',
     ctaPrimary: 'Zavolať',
+    /** Odkaz na vlastnú schému okolia, nie na Google — najprv nech vidí, kde to je. */
+    showOnMap: 'Ukázať na mape',
     ctaSecondary: 'Chcem oceniť vec',
     micro: 'Osobne · Diskrétne · Bez objednania',
     /**
@@ -196,8 +205,7 @@ export const content = {
     eyebrow: 'Individuálny prístup',
     h2: 'Zvláštna vec ešte neznamená problém.',
     paragraphs: [
-      'Reťazce majú cenník a zoznam povolených kategórií. My máme oči a odchodené roky. Pri každej veci sa pozeráme na to, čo naozaj je a v akom je stave — nie na to, či sa zmestí do kolónky.',
-      'Preto sa vieme baviť aj o strojoch, o aute, o veciach vyššej hodnoty, aj o niečom, čo ste zdedili a netušíte, čo s tým.',
+      'Reťazce majú cenník a zoznam povolených kategórií. My sa pozeráme na to, čo vec naozaj je a v akom je stave — preto sa vieme baviť aj o strojoch, aute alebo o niečom, čo ste zdedili a netušíte, čo s tým.',
     ],
     cta: 'Zavolať a opýtať sa',
   },

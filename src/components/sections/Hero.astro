@@ -1,7 +1,9 @@
 ---
 import Button from '../ui/Button.astro';
 import Eyebrow from '../ui/Eyebrow.astro';
-import { addressLine, business, FEATURES } from '../../data/business.ts';
+import OpenState from '../ui/OpenState.astro';
+import { addressLine, business, isConfirmed, FEATURES } from '../../data/business.ts';
+import { formatDays, formatTime } from '../../lib/hours.ts';
 import { getContent } from '../../data/i18n.ts';
 import { hasPhone, buildCta } from '../../lib/cta.ts';
 
@@ -12,14 +14,36 @@ const { primaryCta } = buildCta(content);
  * Hero nepoužíva Section.astro — má vlastný vertikálny rytmus (prekrýva ho
  * fixná hlavička), obraz na pozadí a sentinel pre sticky call bar.
  *
- * Obraz je abstraktná textúra, nie fotka prevádzky: `alt=""` + `aria-hidden`.
- * Nikdy nesmie tvrdiť, že zobrazuje Albion. Hero funguje aj bez neho —
- * pod obrazom je čistý ink-900.
+ * Obraz je **skutočná fotka vchodu**, nie textúra — preto má popisný `alt`
+ * a nie je `aria-hidden`. Nesie informáciu: kto prevádzku hľadá prvýkrát,
+ * vidí, čo má na ulici hľadať. Hero funguje aj bez neho — pod obrazom je
+ * čistý ink-900.
  *
  * Ak telefón chýba, primárne CTA je už „Chcem oceniť vec“, takže sekundárne
  * tlačidlo by bolo jeho duplikát. Vtedy sa nevykreslí.
  */
 const showSecondary = hasPhone;
+
+/*
+  Riadok faktov pod tlačidlami. Cieľ je, aby mal človek na prvej obrazovke
+  telefón, adresu, hodiny aj mapu bez jediného scrollu — preto sa nepridala
+  nová sekcia, ale jeden riadok.
+*/
+const openingHours = isConfirmed(business.openingHours)
+  ? business.openingHours
+  : null;
+
+const hoursLine = openingHours
+  ?.map(
+    (interval) =>
+      `${formatDays(interval.days)} ${formatTime(interval.open)}–${formatTime(interval.close)}`
+  )
+  .join(', ');
+
+const imageAlt = content.hero.imageAlt.replace(
+  '{street}',
+  isConfirmed(business.street) ? business.street : business.city
+);
 
 const eyebrow = content.hero.eyebrow
   .replace('{address}', addressLine)
@@ -29,9 +53,12 @@ const eyebrow = content.hero.eyebrow
 <section aria-labelledby="hero-title" class="hero bg-ink-900 relative overflow-hidden">
   <picture>
     {/*
-      Mobil dostáva menší variant zámerne. Je to rozostrená dekoratívna textúra
-      pod 96 % maskou — plné retina rozlíšenie by sa nedalo rozoznať, ale dekód
-      760×943 stál v meraní stovky ms na LCP. Pozri docs/REPORT_faza6_audit.md.
+      Zdrojová fotka má 1290 px na šírku, takže variant 1920 by bol len
+      rozmazané zväčšenie bez detailu navyše. Najväčší desktopový variant
+      je preto 1280 a na širších displejoch ho škáluje prehliadač.
+
+      Mobil dostáva menší variant zámerne — dekód väčšieho stál v meraní
+      stovky ms na LCP. Pozri docs/REPORT_faza6_audit.md.
     */}
     <source
       media="(max-width: 767px)"
@@ -47,20 +74,19 @@ const eyebrow = content.hero.eyebrow
     />
     <source
       type="image/avif"
-      srcset="/images/hero-760.avif 760w, /images/hero-1280.avif 1280w, /images/hero-1920.avif 1920w"
+      srcset="/images/hero-760.avif 760w, /images/hero-1280.avif 1280w"
       sizes="100vw"
     />
     <source
       type="image/webp"
-      srcset="/images/hero-760.webp 760w, /images/hero-1280.webp 1280w, /images/hero-1920.webp 1920w"
+      srcset="/images/hero-760.webp 760w, /images/hero-1280.webp 1280w"
       sizes="100vw"
     />
     <img
       src="/images/hero-1280.webp"
-      width="1920"
-      height="1076"
-      alt=""
-      aria-hidden="true"
+      width="1280"
+      height="720"
+      alt={imageAlt}
       fetchpriority="high"
       decoding="async"
       class="hero-bg"
@@ -112,6 +138,24 @@ const eyebrow = content.hero.eyebrow
       }
     </div>
 
+    {/*
+      Hodiny · stav · odkaz na schému okolia. Oddeľovač pred stavom sa
+      vykreslí len keď skript stav naozaj zapísal — bez JS by inak ostali
+      dve bodky vedľa seba.
+    */}
+    <p class="hero-facts text-bone-muted text-small mt-6" data-reveal>
+      {hoursLine && <span data-numeric>{hoursLine}</span>}
+      {hoursLine && <span class="sep facts-sep" aria-hidden="true">·</span>}
+      <OpenState />
+      <span class="sep" aria-hidden="true">·</span>
+      <a
+        href={`#${content.location.id}`}
+        class="hover:text-gold transition-fast underline decoration-1 underline-offset-4"
+      >
+        {content.hero.showOnMap}
+      </a>
+    </p>
+
     {/* Hlavný háčik. Kratší stĺpec než lead — má sa čítať ako výrok. */}
     <p class="font-serif text-h3 mt-8 max-w-[44ch]" data-reveal>
       {content.hero.hook}
@@ -154,9 +198,14 @@ const eyebrow = content.hero.eyebrow
   /*
     Text nesmie závisieť od toho, ako obraz vyzerá.
 
-    Krytie sa po zmene palety muselo priplusovať: svetlejší `ink-900` znížil
-    kontrast H1 z 12,14:1 na 11,65:1. Zarážky sú zrkadlené v
-    `scripts/check-hero-contrast.mjs` — pri zmene uprav oboje a spusti ho.
+    Pri textúre bola pravá strana na 0,73 a nevadilo to — nebolo tam nič,
+    čo by sa dalo rozoznať. Fotku vchodu to ale zhltlo úplne, takže pravá
+    strana ide na 0,32 a spodok na 0,72, pričom zlom sa posunul na 62 % —
+    tam ešte leží textové pásmo. Ľavá strana, kde leží H1, zostáva
+    na 0,96 — kontrast textu sa tým nemení.
+
+    Zarážky sú zrkadlené v `scripts/check-hero-contrast.mjs` — pri zmene
+    uprav oboje a spusti ho.
   */
   .hero::after {
     content: '';
@@ -167,10 +216,43 @@ const eyebrow = content.hero.eyebrow
       linear-gradient(
         100deg,
         rgb(26 29 34 / 0.96) 0%,
-        rgb(26 29 34 / 0.94) 42%,
-        rgb(26 29 34 / 0.73) 100%
+        rgb(26 29 34 / 0.9) 62%,
+        rgb(26 29 34 / 0.32) 100%
       ),
-      linear-gradient(to top, rgb(26 29 34 / 0.95) 0%, rgb(26 29 34 / 0) 45%);
+      linear-gradient(to top, rgb(26 29 34 / 0.72) 0%, rgb(26 29 34 / 0) 45%);
+  }
+
+  .hero-facts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    /* Na mobile sa riadok zalomí — to je v poriadku. */
+    gap: 0.25rem 0.75rem;
+  }
+
+  /* Bez JS stav nepoznáme, takže sa neukáže ani bodka pred ním. */
+  .facts-sep {
+    display: none;
+  }
+
+  :global(html[data-open-state]) .facts-sep {
+    display: inline;
+  }
+
+  /*
+    Pod 40rem sa riadok zalomí. Oddeľovače by ostali visieť na koncoch
+    riadkov, takže sa z riadku stane zoznam pod sebou a bodky zmiznú.
+  */
+  @media (width < 40rem) {
+    .hero-facts {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.35rem;
+    }
+
+    .hero-facts .sep {
+      display: none;
+    }
   }
 
   /* Jediný výnimočný pohyb na celom webe: riadkový reveal H1. */

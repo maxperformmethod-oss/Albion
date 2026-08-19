@@ -53,8 +53,12 @@ export const content = {
     eyebrow: '{address} — {landmark}',
     h1: 'A pawnshop where we can work something out.',
     h1Lines: ['A pawnshop where we', 'can work something out.'],
-    lead: 'Albion in Lučenec. Gold, jewellery, watches, electronics, tools, cars and unusual items. We value every item individually and tell you straight what it is worth.',
+    lead: 'Gold, jewellery, electronics, tools, cars and unusual items. We value them in front of you and tell you the figure straight.',
+    /** See the note in content.sk.ts. */
+    imageAlt: 'Entrance to Staničná Záložňa Albion at {street} in Lučenec',
     ctaPrimary: 'Call us',
+    /** Odkaz na vlastnú schému okolia, nie na Google — najprv nech vidí, kde to je. */
+    showOnMap: 'Show on the map',
     ctaSecondary: 'Get an item valued',
     micro: 'In person · Discreet · No appointment needed',
     hook: 'If someone offers you more, tell us. We can work something out.',
@@ -113,8 +117,7 @@ export const content = {
     eyebrow: 'An individual approach',
     h2: 'An unusual item is not a problem.',
     paragraphs: [
-      'Chains have a price list and a set of permitted categories. We have our eyes and the years behind us. With every item we look at what it actually is and what condition it is in — not at whether it fits a box on a form.',
-      'That is why we can talk about machinery, about a car, about higher-value items, and about something you inherited and have no idea what to do with.',
+      'Chains have a price list and a set of permitted categories. We look at what the item actually is and what condition it is in — which is why we can talk about machinery, a car, or something you inherited and have no idea what to do with.',
     ],
     cta: 'Call and ask',
   },

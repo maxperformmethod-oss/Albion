@@ -1,0 +1,117 @@
+---
+import { business, isConfirmed } from '../../data/business.ts';
+import { getContent } from '../../data/i18n.ts';
+
+/**
+ * „Otvorené teraz“ / „Zatvorené · otvárame zajtra o 7:00“.
+ *
+ * Používa sa v hero aj v Kontakte. Zámerne jeden komponent a **jeden skript**
+ * pre všetky výskyty — dva samostatné výpočty by sa vedeli rozísť.
+ *
+ * Stav sa počíta na klientovi; statický build by ho zamrazil v čase buildu.
+ * Skript navyše zapíše výsledok na `<html data-open-state="…">`, takže sa naň
+ * dá viazať aj čisté CSS (napr. poznámka pri telefóne, ktorá má zmysel len
+ * počas otváracích hodín) bez ďalšieho JS.
+ *
+ * Ak `openingHours` nie sú potvrdené, nevykreslí sa nič.
+ */
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+
+const content = getContent(Astro.currentLocale);
+
+const openingHours = isConfirmed(business.openingHours)
+  ? business.openingHours
+  : null;
+
+// Do atribútu ide len to, čo skript naozaj potrebuje — nie celý blok textov.
+const labels = {
+  openNow: content.contact.openNow,
+  closedNow: content.contact.closedNow,
+  onBreak: content.contact.onBreak,
+  closedUntil: content.contact.closedUntil,
+};
+---
+
+{
+  openingHours && (
+    <span
+      data-open-state
+      data-hours={JSON.stringify(openingHours)}
+      data-labels={JSON.stringify(labels)}
+      hidden
+      class:list={['inline-flex items-center gap-2', className]}
+    />
+  )
+}
+
+<style>
+  [data-open-state]::before {
+    content: '';
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background-color: currentColor;
+  }
+
+  [data-open-state][data-state='open'] {
+    color: var(--color-gold);
+  }
+
+  [data-open-state][data-state='break'],
+  [data-open-state][data-state='closed'] {
+    color: var(--color-bone-muted);
+  }
+</style>
+
+<script>
+  import { getOpenState } from '../../lib/hours.ts';
+  import type { OpeningInterval } from '../../data/business.ts';
+
+  const nodes = document.querySelectorAll<HTMLElement>('[data-open-state]');
+  const first = nodes[0];
+
+  if (first) {
+    try {
+      const intervals = JSON.parse(
+        first.dataset.hours ?? '[]'
+      ) as OpeningInterval[];
+
+      const status = getOpenState(intervals);
+      const state = status.state === 'closed-indefinitely' ? 'closed' : status.state;
+
+      // Jeden zápis pre celú stránku — viaže sa naň aj CSS mimo tohto komponentu.
+      document.documentElement.dataset.openState = state;
+
+      nodes.forEach((node) => {
+        const labels = JSON.parse(node.dataset.labels ?? '{}') as Record<
+          string,
+          string
+        >;
+
+        const label =
+          status.state === 'open'
+            ? labels.openNow
+            : status.state === 'break'
+              ? labels.onBreak?.replace('{time}', status.time)
+              : status.state === 'closed'
+                ? labels.closedUntil
+                    ?.replace('{when}', status.when)
+                    .replace('{time}', status.time)
+                : labels.closedNow;
+
+        if (!label) return;
+
+        node.textContent = label;
+        node.dataset.state = state;
+        node.hidden = false;
+      });
+    } catch {
+      // Radšej nič, ako nesprávny stav.
+    }
+  }
+</script>
