@@ -1,25 +1,50 @@
 ---
 /**
- * Dekoratívna textúra na pozadí tmavej sekcie.
+ * Dekoratívny obraz na pozadí tmavej sekcie.
  *
- * Je to abstraktný materiál, nie fotka prevádzky — nikdy netvrdí nič o realite,
- * preto vždy `alt=""` + `aria-hidden` a nikdy nie je jediným nositeľom informácie.
- * Sekcia musí vyzerať dobre aj vtedy, keď sa obraz nenačíta; pod ním je čistý
- * podklad sekcie.
+ * Sú to abstraktné materiály a zábery, nie fotky prevádzky ani tovaru —
+ * nikdy netvrdia nič o realite, preto vždy `alt=""` + `aria-hidden` a nikdy
+ * nie sú jediným nositeľom informácie. Sekcia musí vyzerať dobre aj vtedy,
+ * keď sa obraz nenačíta; pod ním je čistý podklad sekcie.
+ *
+ * **Pravidlo z docs/PROMPT_FINAL22.md §2: tieto obrazy sú pozadie, nikdy nie
+ * ponuka.** Nesmú sa objaviť v sekcii predaja ani nikde, kde by ich zákazník
+ * mohol pochopiť ako tovar na sklade — sú generované a taký sľub by klamal.
  *
  * Rozpočet a grading rieši `scripts/build-images.mjs`. Umiestnenie, krytie a
  * masku si nastavuje volajúca sekcia — tento komponent drží len markup,
  * prístupnosť a načítanie.
  *
  * `fetchpriority="high"` sem nepatrí. Jediný obraz, ktorý ho smie mať, je hero
- * — je to LCP prvok. Tieto tri sú `lazy` a nesmú súťažiť o prvú dávku requestov.
+ * — je to LCP prvok. Tieto sú `lazy` a nesmú súťažiť o prvú dávku requestov.
  */
 interface Props {
-  texture: 'panel' | 'wide' | 'contact' | 'gold' | 'gold-light';
+  texture:
+    | 'panel'
+    | 'wide'
+    | 'contact'
+    | 'gold'
+    | 'gold-light'
+    | 'rings'
+    | 'chains'
+    | 'ring-single';
   /** `sizes` musí sedieť so skutočnou šírkou prvku, inak sa stiahne väčší variant. */
   sizes: string;
   class?: string;
 }
+
+/**
+ * Hranica malého variantu. Musí sedieť s breakpointom, na ktorom sa obraz
+ * v CSS naozaj mení — nie s nejakou univerzálnou hranicou. `media` v
+ * `<source>` nevie `rem`, preto je v px pri 16 px základe.
+ *
+ * Pri väčšine obrazov je to 48rem (768 px), kde klesá krytie. Panel v sekcii
+ * „Zvláštna vec“ je iný: pod 64rem (1024 px) sa nevykresľuje vôbec, takže
+ * jeho hranica musí ísť tam. Inak by si tablet stiahol desktopový súbor pre
+ * prvok, ktorý ani nevidí.
+ */
+const BREAKPOINT_48REM = '(max-width: 767px)';
+const BREAKPOINT_64REM = '(max-width: 1023px)';
 
 const TEXTURES = {
   /** Pravý panel v sekcii Individuálne ocenenie. */
@@ -40,10 +65,7 @@ const TEXTURES = {
     width: 1376,
     height: 768,
   },
-  /**
-   * Zlatý satén — jediné miesto, kde je zlato ako plocha. Sekcia
-   * „Individuálne ocenenie“. Jeho sila je v tom, že je jeden.
-   */
+  /** Zlatý satén. Po dávke 22 už nie je nasadený — drží sa ako záloha. */
   gold: {
     variants: ['tex-gold-700 700w', 'tex-gold-1100 1100w'],
     width: 1100,
@@ -55,21 +77,68 @@ const TEXTURES = {
     width: 900,
     height: 502,
   },
+
+  /*
+    Tri makro zábery zlata z dávky 22. Každý má **vlastný mobilný variant**
+    cez `media` — nie len menší krok v `srcset`. Pri `srcset` rozhoduje
+    `sizes` a stačí jeden nepresný odhad na to, aby si telefón stiahol
+    desktopový súbor a zmenšil ho. `media` to rozhoduje tvrdo.
+  */
+
+  /** A — dva snubné prstene. Pravý panel „Zvláštna vec ešte neznamená problém“. */
+  rings: {
+    variants: ['gold-rings-1400 1400w'],
+    mobile: ['gold-rings-700 700w'],
+    mobileMedia: BREAKPOINT_64REM,
+    width: 1400,
+    height: 781,
+  },
+  /** B — retiazky. Full-bleed tón pod „Založiť alebo predať?“. */
+  chains: {
+    variants: ['gold-chains-1600 1600w'],
+    mobile: ['gold-chains-760 760w'],
+    mobileMedia: BREAKPOINT_48REM,
+    width: 1600,
+    height: 893,
+  },
+  /** C — prsteň s dlhým tieňom. Pravá tretina „Slova majiteľov“. */
+  'ring-single': {
+    variants: ['gold-ring-1100 1100w'],
+    mobile: ['gold-ring-760 760w'],
+    mobileMedia: BREAKPOINT_48REM,
+    width: 1100,
+    height: 614,
+  },
 } as const;
 
 const { texture, sizes, class: className } = Astro.props;
 
-const { variants, width, height } = TEXTURES[texture];
+const entry = TEXTURES[texture];
+const { variants, width, height } = entry;
+const mobile: readonly string[] = 'mobile' in entry ? entry.mobile : [];
+const mobileMedia = 'mobileMedia' in entry ? entry.mobileMedia : BREAKPOINT_48REM;
 
-const srcset = (extension: string) =>
-  variants.map((v) => `/images/${v.replace(' ', `.${extension} `)}`).join(', ');
+const srcset = (list: readonly string[], extension: string) =>
+  list.map((v) => `/images/${v.replace(' ', `.${extension} `)}`).join(', ');
 
 const fallback = `/images/${variants[variants.length - 1].split(' ')[0]}.webp`;
 ---
 
 <picture>
-  <source type="image/avif" srcset={srcset('avif')} sizes={sizes} />
-  <source type="image/webp" srcset={srcset('webp')} sizes={sizes} />
+  {/*
+    Mobilné zdroje musia stáť PRED desktopovými — prehliadač berie prvý
+    `<source>`, ktorého `media` aj `type` sedia, a ďalej sa nepozerá.
+  */}
+  {
+    mobile.length > 0 && (
+      <>
+        <source type="image/avif" media={mobileMedia} srcset={srcset(mobile, 'avif')} />
+        <source type="image/webp" media={mobileMedia} srcset={srcset(mobile, 'webp')} />
+      </>
+    )
+  }
+  <source type="image/avif" srcset={srcset(variants, 'avif')} sizes={sizes} />
+  <source type="image/webp" srcset={srcset(variants, 'webp')} sizes={sizes} />
   <img
     src={fallback}
     width={width}

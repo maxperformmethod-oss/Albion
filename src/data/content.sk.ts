@@ -29,7 +29,7 @@ export const content = {
     title:
       'Staničná Záložňa Albion Lučenec | Výkup zlata, šperkov a elektroniky',
     description:
-      'Rodinná záložňa v Lučenci pri stanici, od roku 2001. Založenie a výkup zlata, šperkov, elektroniky, náradia aj áut. Individuálne ocenenie a osobná dohoda.',
+      'Rodinná záložňa v Lučenci pri stanici, od roku 2001. Založenie a výkup zlata, šperkov, elektroniky aj náradia. Individuálne ocenenie a osobná dohoda.',
   },
 
   /**
@@ -101,7 +101,7 @@ export const content = {
      * Spojené medzerou sa musia rovnať `h1` — stráži to unit test.
      */
     h1Lines: ['Záložňa, kde sa', 'vieme dohodnúť.'],
-    lead: 'Zlato, šperky, elektronika, náradie, autá aj atypické veci. Oceníme ich pri vás a sumu povieme na rovinu.',
+    lead: 'Zlato, šperky, elektronika, náradie aj atypické veci. Oceníme ich pri vás a sumu povieme na rovinu.',
     /**
      * Fotka vchodu nesie informáciu, nie dekoráciu — preto popisný `alt`
      * a žiadne `aria-hidden`. Adresa je tu zámerne v úradnom tvare: pre
@@ -142,16 +142,25 @@ export const content = {
      * Konkrétnosť je celý zmysel — „elektronika“ nikomu nepovie, či zoberieme
      * jeho slúchadlá.
      *
+     * **Zlato má dve miesta, nie jedno** (docs/PROMPT_FINAL21.md §2): je to
+     * hlavná činnosť a prstene ľudia nosia najčastejšie. Rozdelením na
+     * „Zlato“ a „Prstene a šperky“ sa zároveň zaplnila diera po vozidlách,
+     * takže mriežka zostala 4 × 2.
+     *
+     * Vozidlá tu **nie sú a nemajú byť** — majiteľ potvrdil, že záložňa
+     * s autami nerobí. Pôvodné zadanie ich uvádzalo, ale majiteľ má prednosť
+     * pred zadaním.
+     *
      * Posledná položka podriadok **nemá**: konkrétny zoznam pod „iné veci
      * s hodnotou“ by protirečil vete, že zoznam nie je uzavretý.
      */
     items: [
-      { title: 'Zlato a šperky', detail: 'Zlomkové zlato, poškodené aj nenosené šperky, retiazky, prstene.' },
+      { title: 'Zlato', detail: 'Zlomkové zlato, retiazky, prívesky. Aj poškodené.' },
+      { title: 'Prstene a šperky', detail: 'Snubné a zásnubné prstene, náramky, náušnice. Aj nenosené.' },
       { title: 'Hodinky', detail: 'Značkové aj staršie mechanické. Aj nefunkčné.' },
       { title: 'Mobily a elektronika', detail: 'Telefóny, tablety, reproduktory, slúchadlá, herné konzoly.' },
       { title: 'Počítače a notebooky', detail: 'Notebooky, monitory, grafické karty.' },
       { title: 'Náradie a stroje', detail: 'Aku náradie, brúsky, zváračky, záhradná technika.' },
-      { title: 'Autá a vozidlá', detail: 'Osobné autá, motocykle, prívesy.' },
       { title: 'Zberateľské a cennejšie predmety', detail: 'Mince, striebro, medaily, hudobné nástroje.' },
       { title: 'Iné veci s hodnotou' },
     ] as Item[],
@@ -205,7 +214,7 @@ export const content = {
     eyebrow: 'Individuálny prístup',
     h2: 'Zvláštna vec ešte neznamená problém.',
     paragraphs: [
-      'Reťazce majú cenník a zoznam povolených kategórií. My sa pozeráme na to, čo vec naozaj je a v akom je stave — preto sa vieme baviť aj o strojoch, aute alebo o niečom, čo ste zdedili a netušíte, čo s tým.',
+      'Reťazce majú cenník a zoznam povolených kategórií. My sa pozeráme na to, čo vec naozaj je a v akom je stave — preto sa vieme baviť aj o strojoch alebo o niečom, čo ste zdedili a netušíte, čo s tým.',
     ],
     cta: 'Zavolať a opýtať sa',
   },

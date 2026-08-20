@@ -22,7 +22,7 @@
 Statický marketingový web pre **Albion — záložňa v Lučenci**.
 
 **Fáza 1–6 (teraz):** jedna homepage `/` + `404` + SEO základ. Architektúra pripravená na podstránky.
-**Neskôr (NEIMPLEMENTUJ):** `/vykup-zlata`, `/auta`, `/kontakt`, sekcia „Vybraný tovar".
+**Neskôr (NEIMPLEMENTUJ):** `/vykup-zlata`, `/kontakt`, sekcia „Vybraný tovar“.
 
 **Stack:** Astro (aktuálna stabilná verzia) · Tailwind CSS v4 cez `@tailwindcss/vite` · TypeScript strict · `@astrojs/sitemap` · self-hosted fonty. **Žiadny React/Vue/Svelte, žiadna animačná ani ikonová knižnica.**
 
@@ -38,7 +38,10 @@ Statický marketingový web pre **Albion — záložňa v Lučenci**.
 
 **Služby:** záložné služby, výkup cenných vecí, predaj vybraných vecí (sekundárne), individuálne ocenenie, individuálne dohody, veci vyššej hodnoty.
 
-**Prijíma:** zlato, šperky, hodinky, elektronika, telefóny, počítače, náradie, stroje, cennejšie predmety, vozidlá, autá, väčší majetok.
+**Prijíma:** zlato, šperky, hodinky, elektronika, telefóny, počítače, náradie, stroje, cennejšie predmety, väčší majetok.
+
+> **Vozidlá NIE.** Majiteľ potvrdil, že záložňa s autami nerobí (dávka 21).
+> Pôvodné zadanie ich uvádzalo — majiteľ má prednosť pred zadaním.
 
 **Kľúčový princíp:** *Ak to má hodnotu, Albion je ochotný sa o tom individuálne baviť.* Kategórie nikdy neprezentuj ako uzavretý zoznam.
 
@@ -205,7 +208,7 @@ Tlačidlo: `Zavolať`
 ### Hero
 - Eyebrow: `Kapitána Nálepku 41, Lučenec — pri stanici`
 - H1: `Záložňa, kde sa vieme dohodnúť.`
-- Lead: `Albion v Lučenci. Zlato, šperky, hodinky, elektronika, náradie, autá aj netypické veci. Každú vec oceníme individuálne a povieme vám to na rovinu.`
+- Lead: `Albion v Lučenci. Zlato, šperky, hodinky, elektronika, náradie aj netypické veci. Každú vec oceníme individuálne a povieme vám to na rovinu.`
 - CTA 1: `Zavolať` → `tel:`
 - CTA 2: `Chcem oceniť vec` → `#kontakt`
 - Micro: `Osobne · Diskrétne · Bez čakania na schválenie z centrály`
@@ -213,7 +216,7 @@ Tlačidlo: `Zavolať`
 ### 3 — Čo môžete založiť alebo predať
 - H2: `Čo u nás môžete založiť alebo predať`
 - Lead: `Toto sú veci, s ktorými k nám ľudia chodia najčastejšie. Zoznam nie je uzavretý.`
-- Položky: `Zlato a šperky` · `Hodinky` · `Mobily a elektronika` · `Počítače a notebooky` · `Náradie a stroje` · `Autá a vozidlá` · `Zberateľské a cennejšie predmety` · `Iné veci s hodnotou`
+- Položky: `Zlato` · `Prstene a šperky` · `Hodinky` · `Mobily a elektronika` · `Počítače a notebooky` · `Náradie a stroje` · `Zberateľské a cennejšie predmety` · `Iné veci s hodnotou`
 - Záver: `Nenašli ste svoju vec? To ešte nič neznamená — ozvite sa.`
 
 ### 4 — Individuálne ocenenie
@@ -235,7 +238,7 @@ Tlačidlo: `Zavolať`
 1. `Rozhoduje tu majiteľ` — `Nečakáte na schválenie z centrály. Dohodu uzatvárate priamo s tým, kto o nej rozhoduje.`
 2. `Dlhoročná miestna firma` — `Albion patrí k najdlhšie fungujúcim záložniam v Lučenci. Nie sme pobočka reťazca — sme miestna firma, ktorá tu chce fungovať aj o desať rokov.`
    *Ak `business.foundedYearConfirmed === true`, na začiatok textu sa doplní veta:* `V Lučenci pôsobíme od roku {foundedYear}.`
-3. `Berieme aj netypické veci` — `Od šperkov po autá a stroje. Ak to má hodnotu, vieme sa o tom baviť.`
+3. `Berieme aj netypické veci` — `Od šperkov po stroje. Ak to má hodnotu, vieme sa o tom baviť.`
 4. `Diskrétnosť` — `Čo sa dohodne u nás, ostáva u nás. Bez zbytočných otázok.`
 
 ### 7 — Kde nás nájdete
@@ -308,12 +311,12 @@ Jeden `IntersectionObserver` blok (~10 riadkov) v `BaseLayout` nad prvkami s `da
 ## 12. SEO
 
 - `<title>`: `Záložňa Lučenec — Albion | Výkup zlata, šperkov a elektroniky`
-- `<meta description>`: `Záložňa Albion v Lučenci pri stanici. Založenie a výkup zlata, šperkov, elektroniky, náradia aj áut. Individuálne ocenenie a osobná dohoda.`
+- `<meta description>`: `Záložňa Albion v Lučenci pri stanici. Založenie a výkup zlata, šperkov, elektroniky aj náradia. Individuálne ocenenie a osobná dohoda.`
 - Canonical, `og:*`, `og:locale=sk_SK`, `twitter:card=summary_large_image`. Meta rieš priamo v `BaseLayout` cez props.
 - Jeden statický `public/og.png` (1200×630, ink pozadie, wordmark, adresa).
 - `sitemap.xml` + generovaný `robots.txt` (doména z env).
 
-**Kľúčové slová — mapovanie (bez stuffingu):** hero → *záložňa Lučenec, pri stanici* · sekcia 3 → *výkup zlata / šperkov / elektroniky Lučenec, založenie auta Lučenec* · sekcia 4 → *ocenenie veci* · sekcia 7 + footer → *Kapitána Nálepku 41, Lučenec, železničná stanica*. Ak by veta znela neprirodzene, kľúčové slovo vypusti.
+**Kľúčové slová — mapovanie (bez stuffingu):** hero → *záložňa Lučenec, pri stanici* · sekcia 3 → *výkup zlata / šperkov / elektroniky Lučenec, záložňa zlato Lučenec* · sekcia 4 → *ocenenie veci* · sekcia 7 + footer → *Kapitána Nálepku 41, Lučenec, železničná stanica*. Ak by veta znela neprirodzene, kľúčové slovo vypusti.
 
 **JSON-LD `PawnShop`** z `business.ts`: `name`, `description`, `address`, `geo`, `telephone`, `openingHoursSpecification`, `url`, `image`, `areaServed: Lučenec`. **`priceRange` vynechaj.**
 **Kritické:** pole s hodnotou `TO_CONFIRM` sa do JSON-LD **nesmie vygenerovať vôbec** — ani prázdne, ani vymyslené.

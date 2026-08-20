@@ -100,22 +100,27 @@ const showStickyBar = stickyCallBar && FEATURES.stickyCallBar;
       */
       preloadHero && (
         <>
+          {/*
+            Hranica je 1024 px, nie 768 — tam sa hero láme na dva panely
+            a mení sa výrez fotky. Musí sedieť s `media` v Hero.astro,
+            inak si prehliadač preloadne jeden súbor a použije druhý.
+          */}
           <link
             rel="preload"
             as="image"
             type="image/avif"
-            media="(max-width: 767px)"
-            imagesrcset="/images/hero-m-480.avif 480w, /images/hero-m-760.avif 760w"
-            imagesizes="(max-width: 767px) 40vw, 100vw"
+            media="(max-width: 1023px)"
+            imagesrcset="/images/hero-wide-480.avif 480w, /images/hero-wide-760.avif 760w"
+            imagesizes="100vw"
             fetchpriority="high"
           />
           <link
             rel="preload"
             as="image"
             type="image/avif"
-            media="(min-width: 768px)"
-            imagesrcset="/images/hero-760.avif 760w, /images/hero-1280.avif 1280w"
-            imagesizes="100vw"
+            media="(min-width: 1024px)"
+            imagesrcset="/images/hero-panel-700.avif 700w, /images/hero-panel-1100.avif 1100w"
+            imagesizes="48vw"
             fetchpriority="high"
           />
         </>

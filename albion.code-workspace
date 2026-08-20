@@ -1,0 +1,14 @@
+{
+  "folders": [{ "path": "." }],
+  "settings": {
+    "files.exclude": { "**/.astro": true, "**/node_modules": true },
+    "git.autofetch": true
+  },
+  "extensions": {
+    "recommendations": [
+      "astro-build.astro-vscode",
+      "mhutchie.git-graph",
+      "dbaeumer.vscode-eslint"
+    ]
+  }
+}

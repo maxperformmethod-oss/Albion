@@ -1,3 +1,7 @@
+Projekt žije v C:\Dev\albion a nikde inde.
+Otvárať cez albion.code-workspace, nie cez File > Open Folder.
+Priečinok Albion na ploche je starý a nepoužíva sa.
+
 # Albion — Záložňa Lučenec
 
 Statická jednostránka. Cieľ: rýchlo dostať návštevníka k telefonátu.

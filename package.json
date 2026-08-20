@@ -14,7 +14,8 @@
     "check": "astro check",
     "test": "node --test \"tests/**/*.test.mjs\"",
     "images": "node scripts/build-images.mjs",
-    "map": "node scripts/build-map.mjs"
+    "map": "node scripts/build-map.mjs",
+    "contrast": "node scripts/check-hero-contrast.mjs && node scripts/check-section-contrast.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",

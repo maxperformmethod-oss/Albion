@@ -1,31 +1,29 @@
 /**
- * Kontrast textu nad hero obrazom.
+ * Kontrast textu v hero.
  *
- * Predchádzajúci audit meral 12,14:1 odčítaním pixelov zo screenshotu. To sa
- * nedá zopakovať a po každej zmene palety alebo obrazu je meranie neplatné.
- * Tento skript to počíta z tokenov a z hotového obrazu v `public/images/`:
- * zloží obraz s oboma maskami z `Hero.astro` presne tak, ako to robí prehliadač,
- * a nájde NAJSVETLEJŠÍ pixel v pásme, kde leží text. Výsledok je teda najhorší
- * možný prípad, nie priemer.
+ * **Od dávky 23 je to triviálne a to je celý zmysel zmeny.** Predtým ležal
+ * text nad fotkou vchodu a kontrast závisel od toho, aký pixel bol práve pod
+ * písmenom — skript musel skladať obraz s dvoma maskami a hľadať najsvetlejší
+ * bod v textovom pásme. Dnes je hero rozdelené na dva panely, ktoré sa
+ * neprekrývajú: text sedí na plnom `ink-900`, fotka má vlastný panel vpravo.
+ * Merať je teda čo merať — text voči podkladu panela.
  *
- * Cieľ z docs/HERO_ASSET.md: H1 nad obrazom ≥ 12:1.
+ * Skript ostáva, hoci je jednoduchý. Je to poistka na paletu: keby niekto
+ * zosvetlil `--color-ink-900` alebo stlmil `--color-bone`, spadne to tu,
+ * nie až na živom webe.
+ *
+ * **Keby sa hero niekedy vrátilo k fotke pod textom, tento skript prestane
+ * stačiť** a musí sa vrátiť meranie na pixeloch. Sesterský skript
+ * `check-section-contrast.mjs` ho pre dekoratívne obrazy v sekciách robí —
+ * odtiaľ sa dá vziať.
+ *
+ * Cieľ z docs/HERO_ASSET.md: H1 nad podkladom ≥ 12:1.
  *
  * Spustenie: node scripts/check-hero-contrast.mjs
  */
 
-import sharp from 'sharp';
-import { existsSync } from 'node:fs';
-
-const SRC = 'public/images/hero-1280.webp';
-
-/** Referenčný desktop. Hero je `min-h-[min(100svh,44rem)]` → 44rem = 704 px. */
-const BOX = { w: 1440, h: 704 };
-
-/** Text drží ľavú časť hero, `max-w-[18ch]`. Meriame s rezervou. */
-const TEXT_BAND = { x0: 0, x1: 0.6, y0: 0, y1: 1 };
-
-/** Podklad masky — musí sedieť s `--color-ink-900`. */
-const OVERLAY = [26, 29, 34];
+/** Podklad textového panela — musí sedieť s `--color-ink-900`. */
+const PANEL = [26, 29, 34];
 
 const TOKENS = {
   bone: '#F3F0EA',
@@ -33,10 +31,13 @@ const TOKENS = {
   gold: '#C9B085',
 };
 
+/*
+ * `bone` nesie H1 a je to jediný token s vlastnou latkou 12:1 z HERO_ASSET.md.
+ * `bone-muted` a `gold` sú sekundárny text a eyebrow — tam platí WCAG AA 4,5:1.
+ */
 const TARGET = { bone: 12, 'bone-muted': 4.5, gold: 4.5 };
 
-const hex = (h) =>
-  [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
 
 const toLinear = (c) => {
   const s = c / 255;
@@ -51,93 +52,13 @@ const contrast = (a, b) => {
   return (hi + 0.05) / (lo + 0.05);
 };
 
-/** Lineárna interpolácia medzi zarážkami gradientu. */
-const stopsAt = (stops, t) => {
-  if (t <= stops[0][0]) return stops[0][1];
-  const last = stops[stops.length - 1];
-  if (t >= last[0]) return last[1];
-  for (let i = 1; i < stops.length; i += 1) {
-    const [p0, v0] = stops[i - 1];
-    const [p1, v1] = stops[i];
-    if (t <= p1) return v0 + ((v1 - v0) * (t - p0)) / (p1 - p0);
-  }
-  return last[1];
-};
-
-/**
- * `linear-gradient(100deg, …)`. V CSS je 0deg „nahor“ a uhly rastú v smere
- * hodinových ručičiek, takže smerový vektor je (sin A, −cos A) pri osi y nadol.
- */
-const angledProgress = (x, y, deg) => {
-  const a = (deg * Math.PI) / 180;
-  const sin = Math.sin(a);
-  const cos = Math.cos(a);
-  const length = Math.abs(BOX.w * sin) + Math.abs(BOX.h * cos);
-  const projected = (x - BOX.w / 2) * sin - (y - BOX.h / 2) * cos;
-  return projected / length + 0.5;
-};
-
-const MASK_ANGLED = [
-  [0, 0.96],
-  [0.62, 0.9],
-  [1, 0.32],
-];
-
-const MASK_BOTTOM = [
-  [0, 0.72],
-  [0.45, 0],
-];
-
-const over = (source, backdrop, alpha) =>
-  backdrop.map((c, i) => alpha * source[i] + (1 - alpha) * c);
-
-if (!existsSync(SRC)) {
-  console.log(`preskočené — chýba ${SRC}. Spusti najprv \`npm run images\`.`);
-  process.exit(0);
-}
-
-/*
- * `object-fit: cover` — obraz sa škáluje tak, aby pokryl box, prebytok sa
- * oreže. Pri tomto pomere strán rozhoduje šírka, orezáva sa teda zvisle.
- */
-const { data, info } = await sharp(SRC)
-  .resize({ width: BOX.w, height: BOX.h, fit: 'cover', position: 'right' })
-  .raw()
-  .toBuffer({ resolveWithObject: true });
-
-const worst = { pixel: null, luminance: -1, x: 0, y: 0 };
-
-for (let y = Math.round(TEXT_BAND.y0 * BOX.h); y < TEXT_BAND.y1 * BOX.h; y += 2) {
-  for (let x = Math.round(TEXT_BAND.x0 * BOX.w); x < TEXT_BAND.x1 * BOX.w; x += 2) {
-    const offset = (y * info.width + x) * info.channels;
-    const source = [data[offset], data[offset + 1], data[offset + 2]];
-
-    // Poradie vrstiev: obraz → spodná maska → šikmá maska (prvá vrstva je navrchu).
-    const bottomProgress = 1 - y / BOX.h;
-    let composed = over(OVERLAY, source, stopsAt(MASK_BOTTOM, bottomProgress));
-    composed = over(
-      OVERLAY,
-      composed,
-      stopsAt(MASK_ANGLED, angledProgress(x, y, 100))
-    );
-
-    const l = luminance(composed);
-    if (l > worst.luminance) {
-      worst.luminance = l;
-      worst.pixel = composed.map(Math.round);
-      worst.x = x;
-      worst.y = y;
-    }
-  }
-}
-
 console.log(
-  `najsvetlejší podklad v textovom pásme: rgb(${worst.pixel.join(', ')})  @ ${worst.x},${worst.y}\n`
+  `podklad textového panela: rgb(${PANEL.join(', ')}) — plný ink-900, bez fotky a bez masky\n`
 );
 
 let failed = 0;
 for (const [name, value] of Object.entries(TOKENS)) {
-  const ratio = contrast(hex(value), worst.pixel);
+  const ratio = contrast(hex(value), PANEL);
   const ok = ratio >= TARGET[name];
   if (!ok) failed += 1;
   console.log(
@@ -146,6 +67,8 @@ for (const [name, value] of Object.entries(TOKENS)) {
 }
 
 if (failed > 0) {
-  console.log('\nPriplus krytie v maske v `Hero.astro`, nezmenšuj text.');
+  console.log('\nUprav paletu v `src/styles/global.css`. Text sa nezmenšuje ani nestmavuje.');
   process.exit(1);
 }
+
+console.log('\nhotovo — hero text je nad cieľom.');

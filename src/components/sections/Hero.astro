@@ -12,12 +12,20 @@ const { primaryCta } = buildCta(content);
 
 /**
  * Hero nepoužíva Section.astro — má vlastný vertikálny rytmus (prekrýva ho
- * fixná hlavička), obraz na pozadí a sentinel pre sticky call bar.
+ * fixná hlavička) a sentinel pre sticky call bar.
+ *
+ * **Dva panely, ktoré sa neprekrývajú** (docs/PROMPT_FINAL23.md §1).
+ * Dvakrát sme skúšali masku nad celoplošnou fotkou a dvakrát to nevyšlo.
+ * Príčina nebola v nastavení masky: vchod je v strede fotky a text tiež.
+ * Kým budú nad sebou, jedno vždy zakryje druhé. Preto text sedí na plnom
+ * `ink-900` vľavo a fotka má vlastný panel vpravo.
+ *
+ * Čo sme tým stratili: celoplošný filmový hero. Čo sme získali: vchod je
+ * vidieť celý — a to je jediný dôvod, prečo tá fotka na stránke je.
  *
  * Obraz je **skutočná fotka vchodu**, nie textúra — preto má popisný `alt`
  * a nie je `aria-hidden`. Nesie informáciu: kto prevádzku hľadá prvýkrát,
- * vidí, čo má na ulici hľadať. Hero funguje aj bez neho — pod obrazom je
- * čistý ink-900.
+ * vidí, čo má na ulici hľadať. Hero funguje aj bez neho.
  *
  * Ak telefón chýba, primárne CTA je už „Chcem oceniť vec“, takže sekundárne
  * tlačidlo by bolo jeho duplikát. Vtedy sa nevykreslí.
@@ -51,127 +59,139 @@ const eyebrow = content.hero.eyebrow
 ---
 
 <section aria-labelledby="hero-title" class="hero bg-ink-900 relative overflow-hidden">
-  <picture>
-    {/*
-      Zdrojová fotka má 1290 px na šírku, takže variant 1920 by bol len
-      rozmazané zväčšenie bez detailu navyše. Najväčší desktopový variant
-      je preto 1280 a na širších displejoch ho škáluje prehliadač.
+  {/*
+    Textový panel je v bežnom `container-page`, takže H1 začína **presne tam,
+    kde nadpisy všetkých sekcií nižšie**. Keby mal panel vlastné odsadenie
+    počítané z `vw`, o pár pixelov by to ušlo — a to je presne ten druh
+    nezarovnania, ktoré človek nevie pomenovať, ale vidí ho.
+  */}
+  <div class="container-page relative z-10">
+    <div class="hero-text flex min-h-[min(100svh,44rem)] flex-col justify-center pt-32 pb-20">
+      <Eyebrow data-reveal>{eyebrow}</Eyebrow>
 
-      Mobil dostáva menší variant zámerne — dekód väčšieho stál v meraní
-      stovky ms na LCP. Pozri docs/REPORT_faza6_audit.md.
-    */}
-    <source
-      media="(max-width: 767px)"
-      type="image/avif"
-      srcset="/images/hero-m-480.avif 480w, /images/hero-m-760.avif 760w"
-      sizes="(max-width: 767px) 40vw, 100vw"
-    />
-    <source
-      media="(max-width: 767px)"
-      type="image/webp"
-      srcset="/images/hero-m-480.webp 480w, /images/hero-m-760.webp 760w"
-      sizes="(max-width: 767px) 40vw, 100vw"
-    />
-    <source
-      type="image/avif"
-      srcset="/images/hero-760.avif 760w, /images/hero-1280.avif 1280w"
-      sizes="100vw"
-    />
-    <source
-      type="image/webp"
-      srcset="/images/hero-760.webp 760w, /images/hero-1280.webp 1280w"
-      sizes="100vw"
-    />
-    <img
-      src="/images/hero-1280.webp"
-      width="1280"
-      height="720"
-      alt={imageAlt}
-      fetchpriority="high"
-      decoding="async"
-      class="hero-bg"
-    />
-  </picture>
+      <span aria-hidden="true" class="rule-gold mt-5 w-16" data-rule data-reveal></span>
 
-  <div
-    class="container-page relative z-10 flex min-h-[min(100svh,44rem)] flex-col justify-center pt-32 pb-20"
-  >
-    <Eyebrow data-reveal>{eyebrow}</Eyebrow>
-
-    <span aria-hidden="true" class="rule-gold mt-5 w-16" data-rule data-reveal></span>
-
-    <h1
-      id="hero-title"
-      data-hero-title
-      class="hero-title font-serif text-display mt-7 max-w-[18ch]"
-    >
-      {
-        content.hero.h1Lines.map((line, index) => (
-          <span class="line">
-            <span class="line-inner" style={`--line-index:${index}`}>
-              {line}
-            </span>
-          </span>
-        ))
-      }
-    </h1>
-
-    <p class="text-lead text-bone-muted measure mt-7" data-reveal>
-      {content.hero.lead}
-    </p>
-
-    <div class="mt-10 flex flex-wrap items-center gap-3" data-reveal>
-      <Button
-        href={primaryCta.href}
-        icon={primaryCta.icon}
-        phone={primaryCta.phone}
+      <h1
+        id="hero-title"
+        data-hero-title
+        class="hero-title font-serif text-display mt-7 max-w-[18ch]"
       >
-        {primaryCta.text}
-      </Button>
+        {
+          content.hero.h1Lines.map((line, index) => (
+            <span class="line">
+              <span class="line-inner" style={`--line-index:${index}`}>
+                {line}
+              </span>
+            </span>
+          ))
+        }
+      </h1>
+
+      <p class="text-lead text-bone-muted measure mt-7" data-reveal>
+        {content.hero.lead}
+      </p>
+
+      <div class="mt-10 flex flex-wrap items-center gap-3" data-reveal>
+        <Button
+          href={primaryCta.href}
+          icon={primaryCta.icon}
+          phone={primaryCta.phone}
+        >
+          {primaryCta.text}
+        </Button>
+
+        {
+          showSecondary && (
+            <Button variant="ghost" href="#kontakt">
+              {content.hero.ctaSecondary}
+            </Button>
+          )
+        }
+      </div>
+
+      {/*
+        Hodiny · stav · odkaz na schému okolia. Oddeľovač pred stavom sa
+        vykreslí len keď skript stav naozaj zapísal — bez JS by inak ostali
+        dve bodky vedľa seba.
+      */}
+      <p class="hero-facts text-bone-muted text-small mt-6" data-reveal>
+        {hoursLine && <span data-numeric>{hoursLine}</span>}
+        {hoursLine && <span class="sep facts-sep" aria-hidden="true">·</span>}
+        <OpenState />
+        <span class="sep" aria-hidden="true">·</span>
+        <a
+          href={`#${content.location.id}`}
+          class="hover:text-gold transition-fast underline decoration-1 underline-offset-4"
+        >
+          {content.hero.showOnMap}
+        </a>
+      </p>
+
+      {/* Hlavný háčik. Kratší stĺpec než lead — má sa čítať ako výrok. */}
+      <p class="font-serif text-h3 mt-8 max-w-[44ch]" data-reveal>
+        {content.hero.hook}
+      </p>
 
       {
-        showSecondary && (
-          <Button variant="ghost" href="#kontakt">
-            {content.hero.ctaSecondary}
-          </Button>
+        FEATURES.hooks && (
+          <p class="text-bone-muted mt-3 max-w-[44ch] text-[0.8125rem]" data-reveal>
+            {content.hooks.valuation}
+          </p>
         )
       }
+
+      <p class="text-bone-muted mt-8 text-[0.8125rem]" data-reveal>
+        {content.hero.micro}
+      </p>
     </div>
+  </div>
 
-    {/*
-      Hodiny · stav · odkaz na schému okolia. Oddeľovač pred stavom sa
-      vykreslí len keď skript stav naozaj zapísal — bez JS by inak ostali
-      dve bodky vedľa seba.
-    */}
-    <p class="hero-facts text-bone-muted text-small mt-6" data-reveal>
-      {hoursLine && <span data-numeric>{hoursLine}</span>}
-      {hoursLine && <span class="sep facts-sep" aria-hidden="true">·</span>}
-      <OpenState />
-      <span class="sep" aria-hidden="true">·</span>
-      <a
-        href={`#${content.location.id}`}
-        class="hover:text-gold transition-fast underline decoration-1 underline-offset-4"
-      >
-        {content.hero.showOnMap}
-      </a>
-    </p>
+  {/*
+    Fotka stojí v DOM **za textom** — na mobile sa tým prirodzene poskladá
+    pod neho a nepotrebuje na to `order`. Na desktope je odpozicovaná doprava.
 
-    {/* Hlavný háčik. Kratší stĺpec než lead — má sa čítať ako výrok. */}
-    <p class="font-serif text-h3 mt-8 max-w-[44ch]" data-reveal>
-      {content.hero.hook}
-    </p>
-
-    {
-      FEATURES.hooks && (
-        <p class="text-bone-muted mt-3 max-w-[44ch] text-[0.8125rem]" data-reveal>
-          {content.hooks.valuation}
-        </p>
-      )
-    }
-
-    <p class="text-bone-muted mt-8 text-[0.8125rem]" data-reveal>
-      {content.hero.micro}
-    </p>
+    Dva výrezy, každý na tvar svojho panela: 1:1 do pravého panela a 4:3 na
+    plnú šírku mobilu. Nie je to delenie podľa breakpointu, ale podľa toho,
+    aký tvar má plocha — pozri `scripts/build-images.mjs`.
+  */}
+  <div class="hero-photo">
+    <picture>
+      <source
+        media="(min-width: 1024px)"
+        type="image/avif"
+        srcset="/images/hero-panel-700.avif 700w, /images/hero-panel-1100.avif 1100w"
+        sizes="48vw"
+      />
+      <source
+        media="(min-width: 1024px)"
+        type="image/webp"
+        srcset="/images/hero-panel-700.webp 700w, /images/hero-panel-1100.webp 1100w"
+        sizes="48vw"
+      />
+      <source
+        type="image/avif"
+        srcset="/images/hero-wide-480.avif 480w, /images/hero-wide-760.avif 760w"
+        sizes="100vw"
+      />
+      <source
+        type="image/webp"
+        srcset="/images/hero-wide-480.webp 480w, /images/hero-wide-760.webp 760w"
+        sizes="100vw"
+      />
+      {/*
+        `width`/`height` nesú mobilný pomer 4:3 — to je jediný prípad, keď
+        fotka stojí v toku a jej vlastný pomer rozhoduje o rezervovanom
+        mieste. Na desktope je odpozicovaná a výšku si berie z panela.
+      */}
+      <img
+        src="/images/hero-wide-760.webp"
+        width="760"
+        height="570"
+        alt={imageAlt}
+        fetchpriority="high"
+        decoding="async"
+      />
+    </picture>
   </div>
 
   {/* Sentinel pre sticky call bar — nesmie zmiznúť, je to riadiaci prvok. */}
@@ -179,47 +199,90 @@ const eyebrow = content.hero.eyebrow
 </section>
 
 <style>
-  .hero-bg {
-    position: absolute;
-    inset: 0;
+  /*
+    Mobil: fotka je pod textom, na plnú šírku, v pomere 4:3 a **ničím
+    nezakrytá**. `aspect-ratio` drží miesto ešte pred načítaním, takže
+    nevzniká posun layoutu.
+  */
+  .hero-photo {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+  }
+
+  .hero-photo picture,
+  .hero-photo img {
+    display: block;
     width: 100%;
     height: 100%;
+  }
+
+  .hero-photo img {
     object-fit: cover;
-    /* Svetlo je vpravo hore, text vľavo. */
-    object-position: center right;
+    /* Vchod je v strede fotky, tak nech tam aj zostane. */
+    object-position: center;
   }
 
-  @media (max-width: 767px) {
-    .hero-bg {
-      object-position: center;
+  @media (width >= 64rem) {
+    /*
+      Desktop: pravý panel 48 %, text drží ľavých 52 %. Panely sa nikde
+      neprekrývajú — žiadna maska nad fotkou, žiadny gradient cez text.
+    */
+    /*
+      Fotka začína **až pod hlavičkou** (5rem = jej výška), nie na hornej
+      hrane sekcie.
+
+      Dôvod je meraný, nie estetický: hlavička je hore priehľadná a stmavne
+      až po odscrollovaní. Kým bola celá fotka pod maskou, nevadilo to — nad
+      pravým panelom je ale obloha a odkaz `Kontakt` (bone-muted) na nej mal
+      kontrast **1,20:1**. Gradient cez horný pás fotky to dvihol len na
+      3,59:1, stále pod AA, a musel by byť taký hustý, že by z neho bol
+      čierny pruh.
+
+      Posunutím fotky sa hlavička celá vráti na plný `ink-900` (8,09:1)
+      a cez fotku nejde **nič** — presne ako §1 chce.
+    */
+    .hero-photo {
+      position: absolute;
+      top: 5rem;
+      bottom: 0;
+      right: 0;
+      width: 48%;
+      aspect-ratio: auto;
     }
-  }
 
-  /*
-    Text nesmie závisieť od toho, ako obraz vyzerá.
+    /*
+      40 px prechod do tmavej na styku panelov, aby hrana nebola tvrdá.
+      Nie cez celú fotku — to bola presne tá chyba, ktorú dávka 23 opravuje.
+    */
+    .hero-photo::after {
+      content: '';
+      position: absolute;
+      inset-block: 0;
+      left: 0;
+      width: 40px;
+      pointer-events: none;
+      background: linear-gradient(to right, var(--color-ink-900), rgb(26 29 34 / 0));
+    }
 
-    Pri textúre bola pravá strana na 0,73 a nevadilo to — nebolo tam nič,
-    čo by sa dalo rozoznať. Fotku vchodu to ale zhltlo úplne, takže pravá
-    strana ide na 0,32 a spodok na 0,72, pričom zlom sa posunul na 62 % —
-    tam ešte leží textové pásmo. Ľavá strana, kde leží H1, zostáva
-    na 0,96 — kontrast textu sa tým nemení.
+    /*
+      Text sa nesmie dostať pod fotku. Percento je z kontajnera, nie z okna —
+      kontajner je zarovnaný so zvyškom stránky, takže voči hrane fotky
+      na 48 vw ostáva rezerva pri každej bežnej šírke okna.
+    */
+    .hero-text {
+      max-width: 52%;
+      padding-right: 2.5rem;
+    }
 
-    Zarážky sú zrkadlené v `scripts/check-hero-contrast.mjs` — pri zmene
-    uprav oboje a spusti ho.
-  */
-  .hero::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background:
-      linear-gradient(
-        100deg,
-        rgb(26 29 34 / 0.96) 0%,
-        rgb(26 29 34 / 0.9) 62%,
-        rgb(26 29 34 / 0.32) 100%
-      ),
-      linear-gradient(to top, rgb(26 29 34 / 0.72) 0%, rgb(26 29 34 / 0) 45%);
+    /*
+      Nadpis má v užšom stĺpci menej miesta než cez celú šírku. Bez zníženia
+      by sa riadok zalomil a riadkový reveal by clipoval na nesprávnom mieste
+      — `.line` má `overflow: hidden`.
+    */
+    .hero-title {
+      font-size: clamp(2.4rem, 4vw, 3.5rem);
+    }
   }
 
   .hero-facts {

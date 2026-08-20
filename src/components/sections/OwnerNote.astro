@@ -1,5 +1,6 @@
 ---
 import Section from '../ui/Section.astro';
+import SectionTexture from '../ui/SectionTexture.astro';
 import Eyebrow from '../ui/Eyebrow.astro';
 import { business, FEATURES } from '../../data/business.ts';
 import { getContent } from '../../data/i18n.ts';
@@ -22,7 +23,19 @@ const signatureText = signature.replace('{year}', String(business.foundedYear));
 
 {
   FEATURES.ownerNote && (
-    <Section tone="ink">
+    <Section tone="ink" class="relative overflow-hidden" innerClass="relative z-10">
+      {/*
+        Prsteň s dlhým tieňom v pravej tretine. Nemá ilustrovať výrok —
+        má dať ploche hĺbku, aby citát nevisel v prázdne.
+
+        **Vypadne, keď príde fotka manželov** (docs/PROMPT_FINAL22.md §2).
+        Skutočná fotka ľudí, ktorí firmu vedú, má prednosť pred generovaným
+        obrazom vždy; dva obrazy tu vedľa seba nebudú.
+      */}
+      <div class="owner-texture" slot="backdrop">
+        <SectionTexture texture="ring-single" sizes="(min-width: 768px) 38vw, 58vw" />
+      </div>
+
       <div class="mx-auto max-w-[52ch] py-8 text-center">
         <div>
           <Eyebrow data-reveal>{eyebrow}</Eyebrow>
@@ -50,5 +63,41 @@ const signatureText = signature.replace('{year}', String(business.foundedYear));
 <style>
   .owner-quote {
     max-width: 52ch;
+  }
+
+  /*
+    Pravá tretina, mäkký okraj doľava, aby obraz nemal viditeľnú zvislú hranu.
+    `-webkit-mask-image` musí byť vždy pri `mask-image` — bez prefixu sa maska
+    na starších iOS neaplikuje a ostane ostrá hrana cez pol sekcie.
+
+    Krytie je mobile-first a základ je ten NIŽŠÍ: pod 768 px je o tretinu
+    nižšie (0,35 → 0,23). Text je tu vycentrovaný cez celú šírku, takže na
+    úzkom displeji ide obraz priamo pod písmo.
+  */
+  .owner-texture {
+    position: absolute;
+    inset-block: 0;
+    right: 0;
+    width: 58%;
+    opacity: 0.23;
+    pointer-events: none;
+    -webkit-mask-image: linear-gradient(to left, black 25%, transparent);
+    mask-image: linear-gradient(to left, black 25%, transparent);
+  }
+
+  @media (width >= 48rem) {
+    .owner-texture {
+      width: 38%;
+      opacity: 0.35;
+      -webkit-mask-image: linear-gradient(to left, black 35%, transparent);
+      mask-image: linear-gradient(to left, black 35%, transparent);
+    }
+  }
+
+  .owner-texture :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center right;
   }
 </style>

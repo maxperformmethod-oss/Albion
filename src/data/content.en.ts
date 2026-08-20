@@ -12,7 +12,7 @@ export const content = {
   meta: {
     title: 'Staničná Záložňa Albion Lučenec | Gold, Jewellery & Electronics',
     description:
-      'Family-run pawnshop in Lučenec by the railway station, since 2001. Pawn and purchase of gold, jewellery, electronics, tools and cars. Individual valuation, agreed in person.',
+      'Family-run pawnshop in Lučenec by the railway station, since 2001. Pawn and purchase of gold, jewellery, electronics and tools. Individual valuation, agreed in person.',
   },
 
   trust: {
@@ -53,7 +53,7 @@ export const content = {
     eyebrow: '{address} — {landmark}',
     h1: 'A pawnshop where we can work something out.',
     h1Lines: ['A pawnshop where we', 'can work something out.'],
-    lead: 'Gold, jewellery, electronics, tools, cars and unusual items. We value them in front of you and tell you the figure straight.',
+    lead: 'Gold, jewellery, electronics, tools and unusual items. We value them in front of you and tell you the figure straight.',
     /** See the note in content.sk.ts. */
     imageAlt: 'Entrance to Staničná Záložňa Albion at {street} in Lučenec',
     ctaPrimary: 'Call us',
@@ -74,13 +74,14 @@ export const content = {
     id: 'sluzby',
     h2: 'What you can pawn or sell with us',
     lead: 'These are the things people bring us most often. The list is not closed.',
+    /** Pozri poznámku pri tom istom zozname v content.sk.ts. */
     items: [
-      { title: 'Gold and jewellery', detail: 'Scrap gold, damaged and unworn jewellery, chains, rings.' },
+      { title: 'Gold', detail: 'Scrap gold, chains, pendants. Damaged too.' },
+      { title: 'Rings and jewellery', detail: 'Wedding and engagement rings, bracelets, earrings. Unworn too.' },
       { title: 'Watches', detail: 'Branded and older mechanical ones. Non-working too.' },
       { title: 'Phones and electronics', detail: 'Phones, tablets, speakers, headphones, games consoles.' },
       { title: 'Computers and laptops', detail: 'Laptops, monitors, graphics cards.' },
       { title: 'Tools and machinery', detail: 'Cordless tools, grinders, welders, garden machinery.' },
-      { title: 'Cars and vehicles', detail: 'Cars, motorcycles, trailers.' },
       { title: 'Collectibles and higher-value items', detail: 'Coins, silver, medals, musical instruments.' },
       { title: 'Other items of value' },
     ] as Item[],
@@ -117,7 +118,7 @@ export const content = {
     eyebrow: 'An individual approach',
     h2: 'An unusual item is not a problem.',
     paragraphs: [
-      'Chains have a price list and a set of permitted categories. We look at what the item actually is and what condition it is in — which is why we can talk about machinery, a car, or something you inherited and have no idea what to do with.',
+      'Chains have a price list and a set of permitted categories. We look at what the item actually is and what condition it is in — which is why we can talk about machinery, or something you inherited and have no idea what to do with.',
     ],
     cta: 'Call and ask',
   },

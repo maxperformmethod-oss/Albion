@@ -94,7 +94,7 @@ Mierová nemusia byť. Sú to popisy z OSM, takže stačí spustiť
 `npm run map -- --refresh` a pozrieť sa, čo prežilo. **Stanice a BILLA sú
 stabilné, zvyšok nie.** Je to najkrehkejšia časť mapy.
 
-- Podstránky služieb pre lokálne SEO (`/vykup-zlata`, `/auta`) — silnejšie než jedna dlhá stránka
+- Podstránka `/vykup-zlata` pre lokálne SEO — silnejšia než jedna dlhá stránka
 - Sekcia „Vybraný tovar", ak by ju chceli
 - Podsetovanie fontu Inter (drží LCP linku do ~2,5 s)
 - Meno majiteľov pri odkaze, ak si to raz rozmyslia

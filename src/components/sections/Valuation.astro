@@ -27,9 +27,14 @@ const ctaText = hasPhone ? cta : primaryCta.text;
     Pravých 42 % zaberá obraz, text drží ľavých 58 %. Predtým tu bola prázdna
     pravá polovica, čo nepôsobilo vzdušne, ale nedokončene. Pod `lg` sa panel
     nevykresľuje vôbec — na úzkom displeji by z neho ostal len pruh.
+
+    Od dávky 22 je tu makro záber prsteňov namiesto zlatého saténu. Je to
+    POZADIE, nie ponuka: obraz je generovaný, takže nesmie nikde vyzerať ako
+    tovar, ktorý máme na sklade. Preto ostáva pod maskou a krytím a nikdy
+    nejde do sekcie predaja.
   */}
   <div class="valuation-panel" slot="backdrop">
-    <SectionTexture texture="gold" sizes="(min-width: 1024px) 42vw, 0px" />
+    <SectionTexture texture="rings" sizes="(min-width: 1024px) 42vw, 0px" />
   </div>
 
   <div class="measure relative z-10 lg:max-w-[58%]">
@@ -69,10 +74,19 @@ const ctaText = hasPhone ? cta : primaryCta.text;
       inset-block: 0;
       right: 0;
       width: 42%;
-      /* Mäkký okraj, aby panel nemal viditeľnú zvislú hranu. */
-      -webkit-mask-image: linear-gradient(to left, black 40%, transparent);
-      mask-image: linear-gradient(to left, black 40%, transparent);
-      opacity: 0.85;
+      /*
+        Mäkký okraj, aby panel nemal viditeľnú zvislú hranu. Fade začína skôr
+        (30 %) než pri zlatom saténe (40 %) — makro fotka má ostrú kresbu
+        a potrebuje dlhší nábeh, aby nemala čitateľný obrys.
+
+        Krytie znížené z 0,85 na 0,45 (docs/PROMPT_FINAL22.md §4). Satén bol
+        abstraktný a 0,85 uniesol; prstene pri tom istom krytí čítali ako
+        produktová fotka tovaru na predaj, čo §2 výslovne zakazuje, a ťahali
+        pozornosť z nadpisu. Pri 0,45 ostáva z obrazu hĺbka, nie ponuka.
+      */
+      -webkit-mask-image: linear-gradient(to left, black 30%, transparent);
+      mask-image: linear-gradient(to left, black 30%, transparent);
+      opacity: 0.45;
       pointer-events: none;
     }
 

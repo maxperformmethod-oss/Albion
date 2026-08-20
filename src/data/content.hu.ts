@@ -18,7 +18,7 @@ export const content = {
   meta: {
     title: 'Staničná Záložňa Albion Losonc | Arany, ékszer és elektronika felvásárlása',
     description:
-      'Családi zálogház Losoncon, az állomásnál, 2001 óta. Arany, ékszer, elektronika, szerszám és autó zálogba vétele és felvásárlása. Egyedi értékbecslés, személyes megegyezés.',
+      'Családi zálogház Losoncon, az állomásnál, 2001 óta. Arany, ékszer, elektronika és szerszám zálogba vétele és felvásárlása. Egyedi értékbecslés, személyes megegyezés.',
   },
 
   trust: {
@@ -59,7 +59,7 @@ export const content = {
     eyebrow: '{address} — {landmark}',
     h1: 'Zálogház, ahol meg tudunk egyezni.',
     h1Lines: ['Zálogház, ahol meg', 'tudunk egyezni.'],
-    lead: 'Arany, ékszer, elektronika, szerszám, autó és rendhagyó dolgok. Ön előtt értékeljük fel, az összeget pedig őszintén megmondjuk.',
+    lead: 'Arany, ékszer, elektronika, szerszám és rendhagyó dolgok. Ön előtt értékeljük fel, az összeget pedig őszintén megmondjuk.',
     /** Pozri poznámku v content.sk.ts. */
     imageAlt: 'A Staničná Záložňa Albion bejárata, {street}, Losonc',
     ctaPrimary: 'Hívjon',
@@ -80,13 +80,14 @@ export const content = {
     id: 'sluzby',
     h2: 'Mit zálogosíthat el vagy adhat el nálunk',
     lead: 'Ezekkel a dolgokkal jönnek hozzánk a leggyakrabban. A lista nem zárt.',
+    /** Pozri poznámku pri tom istom zozname v content.sk.ts. */
     items: [
-      { title: 'Arany és ékszer', detail: 'Tört arany, sérült és nem hordott ékszerek, láncok, gyűrűk.' },
+      { title: 'Arany', detail: 'Tört arany, láncok, medálok. Sérült is.' },
+      { title: 'Gyűrűk és ékszerek', detail: 'Jegy- és eljegyzési gyűrűk, karkötők, fülbevalók. Nem hordott is.' },
       { title: 'Órák', detail: 'Márkás és régebbi mechanikus órák. Nem működő is.' },
       { title: 'Mobil és elektronika', detail: 'Telefonok, tabletek, hangszórók, fejhallgatók, játékkonzolok.' },
       { title: 'Számítógépek és laptopok', detail: 'Laptopok, monitorok, videokártyák.' },
       { title: 'Szerszámok és gépek', detail: 'Akkus szerszám, csiszolók, hegesztők, kerti technika.' },
-      { title: 'Autók és járművek', detail: 'Személyautók, motorok, utánfutók.' },
       { title: 'Gyűjtői és értékesebb tárgyak', detail: 'Érmék, ezüst, érdemérmek, hangszerek.' },
       { title: 'Egyéb értékes dolgok' },
     ] as Item[],
@@ -123,7 +124,7 @@ export const content = {
     eyebrow: 'Egyedi hozzáállás',
     h2: 'A szokatlan tárgy még nem probléma.',
     paragraphs: [
-      'A láncoknak árlistájuk és engedélyezett kategóriáik vannak. Mi azt nézzük, mi a tárgy valójában és milyen állapotban van — ezért tudunk beszélni gépekről, autóról vagy arról is, amit örökölt és fogalma sincs, mit kezdjen vele.',
+      'A láncoknak árlistájuk és engedélyezett kategóriáik vannak. Mi azt nézzük, mi a tárgy valójában és milyen állapotban van — ezért tudunk beszélni gépekről vagy arról is, amit örökölt és fogalma sincs, mit kezdjen vele.',
     ],
     cta: 'Hívjon és kérdezzen',
   },

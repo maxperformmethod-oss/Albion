@@ -1,5 +1,6 @@
 ---
 import Section from '../ui/Section.astro';
+import SectionTexture from '../ui/SectionTexture.astro';
 import Eyebrow from '../ui/Eyebrow.astro';
 import { FEATURES } from '../../data/business.ts';
 import { getContent } from '../../data/i18n.ts';
@@ -19,7 +20,23 @@ const content = getContent(Astro.currentLocale);
 const { eyebrow, h2, pawn, sell, note, notExchange } = content.pawnOrSell;
 ---
 
-<Section tone="ink-soft" labelledby="pawn-or-sell-title">
+<Section
+  tone="ink-soft"
+  labelledby="pawn-or-sell-title"
+  class="relative overflow-hidden"
+  innerClass="relative z-10"
+>
+  {/*
+    Retiazky ako tón pod textom, nie ako obrázok. Pri krytí 0,09 a čiastočnom
+    odsýtení nie je čitateľný motív — ostáva teplo materiálu.
+
+    Je to POZADIE, nie ponuka. Obraz je generovaný, takže nesmie nikde
+    vyzerať ako tovar na sklade; do sekcie predaja nepatrí ani takto tlmený.
+  */}
+  <div class="pawn-texture" slot="backdrop">
+    <SectionTexture texture="chains" sizes="100vw" />
+  </div>
+
   <Eyebrow data-reveal>{eyebrow}</Eyebrow>
 
   <h2 id="pawn-or-sell-title" class="font-serif text-h2 mt-6 max-w-[20ch]" data-reveal>
@@ -52,6 +69,53 @@ const { eyebrow, h2, pawn, sell, note, notExchange } = content.pawnOrSell;
 </Section>
 
 <style>
+  /*
+    Krytie je písané mobile-first a základná hodnota je tá NIŽŠIA. Na malej
+    ploche pôsobí rovnaké krytie výraznejšie a text sa horšie číta, preto je
+    pod 768 px o tretinu nižšie (0,09 → 0,06).
+
+    Desktopové krytie je 0,09, nie 0,13 zo §2. Je to jediná full-bleed vrstva
+    na stránke, takže leží pod všetkým textom sekcie — pri 0,13 klesol kontrast
+    `bone` na 11,64:1 a cieľ je 12:1. Pri 0,09 je 12,18:1. Zvyšok rozdielu
+    vyriešilo stmavenie samotného obrazu pri gradingu, pozri build-images.mjs.
+
+    `filter` je statický. Animovaný filter na iOS prekresľuje celú vrstvu
+    v každom snímku a scroll sa začne trhať — animovať sa nesmie ani neskôr.
+  */
+  .pawn-texture {
+    position: absolute;
+    inset: 0;
+    opacity: 0.06;
+    filter: grayscale(0.25);
+    pointer-events: none;
+  }
+
+  @media (width >= 48rem) {
+    .pawn-texture {
+      opacity: 0.09;
+    }
+  }
+
+  /*
+    Na úzkom displeji je sekcia vysoká a `cover` z 16:9 obrazu vyreže úzky
+    zvislý pruh — motív sa tým niekoľkonásobne zväčší a retiazky začnú čítať
+    ako obraz, nie ako tón. Výrez preto posúvame na pravú, prázdnu časť
+    kameňa. Nie je to o krytí, ale o mierke, takže sa to nedá vyriešiť
+    stlmením.
+  */
+  .pawn-texture :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 76% center;
+  }
+
+  @media (width >= 48rem) {
+    .pawn-texture :global(img) {
+      object-position: center;
+    }
+  }
+
   .pair {
     display: grid;
     gap: 2.5rem;

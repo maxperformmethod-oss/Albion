@@ -135,6 +135,23 @@ Obe sú lacné a obe zaberú viac než čokoľvek, čo sa ešte dá spraviť na 
    skutočných recenzií od pravidelných zákazníkov spraví pre lokálne pozície
    viac než zvyšok webu dokopy. Poprosiť — **nie kupovať, nie vymýšľať.**
 
+### ⚠ Originál fotky vchodu a originál videa — potrebujeme oboje z telefónu
+
+**Originál fotky vchodu.** Súčasná je snímka obrazovky (1290×2796, čierne
+pruhy), nie pôvodná fotografia. Potrebujeme originál priamo z galérie telefónu,
+ideálne **nafotený na šírku**, aby sa nemusel orezávať z portrétu. Poslať
+e-mailom alebo cez Disk, nie cez Messenger.
+
+**To isté platí pre video.** `568×320` je na Google profil málo — tam patrí
+originál z telefónu, nie prevzatá alebo prekomprimovaná kópia. Rovnaká cesta:
+e-mail alebo Disk.
+
+> Prečo na tom trváme: Messenger aj snímka obrazovky prekódujú obraz a časť
+> detailu zahodia natrvalo. Z takého súboru sa ostrosť už nedá získať späť,
+> nech ho spracujeme akokoľvek. Od dávky 23 je fotka vo vlastnom paneli
+> a **vidno ju celú a nezakrytú**, takže na jej kvalite záleží viac než
+> predtým, keď ležala pod maskou.
+
 ### ⚠ Právne stránky sú návrh pripravený neprávnikom
 
 `/ochrana-osobnych-udajov` a `/podmienky-pouzivania` sú **návrh, nie právne
