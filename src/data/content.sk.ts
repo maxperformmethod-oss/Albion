@@ -309,7 +309,6 @@ export const content = {
       phone: 'Telefón',
       address: 'Adresa',
       hours: 'Otváracie hodiny',
-      email: 'E-mail',
     },
     /**
      * Pod telefónnym číslom, len počas otváracích hodín. Rieši reálnu
@@ -354,8 +353,11 @@ export const content = {
    * základy podľa paragrafov, zoznam sprostredkovateľov a cezhraničné prenosy.
    * Nič z toho nevieme a vymýšľať sa to nesmie.
    *
-   * `{legalName}`, `{address}`, `{ico}`, `{phone}` a `{email}` sa skladajú
-   * z business.ts. Ak údaj nie je potvrdený, príslušný riadok sa nevykreslí.
+   * `{legalName}`, `{address}`, `{ico}` a `{phone}` sa skladajú z business.ts.
+   * Ak údaj nie je potvrdený, príslušný riadok sa nevykreslí.
+   *
+   * `{email}` neexistuje — firma e-mail neponúka (PROMPT_FINAL24 §1). Kontakt
+   * na uplatnenie práv je preto telefón a adresa prevádzky.
    */
   legal: {
     /**
@@ -413,7 +415,9 @@ export const content = {
         },
         {
           h2: 'Kontakt na uplatnenie práv',
-          paragraphs: ['{phone}', '{email}'],
+          paragraphs: [
+            'Práva si môžete uplatniť telefonicky na čísle {phone} alebo osobne na adrese {address}.',
+          ],
         },
       ],
     },

@@ -87,7 +87,8 @@ export function buildPawnShopSchema(): Record<string, unknown> | undefined {
     url: siteUrl,
     image: siteUrl ? new URL('/og.png', siteUrl).href : undefined,
     telephone: business.phone,
-    email: business.email,
+    // `email` tu zámerne nie je — firma e-mail neponúka (PROMPT_FINAL24 §1).
+    // Profil na Google ho tiež nesmie mať, inak sa web a profil rozídu.
     // IČO v JSON-LD bez medzier; v pätičke s medzerami.
     identifier: isConfirmed(business.ico)
       ? { '@type': 'PropertyValue', name: 'IČO', value: business.ico }

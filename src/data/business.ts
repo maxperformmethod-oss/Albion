@@ -52,7 +52,13 @@ export interface Business {
   phoneDisplay: Confirmable<string>;
   /** Medzinárodný tvar do sekcie Kontakt a pätičky. */
   phoneDisplayLong: Confirmable<string>;
-  email: Confirmable<string>;
+
+  /**
+   * E-mail tu zámerne NIE JE (docs/PROMPT_FINAL24.md §1). Kontaktom je telefón
+   * a osobná návšteva. E-mail by bol jediný kanál, ktorý sľubuje odpoveď,
+   * na ktorú nikto nemá čas — lepšie ho nemať než ho mať a nereagovať naň.
+   * Platí to aj pre Google profil, pozri LAUNCH_CHECKLIST §D8.
+   */
 
   street: Confirmable<string>;
   city: string;
@@ -122,7 +128,6 @@ export const business: Business = {
   phone: '+421474334444',
   phoneDisplay: '047 433 44 44',
   phoneDisplayLong: '+421 47 433 44 44',
-  email: TO_CONFIRM,
 
   street: 'Kpt. Nálepku 41',
   city: 'Lučenec',
@@ -159,7 +164,7 @@ export const business: Business = {
  * Polia, ktoré smú zostať `TO_CONFIRM` bez toho, aby zastavili produkčný build.
  * Web bez nich funguje — príslušný prvok sa jednoducho nevykreslí.
  */
-export const OPTIONAL_FIELDS = ['business.email', 'business.requiredDocuments'];
+export const OPTIONAL_FIELDS = ['business.requiredDocuments'];
 
 /**
  * Prepínače správania, ktoré nie sú odvoditeľné z dát vyššie.

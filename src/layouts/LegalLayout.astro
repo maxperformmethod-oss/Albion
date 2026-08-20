@@ -13,8 +13,8 @@ const content = getContent(Astro.currentLocale);
  * lištu ako homepage a text v tej istej mierke (`measure`, teda max 68ch).
  *
  * Údaje o firme sa dopĺňajú zo `business.ts` cez zástupné znaky. Ak údaj
- * potvrdený nie je (dnes napr. e-mail), celý riadok sa nevykreslí — na právnej
- * stránke nesmie ostať prázdne miesto ani `TO_CONFIRM`.
+ * potvrdený nie je, celý riadok sa nevykreslí — na právnej stránke nesmie
+ * ostať prázdne miesto ani `TO_CONFIRM`.
  */
 export interface LegalSection {
   h2: string;
@@ -46,7 +46,6 @@ const values: Record<string, string | null> = {
   '{address}': addressWithPostalCode,
   '{ico}': isConfirmed(business.icoDisplay) ? business.icoDisplay : null,
   '{phone}': phoneDisplayLong,
-  '{email}': isConfirmed(business.email) ? business.email : null,
 };
 
 /** Vráti `null`, keď je celý odsek len nepotvrdený údaj. */

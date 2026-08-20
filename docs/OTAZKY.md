@@ -69,10 +69,9 @@ s adresou a tlačidlo do Google Máp.
 | # | Vec | Čo sa stane, keď príde |
 |---|---|---|
 | 1 | **Vlastná doména** | `PUBLIC_SITE_URL` prepíše predvolenú produkčnú adresu. Dovtedy beží všetko na `albion-bf4w.vercel.app`. |
-| 2 | **E-mail** | Pribudne riadok v sekcii Kontakt, `email` v JSON-LD a kontakt v zásadách ochrany údajov. |
-| 3 | **6 fotiek od majiteľov** | Nahradia abstraktnú textúru v hero. Zoznam je v `README.md`. Jedna z nich patrí aj vpravo do osobného odkazu — miesto je pripravené. |
-| 4 | **Doklady k založeniu** | `requiredDocuments` → poznámka pod krokmi v sekcii „Ako to funguje". |
-| 5 | **Mená majiteľov** | Zatiaľ zverejniť nechcú. Keby zmenili názor, doplní sa podpis pod osobným odkazom. |
+| 2 | **6 fotiek od majiteľov** | Nahradia abstraktnú textúru v hero. Zoznam je v `README.md`. Jedna z nich patrí aj vpravo do osobného odkazu — miesto je pripravené. |
+| 3 | **Doklady k založeniu** | `requiredDocuments` → poznámka pod krokmi v sekcii „Ako to funguje". |
+| 4 | **Mená majiteľov** | Zatiaľ zverejniť nechcú. Keby zmenili názor, doplní sa podpis pod osobným odkazom. |
 
 ---
 

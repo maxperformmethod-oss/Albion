@@ -198,7 +198,6 @@ export const content = {
       phone: 'Telefon',
       address: 'Cím',
       hours: 'Nyitvatartás',
-      email: 'E-mail',
     },
     /** Pozri poznámku v content.sk.ts. */
     phoneNote:
@@ -267,7 +266,9 @@ export const content = {
         },
         {
           h2: 'Kapcsolat a jogok érvényesítéséhez',
-          paragraphs: ['{phone}', '{email}'],
+          paragraphs: [
+            'Jogait telefonon a {phone} számon vagy személyesen a {address} címen érvényesítheti.',
+          ],
         },
       ],
     },

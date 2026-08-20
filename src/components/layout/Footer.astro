@@ -17,7 +17,6 @@ const legalLine =
     ? content.footer.legal.replace('{legalName}', legalName).replace('{ico}', ico)
     : null;
 
-const email = isConfirmed(business.email) ? business.email : null;
 ---
 
 <footer class="border-hairline-dark bg-ink-900 text-bone border-t">
@@ -37,16 +36,6 @@ const email = isConfirmed(business.email) ? business.email : null;
                 data-numeric
               >
                 {phoneDisplayLong}
-              </a>
-            )
-          }
-          {
-            email && (
-              <a
-                href={`mailto:${email}`}
-                class="hover:text-gold transition-fast mt-1 block"
-              >
-                {email}
               </a>
             )
           }

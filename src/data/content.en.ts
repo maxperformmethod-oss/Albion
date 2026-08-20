@@ -192,7 +192,6 @@ export const content = {
       phone: 'Phone',
       address: 'Address',
       hours: 'Opening hours',
-      email: 'E-mail',
     },
     /** See the note in content.sk.ts. */
     phoneNote:
@@ -261,7 +260,9 @@ export const content = {
         },
         {
           h2: 'Contact for exercising your rights',
-          paragraphs: ['{phone}', '{email}'],
+          paragraphs: [
+            'You can exercise your rights by phone on {phone} or in person at {address}.',
+          ],
         },
       ],
     },

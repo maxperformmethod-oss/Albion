@@ -24,7 +24,6 @@ Stav k 15. 8. 2026. Web je hotový — toto je zoznam vecí mimo kódu.
 | B1 | Je ocenenie zadarmo a nezáväzné? | háčik „Ocenenie na počkanie. Zadarmo a nezáväzne." |
 | B2 | Vybavíte bežnú vec na počkanie? Do koľkých minút? | háčik „Väčšinu vecí vybavíme, kým na ne čakáte." |
 | B3 | Súhlasí s vetou „Ak vám inde dajú viac, povedzte nám to. Vieme sa dohodnúť."? | **Už je naživo** — ak nesúhlasí, treba ju stiahnuť hneď |
-| B4 | E-mailová adresa | kontakt v pätke + kontakt na uplatnenie práv v zásadách |
 | B5 | Je pri záložnej činnosti potrebný občiansky preukaz? | poznámka pod krokmi v „Ako to funguje" |
 
 Po odpovediach sa `FEATURES.hooks` prepne na `true`.
@@ -61,6 +60,7 @@ Fotka č. 6 má na stránke pripravené miesto vedľa ich odkazu — teraz je ta
 | D5 | **Skontrolovať kategórie v Google profile** | Ak je medzi vedľajšími kategóriami „Zmenáreň" alebo „Currency exchange service", odstrániť. Hlavná musí zostať „Záložňa / Pawn shop". Najpravdepodobnejší zdroj zámeny, oprava trvá pol minúty. |
 | D6 | **Vygoogliť vlastný názov** a zapísať katalógy, kde je firma vedená ako zmenáreň | Hľadať „Staničná Záložňa Albion", „Albion Lučenec", „ALBION P.M.". Najčastejšie: `lucenec.sk`, `virtualne.sk`, `tatradata.sk`, `azet.sk`, `zoznam.sk`. |
 | D7 | **Poslať žiadosť o opravu** každému katalógu z D6 | Väčšina má formulár na nahlásenie chyby alebo kontaktný e-mail. Stačí jedna veta: *firma prevádzkuje záložňu, nie zmenáreň, prosíme o preradenie do správnej kategórie.* |
+| D8 | **Do Google profilu nedopĺňať e-mail** | Kontaktom je telefón. Ak je tam e-mail už uvedený, odstrániť — nech sa web a profil zhodujú. |
 
 D4 pohne lokálnymi pozíciami viac než zvyšok tohto zoznamu dokopy.
 

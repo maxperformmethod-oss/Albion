@@ -46,7 +46,8 @@ Zadanie hovorí **Kapitána Nálepku 41, pri železničnej stanici**. Ani jeden 
 6. Otváracie hodiny vrátane obedňajšej prestávky a soboty: ______
 7. Je „ALBION P.M., s.r.o." správny prevádzkovateľ a IČO 36050814 správne? ______
 8. Rok 2001 — sedí? (zápis do OR je 15. 10. 2001, čo to podporuje) ______
-9. E-mail (voliteľné): ______
+9. ~~E-mail (voliteľné)~~ — **neaktuálne, e-mail sa vedome nepoužíva.**
+   Kontaktom je telefón a osobná návšteva (docs/PROMPT_FINAL24.md §1).
 10. Doména: ______
 
 ## Identifikátory z Google profilu (odpísané 15. 8. 2026)

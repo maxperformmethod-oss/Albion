@@ -16,7 +16,6 @@ const openingHours = isConfirmed(business.openingHours)
   ? business.openingHours
   : null;
 
-const email = isConfirmed(business.email) ? business.email : null;
 
 const showDevBadge = import.meta.env.DEV && !phoneHref;
 ---
@@ -120,24 +119,6 @@ const showDevBadge = import.meta.env.DEV && !phoneHref;
               ))}
             </ul>
             <OpenState class="text-small mt-4" />
-          </dd>
-        </div>
-      )
-    }
-
-    {
-      email && (
-        <div class="border-hairline-dark border-t pt-6" data-reveal>
-          <dt class="font-sans text-eyebrow text-gold uppercase tracking-[0.14em]">
-            {labels.email}
-          </dt>
-          <dd class="mt-3">
-            <a
-              href={`mailto:${email}`}
-              class="font-serif text-h3 hover:text-gold transition-fast"
-            >
-              {email}
-            </a>
           </dd>
         </div>
       )

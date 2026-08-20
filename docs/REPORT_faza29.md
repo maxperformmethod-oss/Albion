@@ -91,9 +91,12 @@ a hranou fotky ostáva rezerva:
 | 1440 px | 680 px | 741 px | 61 px |
 | 1920 px | 935 px | 991 px | 55 px |
 
-**H1 začína presne tam, kde nadpisy sekcií nižšie** — namerané, všetky štyri
-na 145 px pri okne 1440. Preto je textový panel v bežnom `container-page`
-a nie v stĺpci s odsadením počítaným z `vw`; tam by to o pár pixelov ušlo.
+Text bol najprv v bežnom `container-page`, takže H1 začínal presne tam, kde
+nadpisy sekcií nižšie — namerané, všetky štyri na 145 px pri okne 1440.
+
+> **Toto už neplatí.** Po tvojej spätnej väzbe sa text centruje v paneli, nie
+> v kontajneri stránky, a čísla v tabuľke vyššie sú preto pôvodné. Dôvod aj
+> nové merania sú v dodatku na konci reportu.
 
 ### Mobil (< 1024 px)
 
@@ -251,3 +254,82 @@ toho.
   ležia v repe. Píšem to druhý raz, lebo to stále platí — jeden commit a sú
   preč, keď povieš.
 - **Starý priečinok v OneDrive** čaká na tvoje zmazanie.
+
+---
+
+## Dodatok — po tvojej spätnej väzbe na živú stránku
+
+Dve veci z náhľadu, ktorý si poslal: vycentrovať hero text a plynulejšia
+animácia mapy.
+
+### 1. Hero text sa centruje v paneli, nie v kontajneri stránky
+
+Mal si pravdu a dá sa to vyčísliť. Text bol v bežnom `container-page`, ten je
+centrovaný v celom okne a zastropovaný na 1200 px. Ľavý panel má ale 52 vw,
+takže čím širšie okno, tým väčší nepomer:
+
+| šírka okna | naľavo od textu | napravo k fotke |
+|---|---|---|
+| 1440 px | 152 px | 46 px |
+| 1920 px | **392 px** | **55 px** |
+
+Text tak pri širokom okne nesedel v paneli, ale bol pritlačený k fotke.
+
+Teraz sa centruje v paneli. Blok má strop 34rem, aby sa riadok neroztiahol
+cez pol obrazovky:
+
+| šírka okna | naľavo | napravo | stred textu vs stred panela |
+|---|---|---|---|
+| 1440 px | 91 px | 107 px | **8 px** |
+| 1900 px | 210 px | 226 px | **8 px** |
+
+**Za čo sme to vymenili:** hlavička aj nadpisy sekcií nižšie sedia na
+kontajneri stránky, hero text na strede panela. H1 sa preto začína o kus vľavo
+od loga — pri 1440 px o 54 px, pri 1900 px o 165 px. Je to vedomá výmena
+a napísal som ju aj do komentára v `Hero.astro`. Skúšal som to zastropovať, ale
+z toho vyšlo najhoršie z oboch: ani vycentrované, ani zarovnané. Ak ti to
+prekáža viac než pôvodný nepomer, je to jeden riadok späť.
+
+Pod 1024 px sa nemení nič — tam druhý panel nie je a stĺpec je presná kópia
+`container-page`. Overené: eyebrow aj nadpis sekcie začínajú na 20 px.
+
+### 2. Mapa — plynulejšia animácia
+
+**Našiel som pritom chybu.** Animácia nastavovala `stroke-dasharray: 1` na
+všetky cesty triedy `.rr`, čím špecificitou prebila `.rr-d { stroke-dasharray:
+4 5 }`. Dôsledok: **41 čiarkovaných ciest sa s JS vykresľovalo ako plné.**
+Čiarkovanie prežilo len s vypnutým JS, čiže prakticky nikdy.
+
+Oprava je `:not(.rr-d)` a má dva efekty naraz:
+
+- čiarkované cesty konečne vyzerajú čiarkovane,
+- prvkov s animovaným `stroke-dashoffset` je **43 namiesto 84**. Dashovanie sa
+  počíta z geometrie cesty v každom snímku, takže to bola najdrahšia časť celej
+  sekvencie. Vedľajšie cesty teraz len nabehnú krytím.
+
+Overil som, že oprava nemení vzhľad mapy: priemerná jasová hodnota výrezu mapy
+je **35,047 oproti 35,050 z 255**. Pri hrúbke 2 px a krytí 8 % je rozdiel medzi
+plnou a čiarkovanou čiarou opticky nulový.
+
+Ďalej:
+
+| | predtým | teraz |
+|---|---|---|
+| budovy — posun | 14 px | 10 px (menšia prekreslovaná plocha) |
+| budovy — štart | 700 ms | 620 ms (menší prekryv s kreslením ciest) |
+| prestrel budov | `cubic-bezier(0.34, 1.3, …)` | `cubic-bezier(0.33, 1.15, …)` |
+| trasa | 1500 ms | 1000 ms |
+| popisy | 1900–2020 ms | 1500–1620 ms |
+| koniec sekvencie | ~2,9 s | ~2,5 s |
+
+Podstatná zmena nie je v skrátení, ale v tom, že **fázy sa prekrývajú**.
+Predtým boli medzi nimi hluché miesta — budovy dosadli na 1312 ms a trasa sa
+rozbehla až na 1500 — a sekvencia sa preto čítala ako séria samostatných krokov,
+nie ako jeden pohyb. Mobilné časovanie je prepočítané rovnako (~1,5 s).
+
+**Čo som nezmeral:** presné časy snímkov. Karta sa v tomto prostredí počas
+dlhšieho merania zaškrtí na ~1 fps a čísla sú potom nezmyselné — skúšal som to
+cez `requestAnimationFrame` aj cez trace. Zlepšenie je teda podložené štruktúrou
+(polovica prvkov s najdrahšou animáciou, menšia prekreslovaná plocha, menší
+prekryv fáz), nie nameraným fps. Ak chceš tvrdé číslo, treba to premerať na
+skutočnom telefóne.

@@ -60,10 +60,9 @@ const eyebrow = content.hero.eyebrow
 
 <section aria-labelledby="hero-title" class="hero bg-ink-900 relative overflow-hidden">
   {/*
-    Textový panel je v bežnom `container-page`, takže H1 začína **presne tam,
-    kde nadpisy všetkých sekcií nižšie**. Keby mal panel vlastné odsadenie
-    počítané z `vw`, o pár pixelov by to ušlo — a to je presne ten druh
-    nezarovnania, ktoré človek nevie pomenovať, ale vidí ho.
+    Textový stĺpec je bežný `container-page` na každej šírke. H1 tak začína
+    na tej istej zvislej línii ako logo v hlavičke a ako nadpisy všetkých
+    sekcií nižšie — je to jediná vec, ktorú na tomto mieste treba dodržať.
   */}
   <div class="container-page relative z-10">
     <div class="hero-text flex min-h-[min(100svh,44rem)] flex-col justify-center pt-32 pb-20">
@@ -266,13 +265,34 @@ const eyebrow = content.hero.eyebrow
     }
 
     /*
-      Text sa nesmie dostať pod fotku. Percento je z kontajnera, nie z okna —
-      kontajner je zarovnaný so zvyškom stránky, takže voči hrane fotky
-      na 48 vw ostáva rezerva pri každej bežnej šírke okna.
+      Ľavý panel má 52 vw a text sa v ňom centruje. Strop 34rem drží dĺžku
+      riadku v čitateľnom rozsahu aj pri veľmi širokom okne — bez neho by sa
+      lead roztiahol cez pol obrazovky.
+    */
+    /*
+      Text začína na tej istej zvislej línii ako logo a všetky nadpisy sekcií
+      (docs/PROMPT_FINAL24.md §2). Preto stĺpec **ostáva kontajnerom stránky**
+      aj nad 1024 px — mení sa len to, že sa v ňom text nezalomí pod fotku.
+
+      Skúšali sme dve iné polohy a obe boli vedľa: pôvodné centrovanie
+      v okne aj centrovanie v paneli riešili vodorovnú polohu bloku, ale
+      problém nebol tam. Jedna zvislá línia cez celú stránku — logo, H1,
+      nadpisy sekcií, pätka — je to, čo oko číta ako poriadok.
+
+      Voľné miesto vpravo od textu nie je chyba, je to priestor.
     */
     .hero-text {
-      max-width: 52%;
-      padding-right: 2.5rem;
+      /*
+        ~520 px (32,5rem) — strop je v `rem`, aby sa držal typografie,
+        nie pixelov.
+
+        Druhý člen je poistka pri hrane breakpointu. Tesne nad 1024 px je
+        panel užší než 520 px + odsadenie kontajnera a text sa zabiehal
+        27 px pod fotku. `52vw` je hrana panela, `6rem` je rezerva, ktorá
+        zároveň pokryje rozdiel medzi `vw` (počíta so scrollbarom) a `%`
+        šírkou fotky (nepočíta).
+      */
+      max-width: min(32.5rem, calc(52vw - 6rem));
     }
 
     /*

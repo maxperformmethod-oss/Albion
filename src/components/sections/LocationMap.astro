@@ -347,22 +347,45 @@ const street = isConfirmed(business.street) ? business.street : null;
 
   @media (prefers-reduced-motion: no-preference) {
     /*
-      Celá sekvencia do 2,2 s a raz. Počiatočný stav visí na triede `js`:
+      Celá sekvencia raz, do ~2,5 s. Počiatočný stav visí na triede `js`:
       bez JS je mapa rovno hotová, nie prázdna.
+
+      Fázy sa **prekrývajú**. Predtým medzi nimi boli hluché miesta (budovy
+      dosadli na 1312 ms, trasa sa rozbehla až na 1500) a sekvencia sa preto
+      čítala ako séria samostatných krokov, nie ako jeden pohyb.
+
+      Druhé pravidlo: naraz sa nesmie prekresľovať priveľa prvkov. Kreslenie
+      ciest a nábeh budov sa prekrývajú len krátko, nie celou dĺžkou.
     */
     :global(.js) .map-frame > picture,
     :global(.js) [data-map] :global(.glow) {
       opacity: 0;
     }
 
-    :global(.js) [data-map] :global(.rr) {
+    /*
+      Kreslia sa **len plné cesty**. Čiarkované si musia nechať svoju
+      `stroke-dasharray: 4 5`, inak z nich `1` spraví plnú čiaru.
+
+      Presne to sa dialo: pravidlo bez `:not()` prebilo špecificitou `.rr-d`
+      a 41 čiarkovaných ciest sa s JS vykresľovalo ako plné. Čiarkovanie
+      prežilo len s vypnutým JS, čiže prakticky nikdy.
+
+      Vedľajší efekt opravy je výkon: prvkov s animovaným `stroke-dashoffset`
+      je 43 namiesto 84. Dashovanie sa počíta z geometrie cesty v každom
+      snímku, takže je to najdrahšia časť celej sekvencie.
+    */
+    :global(.js) [data-map] :global(.rr:not(.rr-d)) {
       stroke-dasharray: 1;
       stroke-dashoffset: 1;
     }
 
+    :global(.js) [data-map] :global(.rr-d) {
+      opacity: 0;
+    }
+
     :global(.js) [data-map] :global(.b) {
       opacity: 0;
-      transform: translateY(14px);
+      transform: translateY(10px);
     }
 
     :global(.js) [data-map] :global(.route-mask) {
@@ -381,7 +404,7 @@ const street = isConfirmed(business.street) ? business.street : null;
 
       :global(.js) [data-map].is-drawn :global(.shadows) {
         opacity: 0.35;
-        transition: opacity 300ms var(--ease-out-quint) 940ms;
+        transition: opacity 320ms var(--ease-out-quint) 860ms;
       }
     }
 
@@ -394,89 +417,109 @@ const street = isConfirmed(business.street) ? business.street : null;
       transition: opacity 500ms var(--ease-out-quint);
     }
 
-    :global(.js) [data-map].is-drawn :global(.rr) {
+    :global(.js) [data-map].is-drawn :global(.rr:not(.rr-d)) {
       stroke-dashoffset: 0;
-      transition: stroke-dashoffset 600ms var(--ease-out-quint) 260ms;
+      transition: stroke-dashoffset 720ms var(--ease-out-quint) 180ms;
+    }
+
+    /*
+      Čiarkované cesty sa nekreslia, len nabehnú — sú to vedľajšie ulice
+      a nemajú si pýtať rovnakú pozornosť ako hlavný ťah.
+    */
+    :global(.js) [data-map].is-drawn :global(.rr-d) {
+      opacity: 1;
+      transition: opacity 460ms var(--ease-out-quint) 380ms;
     }
 
     /*
       Ľahký prestrel — budova sa o kúsok prehupne a sadne. Vlna ide odzadu
-      dopredu, `--d` je 0–24, teda najviac 192 ms oneskorenia.
+      dopredu, `--d` je 0–24, teda najviac 168 ms oneskorenia.
+
+      Štart je na 620 ms, nie na 700: cesty dovtedy dokreslia väčšinu svojej
+      dráhy, takže sa prekrývajú len krátko a nie je to vidieť na plynulosti.
+      Posun je 10 px namiesto 14 — menšia prekreslovaná plocha pri rovnakom
+      dojme.
     */
     :global(.js) [data-map].is-drawn :global(.b) {
       opacity: 1;
       transform: none;
       transition:
         opacity 320ms var(--ease-out-quint),
-        transform 420ms cubic-bezier(0.34, 1.3, 0.64, 1);
-      transition-delay: calc(700ms + var(--d, 0) * 8ms);
+        transform 420ms cubic-bezier(0.33, 1.15, 0.62, 1);
+      transition-delay: calc(620ms + var(--d, 0) * 7ms);
     }
 
     :global(.js) [data-map].is-drawn :global(.route-mask) {
       opacity: 1;
       stroke-dashoffset: 0;
       transition:
-        opacity 1ms 1500ms,
-        stroke-dashoffset 500ms var(--ease-out-quint) 1500ms;
+        opacity 1ms 1000ms,
+        stroke-dashoffset 560ms var(--ease-out-quint) 1000ms;
     }
 
     :global(.js) [data-map].is-drawn :global(.glow) {
       opacity: 1;
-      transition: opacity 600ms var(--ease-out-quint) 1600ms;
+      transition: opacity 600ms var(--ease-out-quint) 1120ms;
     }
 
     :global(.js) [data-map].is-drawn :global(.here) {
       opacity: 1;
-      transition: opacity 260ms var(--ease-out-quint) 1800ms;
+      transition: opacity 260ms var(--ease-out-quint) 1300ms;
     }
 
     :global(.js) [data-map].is-drawn :global(.pulse) {
       transform-box: fill-box;
       transform-origin: center;
-      animation: map-pulse 400ms var(--ease-out-quint) 1820ms 1 forwards;
+      animation: map-pulse 420ms var(--ease-out-quint) 1340ms 1 forwards;
     }
 
     /*
-      Pod 768 px je celá sekvencia kratšia (1,4 s namiesto 2,2 s) a stagger
+      Pod 768 px je celá sekvencia kratšia (~1,5 s namiesto ~2,5 s) a stagger
       polovičný. Na malej ploche pôsobí dlhá animácia ako čakanie a mobilné
       GPU zvládnu naraz menej prvkov.
     */
     @media (width < 48rem) {
-      :global(.js) [data-map].is-drawn :global(.rr) {
-        transition-duration: 380ms;
-        transition-delay: 160ms;
+      :global(.js) [data-map].is-drawn :global(.rr:not(.rr-d)) {
+        transition-duration: 440ms;
+        transition-delay: 120ms;
+      }
+
+      :global(.js) [data-map].is-drawn :global(.rr-d) {
+        transition-duration: 300ms;
+        transition-delay: 240ms;
       }
 
       :global(.js) [data-map].is-drawn :global(.b) {
         transition-duration: 220ms, 280ms;
-        transition-delay: calc(440ms + var(--d, 0) * 4ms);
+        transition-delay: calc(400ms + var(--d, 0) * 4ms);
       }
 
       :global(.js) [data-map].is-drawn :global(.route-mask) {
         transition:
-          opacity 1ms 940ms,
-          stroke-dashoffset 320ms var(--ease-out-quint) 940ms;
+          opacity 1ms 640ms,
+          stroke-dashoffset 340ms var(--ease-out-quint) 640ms;
       }
 
       :global(.js) [data-map].is-drawn :global(.glow) {
-        transition-delay: 1000ms;
+        transition-delay: 720ms;
       }
 
       :global(.js) [data-map].is-drawn :global(.here) {
-        transition-delay: 1140ms;
+        transition-delay: 860ms;
       }
 
       :global(.js) [data-map].is-drawn :global(.pulse) {
-        animation-delay: 1160ms;
+        animation-delay: 890ms;
       }
     }
 
     /*
       Po dokreslení prejde po trase raz svetlejší zlatý tón — je to ten moment,
       ktorý oku povie „takto sa tam dostaneš“. Jeden prechod, nie slučka.
+      Začína ešte počas dokresľovania trasy, aby na ňu plynulo nadviazal.
     */
     :global(.js) [data-map].is-drawn :global(.route) {
-      animation: route-sheen 900ms var(--ease-out-quint) 2000ms 1 both;
+      animation: route-sheen 800ms var(--ease-out-quint) 1700ms 1 both;
     }
 
     @keyframes route-sheen {
@@ -493,7 +536,7 @@ const street = isConfirmed(business.street) ? business.street : null;
 
     /* Budova Albionu: po dosadnutí jednorazovo zosilnie žiara a vráti sa. */
     :global(.js) [data-map].is-drawn :global(.glow) {
-      animation: glow-pulse 700ms var(--ease-out-quint) 2200ms 1 both;
+      animation: glow-pulse 700ms var(--ease-out-quint) 1760ms 1 both;
     }
 
     @keyframes glow-pulse {
@@ -511,7 +554,7 @@ const street = isConfirmed(business.street) ? business.street : null;
     }
 
     /*
-      Popisy nabehnú až na konci, po 60 ms za sebou:
+      Popisy nabehnú ku koncu, po 60 ms za sebou:
       Železničná stanica → Autobusová stanica → Albion.
     */
     :global(.js) [data-map] :global(.label),
@@ -530,15 +573,37 @@ const street = isConfirmed(business.street) ? business.street : null;
     }
 
     :global(.js) [data-map].is-drawn :global(.label) {
-      transition-delay: 1900ms;
+      transition-delay: 1500ms;
     }
 
     :global(.js) [data-map].is-drawn :global(.label) + :global(.label) {
-      transition-delay: 1960ms;
+      transition-delay: 1560ms;
     }
 
     :global(.js) [data-map].is-drawn :global(.here-label) {
-      transition-delay: 2020ms;
+      transition-delay: 1620ms;
+    }
+
+    @media (width < 48rem) {
+      :global(.js) [data-map].is-drawn :global(.route) {
+        animation-delay: 1120ms;
+      }
+
+      :global(.js) [data-map].is-drawn :global(.glow) {
+        animation-delay: 1160ms;
+      }
+
+      :global(.js) [data-map].is-drawn :global(.label) {
+        transition-delay: 980ms;
+      }
+
+      :global(.js) [data-map].is-drawn :global(.label) + :global(.label) {
+        transition-delay: 1020ms;
+      }
+
+      :global(.js) [data-map].is-drawn :global(.here-label) {
+        transition-delay: 1060ms;
+      }
     }
 
     @keyframes map-pulse {
